@@ -1,0 +1,15 @@
+node_modules
+.git
+.gitignore
+README.md
+.env*.local
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+upload/*
+!upload/Images
+!upload/Images/Cars
+!upload/Images/KYC
+generated
+

@@ -1,0 +1,68 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 210 11% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 210 11% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 11% 15%;
+
+    --primary: 152 46% 33%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 140 25% 95%;
+    --secondary-foreground: 152 46% 25%;
+
+    --muted: 140 15% 95%;
+    --muted-foreground: 210 8% 45%;
+
+    --accent: 152 46% 33%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 15% 90%;
+    --input: 210 15% 90%;
+    --ring: 152 46% 33%;
+
+    --radius: 0.75rem;
+
+    --mojtermin-green: 152 46% 33%;
+    --mojtermin-green-light: 152 40% 94%;
+    --mojtermin-green-dark: 152 50% 22%;
+    --mojtermin-sage: 160 20% 90%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  html, body {
+    overflow-x: hidden;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    @apply tracking-tight;
+  }
+}

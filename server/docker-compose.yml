@@ -1,0 +1,21 @@
+services:
+  api:
+    container_name: api-homeglitz
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - AppNet
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=AppNet"
+      - "traefik.http.routers.api-homeglitz.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.api-homeglitz.entrypoints=websecure"
+      - "traefik.http.routers.api-homeglitz.tls=true"
+      - "traefik.http.services.api-homeglitz.loadbalancer.server.port=${PORT}"
+networks:
+  AppNet:
+    external: true
