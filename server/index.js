@@ -5,6 +5,7 @@ const dotenv = require("dotenv");
 const bcrypt = require("bcrypt");
 const prisma = require("./prisma/prisma");
 const adminAuthRoutes = require("./routes/adminAuth.routes");
+const adminHospitalsRoutes = require("./routes/adminHospitals.routes");
 
 dotenv.config();
 
@@ -30,6 +31,7 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 app.use("/api/admin/auth", adminAuthRoutes);
+app.use("/api/admin/hospitals", adminHospitalsRoutes);
 
 app.post("/api/availability", async (req, res, next) => {
   try {

@@ -26,3 +26,40 @@ model Admin {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
+
+model Hospital {
+  id             String            @id @default(uuid())
+  name           String            @unique
+  city           String?
+  country        String?
+  address        String?
+  phone          String?
+  email          String?
+  website        String?
+  emergency24h   Boolean?
+  bedCount       Int?
+  latitude       Float?
+  longitude      Float?
+  averageWaitDays Int?
+  isActive       Boolean           @default(true)
+  notes          String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  services       HospitalService[]
+}
+
+model HospitalService {
+  id               String    @id @default(uuid())
+  hospitalId       String
+  specialty        String?
+  procedureName    String?
+  estimatedWaitDays Int?
+  earliestDate     DateTime?
+  isActive         Boolean   @default(true)
+  notes            String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  hospital         Hospital  @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  @@index([hospitalId])
+}
