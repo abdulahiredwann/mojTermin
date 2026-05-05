@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FloatingChatDemo } from "@/components/FloatingChatDemo";
 import { useLanguage } from "@/contexts/LanguageContext";
-import type { Locale } from "@/locales/landing";
 
 function MojTerminLogo() {
   return (
@@ -55,120 +54,14 @@ function LanguageToggle() {
   );
 }
 
-function HeroIllustration({ locale }: { locale: Locale }) {
-  const monthLabel =
-    typeof Intl !== "undefined"
-      ? new Date().toLocaleDateString(locale === "sl" ? "sl-SI" : "en-GB", {
-          month: "long",
-          year: "numeric",
-        })
-      : "2026";
-
+function HeroIllustration() {
   return (
     <div className="relative w-full max-w-md mx-auto">
-      <svg viewBox="0 0 400 400" className="w-full h-auto" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path
-          d="M80 50 C150 20, 350 40, 370 120 C390 200, 380 300, 300 350 C220 400, 100 380, 60 300 C20 220, 10 80, 80 50Z"
-          fill="#2E7D5B"
-          opacity="0.12"
-        />
-        <path
-          d="M100 80 C160 50, 330 60, 350 130 C370 200, 360 280, 290 330 C220 380, 120 360, 80 290 C40 220, 40 110, 100 80Z"
-          fill="#2E7D5B"
-          opacity="0.08"
-        />
-
-        <g transform="translate(120, 80)">
-          <rect x="0" y="0" width="160" height="140" rx="16" fill="white" filter="drop-shadow(0 4px 12px rgba(0,0,0,0.08))" />
-          <rect x="0" y="0" width="160" height="36" rx="16" fill="#2E7D5B" />
-          <rect x="0" y="18" width="160" height="18" fill="#2E7D5B" />
-          <text
-            x="80"
-            y="24"
-            textAnchor="middle"
-            fill="white"
-            fontSize="11"
-            fontWeight="600"
-            fontFamily="Inter, sans-serif"
-          >
-            {monthLabel}
-          </text>
-          {(locale === "sl" ? ["P", "T", "S", "Č", "P", "S", "N"] : ["M", "T", "W", "T", "F", "S", "S"]).map(
-            (d, i) => (
-              <text
-                key={`day-${i}`}
-                x={18 + i * 20}
-                y="56"
-                textAnchor="middle"
-                fill="#999"
-                fontSize="8"
-                fontFamily="Inter, sans-serif"
-              >
-                {d}
-              </text>
-            ),
-          )}
-          {Array.from({ length: 28 }, (_, i) => {
-            const row = Math.floor(i / 7);
-            const col = i % 7;
-            const isHighlighted = i === 10;
-            return (
-              <g key={`cal-${i}`}>
-                {isHighlighted && <circle cx={18 + col * 20} cy={74 + row * 18} r="8" fill="#2E7D5B" />}
-                <text
-                  x={18 + col * 20}
-                  y={77 + row * 18}
-                  textAnchor="middle"
-                  fill={isHighlighted ? "white" : "#333"}
-                  fontSize="8"
-                  fontFamily="Inter, sans-serif"
-                >
-                  {i + 1}
-                </text>
-              </g>
-            );
-          })}
-        </g>
-
-        <g transform="translate(290, 60)">
-          <circle cx="35" cy="35" r="35" fill="white" filter="drop-shadow(0 4px 12px rgba(0,0,0,0.08))" />
-          <circle cx="35" cy="35" r="28" fill="none" stroke="#2E7D5B" strokeWidth="2" />
-          <line x1="35" y1="35" x2="35" y2="18" stroke="#2E7D5B" strokeWidth="2.5" strokeLinecap="round" />
-          <line x1="35" y1="35" x2="48" y2="35" stroke="#2E7D5B" strokeWidth="2" strokeLinecap="round" />
-          <circle cx="35" cy="35" r="3" fill="#2E7D5B" />
-        </g>
-
-        <g transform="translate(60, 200)">
-          <circle cx="35" cy="35" r="35" fill="white" filter="drop-shadow(0 4px 12px rgba(0,0,0,0.08))" />
-          <path
-            d="M25 20 L25 35 C25 42 30 48 38 48 C46 48 50 42 50 35 L50 30"
-            stroke="#2E7D5B"
-            strokeWidth="2.5"
-            fill="none"
-            strokeLinecap="round"
-          />
-          <circle cx="38" cy="48" r="4" fill="#2E7D5B" opacity="0.3" />
-          <circle cx="25" cy="18" r="4" fill="#2E7D5B" />
-          <circle cx="50" cy="18" r="4" fill="#2E7D5B" />
-        </g>
-
-        <g transform="translate(280, 230)">
-          <circle cx="30" cy="30" r="30" fill="white" filter="drop-shadow(0 4px 12px rgba(0,0,0,0.08))" />
-          <circle cx="30" cy="30" r="20" fill="#2E7D5B" opacity="0.15" />
-          <path
-            d="M21 30 L27 36 L39 24"
-            stroke="#2E7D5B"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            fill="none"
-          />
-        </g>
-
-        <circle cx="180" cy="300" r="4" fill="#2E7D5B" opacity="0.2" />
-        <circle cx="320" cy="180" r="3" fill="#2E7D5B" opacity="0.15" />
-        <circle cx="100" cy="140" r="3" fill="#2E7D5B" opacity="0.2" />
-      </svg>
+      <img
+        src="/Images/hero-illustration.png"
+        alt="MojTermin hero illustration"
+        className="w-full h-auto object-contain"
+      />
     </div>
   );
 }
@@ -236,20 +129,33 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="relative min-h-screen bg-white overflow-hidden">
+      <div className="absolute top-0 right-0 w-1/2 h-[44rem] pointer-events-none z-0">
+        <svg
+          viewBox="0 0 600 700"
+          className="absolute top-0 right-0 h-full w-auto"
+          fill="none"
+          preserveAspectRatio="xMaxYMin slice"
+        >
+          <path
+            d="M200 0 C400 0, 600 100, 600 250 C600 400, 500 500, 600 700 L600 700 L600 0Z"
+            fill="#2E7D5B"
+            opacity="0.06"
+          />
+          <path
+            d="M300 0 C450 50, 550 150, 580 300 C600 400, 550 550, 600 700 L600 700 L600 0Z"
+            fill="#2E7D5B"
+            opacity="0.04"
+          />
+        </svg>
+      </div>
+
       <header className="w-full px-6 md:px-12 py-5 flex flex-wrap items-center justify-between gap-4">
         <MojTerminLogo />
         <LanguageToggle />
       </header>
 
-      <section className="relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-1/2 h-full pointer-events-none">
-          <svg viewBox="0 0 600 700" className="absolute top-0 right-0 h-full w-auto" fill="none" preserveAspectRatio="xMaxYMid slice">
-            <path d="M200 0 C400 0, 600 100, 600 250 C600 400, 500 500, 600 700 L600 700 L600 0Z" fill="#2E7D5B" opacity="0.06" />
-            <path d="M300 0 C450 50, 550 150, 580 300 C600 400, 550 550, 600 700 L600 700 L600 0Z" fill="#2E7D5B" opacity="0.04" />
-          </svg>
-        </div>
-
+      <section className="relative z-10">
         <div className="max-w-7xl mx-auto px-6 md:px-12 py-12 md:py-20">
           <div className="grid md:grid-cols-2 gap-10 items-start">
             <div className="relative z-10 space-y-8">
@@ -353,7 +259,7 @@ export default function LandingPage() {
             </div>
 
             <div className="relative z-10 hidden md:block md:sticky md:top-24">
-              <HeroIllustration locale={locale} />
+              <HeroIllustration />
             </div>
           </div>
         </div>

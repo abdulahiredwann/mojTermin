@@ -1,0 +1,63 @@
+ {/* HOW IT WORKS */}
+        <section className="bg-background py-24">
+          <div className="mx-auto max-w-6xl px-6">
+            <h2 className="text-center text-3xl font-bold text-foreground sm:text-4xl">
+              Kako deluje?
+            </h2>
+            <div className="mt-16 grid gap-12 md:grid-cols-3">
+              {steps.map((s, i) => (
+                <div key={s.title} className="relative flex flex-col items-center text-center">
+                  <div className="flex h-44 w-44 items-center justify-center rounded-full bg-secondary">
+                    <img
+                      src={s.img}
+                      alt=""
+                      width={512}
+                      height={512}
+                      loading="lazy"
+                      className="h-28 w-28 object-contain"
+                    />
+                  </div>
+                  {i < steps.length - 1 && (
+                    <span
+                      aria-hidden
+                      className="absolute right-[-1.5rem] top-20 hidden text-3xl text-primary/60 md:block"
+                    >
+                      →
+                    </span>
+                  )}
+                  <h3 className="mt-6 text-lg font-semibold text-foreground">{s.title}</h3>
+                  <p className="mt-2 max-w-[14rem] text-sm text-muted-foreground">{s.text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* WHY */}
+        <section className="relative overflow-hidden bg-soft-bg py-24">
+          <CrossPattern />
+          <div className="relative mx-auto max-w-6xl px-6">
+            <h2 className="text-center text-3xl font-bold text-foreground sm:text-4xl">
+              Zakaj izbrati MojTermin?
+            </h2>
+            <div className="mt-14 grid gap-6 md:grid-cols-3">
+              {features.map((f) => (
+                <div
+                  key={f.title}
+                  className="rounded-2xl bg-card p-8 text-center shadow-sm ring-1 ring-border"
+                >
+                  <img
+                    src={f.img}
+                    alt=""
+                    width={512}
+                    height={512}
+                    loading="lazy"
+                    className="mx-auto h-32 w-32 object-contain"
+                  />
+                  <h3 className="mt-4 text-lg font-semibold text-foreground">{f.title}</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">{f.text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
