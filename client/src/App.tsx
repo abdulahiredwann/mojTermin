@@ -2,20 +2,41 @@ import AboutPage from "./components/AboutPage";
 import ContactPage from "./components/ContactPage";
 import LandingPage from "./components/LandingPage";
 import PrivacyPage from "./components/PrivacyPage";
+import { AdminComingSoonPage } from "./components/admin/AdminComingSoonPage";
+import { AdminLayout } from "./components/admin/AdminLayout";
+import { AdminLoginPage } from "./components/admin/AdminLoginPage";
+import { AdminProtectedRoute } from "./components/admin/AdminProtectedRoute";
+import { AdminAuthProvider } from "./contexts/AdminAuthContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 function App() {
   return (
     <LanguageProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-        </Routes>
-      </BrowserRouter>
+      <AdminAuthProvider>
+        <BrowserRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+
+            <Route path="/admin/login" element={<AdminLoginPage />} />
+            <Route element={<AdminProtectedRoute />}>
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminComingSoonPage title="User list" />} />
+                <Route path="users" element={<AdminComingSoonPage title="User list" />} />
+                <Route
+                  path="appointments"
+                  element={<AdminComingSoonPage title="Appointment lists" />}
+                />
+                <Route path="hospitals" element={<AdminComingSoonPage title="Hospitals" />} />
+                <Route path="settings" element={<AdminComingSoonPage title="Setting" />} />
+              </Route>
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </AdminAuthProvider>
     </LanguageProvider>
   );
 }
