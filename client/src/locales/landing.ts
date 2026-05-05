@@ -37,6 +37,10 @@ export type LandingStrings = {
   benefit2Body: string;
   benefit3Title: string;
   benefit3Body: string;
+  navHome: string;
+  navPrivacy: string;
+  navAbout: string;
+  navContact: string;
   /** Floating AI chat (frontend demo) */
   chatFabOpenAria: string;
   chatFabCloseAria: string;
@@ -103,6 +107,10 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     benefit2Body: "Precise matching of your referral with available slots.",
     benefit3Title: "Stress-free",
     benefit3Body: "The process is simple and clear for the user.",
+    navHome: "Home",
+    navPrivacy: "Privacy",
+    navAbout: "About us",
+    navContact: "Contact",
     chatFabOpenAria: "Open AI assistant (demo)",
     chatFabCloseAria: "Close assistant",
     chatTitle: "Assistant",
@@ -168,6 +176,10 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     benefit2Body: "Natančna uskladitev napotnice s prostimi mesti.",
     benefit3Title: "Brez stresa",
     benefit3Body: "Postopek je enostaven in pregleden za uporabnika.",
+    navHome: "Domov",
+    navPrivacy: "Zasebnost",
+    navAbout: "O nas",
+    navContact: "Kontakt",
     chatFabOpenAria: "Odpri pomočnika AI (demo)",
     chatFabCloseAria: "Zapri pomočnika",
     chatTitle: "Pomočnik",

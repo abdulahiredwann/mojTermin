@@ -5,64 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FloatingChatDemo } from "@/components/FloatingChatDemo";
+import { SiteHeader } from "@/components/SiteHeader";
 import { useLanguage } from "@/contexts/LanguageContext";
-
-function MojTerminLogo() {
-  return (
-    <div className="flex items-center gap-2">
-      <div className="w-10 h-10 rounded-full bg-[#2E7D5B] flex items-center justify-center">
-        <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none">
-          <path
-            d="M12 2C8.5 2 3 5 3 12C3 17.5 8 22 12 22C16 22 21 17.5 21 12C21 5 15.5 2 12 2Z"
-            fill="white"
-            opacity="0.9"
-          />
-          <path
-            d="M9 11H15M12 8V14"
-            stroke="#2E7D5B"
-            strokeWidth="2"
-            strokeLinecap="round"
-          />
-        </svg>
-      </div>
-      <span className="text-xl font-bold text-[#2E7D5B]">MojTermin</span>
-    </div>
-  );
-}
-
-function LanguageToggle() {
-  const { locale, setLocale, t } = useLanguage();
-  return (
-    <div
-      className="inline-flex rounded-full border border-gray-200 bg-gray-50/80 p-1 text-sm shadow-sm"
-      role="group"
-      aria-label="Language"
-    >
-      <button
-        type="button"
-        onClick={() => setLocale("en")}
-        className={`rounded-full px-3 py-1.5 font-medium transition-colors ${
-          locale === "en"
-            ? "bg-[#2E7D5B] text-white shadow-sm"
-            : "text-gray-600 hover:text-gray-900"
-        }`}
-      >
-        {t.langEnglish}
-      </button>
-      <button
-        type="button"
-        onClick={() => setLocale("sl")}
-        className={`rounded-full px-3 py-1.5 font-medium transition-colors ${
-          locale === "sl"
-            ? "bg-[#2E7D5B] text-white shadow-sm"
-            : "text-gray-600 hover:text-gray-900"
-        }`}
-      >
-        {t.langSlovenian}
-      </button>
-    </div>
-  );
-}
 
 function HeroIllustration() {
   return (
@@ -123,32 +67,7 @@ export default function LandingPage() {
         </svg>
       </div>
 
-      <header className="w-full px-6 md:px-12 py-5">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:items-center">
-          <div className="md:justify-self-start">
-            <MojTerminLogo />
-          </div>
-
-          <nav className="flex flex-wrap items-center justify-center gap-6 text-sm font-medium text-gray-600 md:gap-8">
-            <Link to="/" className="transition-colors hover:text-[#2E7D5B]">
-              Home
-            </Link>
-            <Link to="/privacy" className="transition-colors hover:text-[#2E7D5B]">
-              Privacy
-            </Link>
-            <a href="#about-us" className="transition-colors hover:text-[#2E7D5B]">
-              About Us
-            </a>
-            <a href="#contact-us" className="transition-colors hover:text-[#2E7D5B]">
-              Contact Us
-            </a>
-          </nav>
-
-          <div className="md:justify-self-end">
-            <LanguageToggle />
-          </div>
-        </div>
-      </header>
+      <SiteHeader borderBottom={false} />
 
       <section id="home" className="relative z-10">
         <div className="max-w-7xl mx-auto px-6 md:px-12 py-12 md:py-20">
@@ -334,7 +253,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="about-us" className="bg-white py-16 md:py-24">
+      <section className="bg-white py-16 md:py-24">
         <div className="max-w-6xl mx-auto px-6 md:px-12">
           <h2 className="text-center text-3xl md:text-4xl font-bold text-gray-900">
             {t.benefitsTitle}
@@ -381,33 +300,21 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <footer id="contact-us" className="border-t border-gray-100 py-10">
+      <footer className="border-t border-gray-100 py-10">
         <div className="max-w-5xl mx-auto px-6 md:px-12 text-center">
           <nav className="flex flex-wrap justify-center gap-8 mb-6">
-            <a
-              href="#"
-              className="text-sm text-gray-500 hover:text-[#2E7D5B] transition-colors"
-            >
+            <Link to="/about" className="text-sm text-gray-500 hover:text-[#2E7D5B] transition-colors">
               {t.footerAbout}
-            </a>
-            <a
-              href="#"
-              className="text-sm text-gray-500 hover:text-[#2E7D5B] transition-colors"
-            >
+            </Link>
+            <a href="#" className="text-sm text-gray-500 hover:text-[#2E7D5B] transition-colors">
               {t.footerTerms}
             </a>
-            <a
-              href="#"
-              className="text-sm text-gray-500 hover:text-[#2E7D5B] transition-colors"
-            >
+            <Link to="/privacy" className="text-sm text-gray-500 hover:text-[#2E7D5B] transition-colors">
               {t.footerPrivacy}
-            </a>
-            <a
-              href="#"
-              className="text-sm text-gray-500 hover:text-[#2E7D5B] transition-colors"
-            >
+            </Link>
+            <Link to="/contact" className="text-sm text-gray-500 hover:text-[#2E7D5B] transition-colors">
               {t.footerContact}
-            </a>
+            </Link>
           </nav>
           <p className="text-xs text-gray-400">{t.footerCopyright}</p>
         </div>
