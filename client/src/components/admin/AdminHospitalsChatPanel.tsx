@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 type ChatMessage = {
   id: string;
@@ -19,16 +19,16 @@ export function AdminHospitalsChatPanel({
   tagPrompt,
   setTagPrompt,
 }: AdminHospitalsChatPanelProps) {
-  const [chatInput, setChatInput] = useState("");
+  const [chatInput, setChatInput] = useState(tagPrompt);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
 
-  const panelClass = useMemo(
-    () =>
-      isOpen
-        ? "w-[360px] min-w-[360px] opacity-100"
-        : "w-0 min-w-0 opacity-0 pointer-events-none overflow-hidden",
-    [isOpen]
-  );
+  useEffect(() => {
+    if (tagPrompt) {
+      setChatInput(tagPrompt);
+    }
+  }, [tagPrompt]);
+
+  if (!isOpen) return null;
 
   const handleSend = () => {
     const text = chatInput.trim();
@@ -50,37 +50,24 @@ export function AdminHospitalsChatPanel({
     setChatInput("");
   };
 
+  const showSelectedContext = selectedHospitalIds.length > 0 && tagPrompt.trim().length > 0;
+
   return (
-    <aside
-      className={`rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-300 ${panelClass}`}
-    >
+    <aside className="fixed right-6 top-24 z-50 h-[calc(100vh-8rem)] w-[360px] rounded-2xl border border-gray-200 bg-white shadow-lg">
       <div className="border-b border-gray-100 p-4">
         <p className="text-sm font-semibold text-gray-900">Chat context</p>
         <p className="mt-1 text-xs text-gray-500">Flow-only panel (AI integration later)</p>
       </div>
 
-      <div className="border-b border-gray-100 p-4">
-        <div className="mb-2 rounded-lg border border-[#2E7D5B]/20 bg-[#f3faf6] p-2 text-xs text-gray-700">
-          Selected rows: <span className="font-semibold">{selectedHospitalIds.length}</span>
+      {showSelectedContext ? (
+        <div className="border-b border-gray-100 p-3">
+          <div className="rounded-lg border border-[#2E7D5B]/20 bg-[#f3faf6] p-2 text-xs text-gray-700">
+            Tagged rows: <span className="font-semibold">{selectedHospitalIds.length}</span>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <input
-            value={chatInput}
-            onChange={(e) => setChatInput(e.target.value)}
-            placeholder="Type instruction..."
-            className="h-9 w-full rounded-md border border-gray-300 px-2 text-sm"
-          />
-          <button
-            type="button"
-            onClick={handleSend}
-            className="h-9 rounded-md bg-[#2E7D5B] px-3 text-xs font-medium text-white hover:bg-[#256B4D]"
-          >
-            Send
-          </button>
-        </div>
-      </div>
+      ) : null}
 
-      <div className="max-h-[420px] space-y-2 overflow-y-auto p-4">
+      <div className="h-[calc(100%-8.2rem)] space-y-2 overflow-y-auto p-4">
         {messages.length === 0 ? (
           <p className="text-xs text-gray-500">No chat history yet.</p>
         ) : (
@@ -97,14 +84,22 @@ export function AdminHospitalsChatPanel({
         )}
       </div>
 
-      <div className="border-t border-gray-100 p-4">
-        <textarea
-          value={tagPrompt}
-          onChange={(e) => setTagPrompt(e.target.value)}
-          rows={4}
-          placeholder="Tagged context for selected rows..."
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs"
-        />
+      <div className="border-t border-gray-100 p-3">
+        <div className="flex gap-2">
+          <input
+            value={chatInput}
+            onChange={(e) => setChatInput(e.target.value)}
+            placeholder="Type a message..."
+            className="h-10 w-full rounded-md border border-gray-300 px-3 text-sm"
+          />
+          <button
+            type="button"
+            onClick={handleSend}
+            className="h-10 rounded-md bg-[#2E7D5B] px-4 text-sm font-medium text-white hover:bg-[#256B4D]"
+          >
+            Send
+          </button>
+        </div>
       </div>
     </aside>
   );

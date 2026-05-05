@@ -199,7 +199,7 @@ export function AdminHospitalsPage() {
   };
 
   return (
-    <section className="space-y-5">
+    <section className="flex h-full min-h-0 flex-col gap-5 overflow-hidden">
       <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -270,15 +270,19 @@ export function AdminHospitalsPage() {
         </div>
       ) : null}
 
-      <div className="flex items-start gap-5">
-        <div className="min-w-0 flex-1 space-y-5">
-          <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+      <div className="relative flex min-h-0 flex-1 gap-5">
+        <div
+          className={`flex min-h-0 min-w-0 flex-1 flex-col gap-5 overflow-hidden transition-all duration-200 ${
+            isChatbotPanelOpen ? "pr-[390px]" : "pr-0"
+          }`}
+        >
+          <div className="min-h-0 flex-1 rounded-2xl border border-gray-200 bg-white shadow-sm">
             {isLoading ? (
               <div className="p-8 text-sm text-gray-500">Loading hospitals...</div>
             ) : isError ? (
               <div className="p-8 text-sm text-red-600">Failed to load hospitals.</div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="h-full overflow-auto">
                 <table className="min-w-[1100px] w-full text-left">
               <thead className="bg-gray-50">
                 <tr className="text-xs uppercase tracking-wide text-gray-600">
