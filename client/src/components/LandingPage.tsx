@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Clock, ImagePlus, Loader2, Shield, ThumbsUp } from "lucide-react";
+import { ImagePlus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -88,12 +88,6 @@ function HeartbeatDivider() {
         />
       </svg>
     </div>
-  );
-}
-
-function BenefitIcon({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="w-12 h-12 rounded-full bg-[#e8f5ee] flex items-center justify-center flex-shrink-0">{children}</div>
   );
 }
 
@@ -298,40 +292,31 @@ export default function LandingPage() {
 
       <HeartbeatDivider />
 
-      <section className="py-16 md:py-24 bg-white">
-        <div className="max-w-4xl mx-auto px-6 md:px-12">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-12">{t.benefitsTitle}</h2>
-
-          <div className="space-y-8">
-            <div className="flex items-start gap-5">
-              <BenefitIcon>
-                <Clock className="w-6 h-6 text-[#2E7D5B]" />
-              </BenefitIcon>
-              <div>
-                <h3 className="text-base font-bold text-gray-900 mb-1">{t.benefit1Title}</h3>
-                <p className="text-gray-500 text-sm">{t.benefit1Body}</p>
+      <section className="bg-white py-16 md:py-24">
+        <div className="max-w-6xl mx-auto px-6 md:px-12">
+          <h2 className="text-center text-3xl md:text-4xl font-bold text-gray-900">{t.benefitsTitle}</h2>
+          <div className="mt-12 grid gap-6 md:grid-cols-3">
+            {[
+              { title: t.benefit1Title, text: t.benefit1Body, img: "/Images/feature-clock.png" },
+              { title: t.benefit2Title, text: t.benefit2Body, img: "/Images/feature-chip.png" },
+              { title: t.benefit3Title, text: t.benefit3Body, img: "/Images/feature-leaf.png" },
+            ].map((feature) => (
+              <div
+                key={feature.title}
+                className="rounded-3xl bg-white px-8 py-10 text-center shadow-sm ring-1 ring-[#d7ebdc]"
+              >
+                <img
+                  src={feature.img}
+                  alt=""
+                  width={512}
+                  height={512}
+                  loading="lazy"
+                  className="mx-auto h-28 w-28 object-contain md:h-32 md:w-32"
+                />
+                <h3 className="mt-5 text-[1.35rem] font-bold leading-tight text-gray-900">{feature.title}</h3>
+                <p className="mt-2 text-[0.96rem] leading-snug text-gray-500">{feature.text}</p>
               </div>
-            </div>
-
-            <div className="flex items-start gap-5">
-              <BenefitIcon>
-                <Shield className="w-6 h-6 text-[#2E7D5B]" />
-              </BenefitIcon>
-              <div>
-                <h3 className="text-base font-bold text-gray-900 mb-1">{t.benefit2Title}</h3>
-                <p className="text-gray-500 text-sm">{t.benefit2Body}</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-5">
-              <BenefitIcon>
-                <ThumbsUp className="w-6 h-6 text-[#2E7D5B]" />
-              </BenefitIcon>
-              <div>
-                <h3 className="text-base font-bold text-gray-900 mb-1">{t.benefit3Title}</h3>
-                <p className="text-gray-500 text-sm">{t.benefit3Body}</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
