@@ -200,44 +200,46 @@ export function AdminHospitalsPage() {
 
   return (
     <section className="flex h-full min-h-0 flex-col gap-5 overflow-hidden">
-      <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Hospitals</h1>
-            <p className="text-sm text-gray-600">
-              Emulator dataset for service coverage and estimated availability.
-            </p>
+      {!isChatbotPanelOpen ? (
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Hospitals</h1>
+              <p className="text-sm text-gray-600">
+                Emulator dataset for service coverage and estimated availability.
+              </p>
+            </div>
+            <div className="flex min-w-[260px] flex-1 max-w-xl items-center gap-2">
+              <input
+                value={search}
+                onChange={(e) => {
+                  setPage(1);
+                  setSearch(e.target.value);
+                }}
+                placeholder="Search hospital, city, specialty..."
+                className="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none ring-[#2E7D5B]/30 focus:ring-4"
+              />
+              <button
+                type="button"
+                onClick={() => setIsAddHospitalOpen(true)}
+                className="h-10 shrink-0 rounded-lg bg-[#2E7D5B] px-3 text-sm font-medium text-white hover:bg-[#256B4D]"
+              >
+                Add hospital
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsChatbotPanelOpen(true)}
+                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+                title="Open chatbot panel"
+                aria-label="Open chatbot panel"
+              >
+                <MessageSquare className="h-4 w-4" />
+              </button>
+            </div>
           </div>
-          <div className="flex min-w-[260px] flex-1 max-w-xl items-center gap-2">
-            <input
-              value={search}
-              onChange={(e) => {
-                setPage(1);
-                setSearch(e.target.value);
-              }}
-              placeholder="Search hospital, city, specialty..."
-              className="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none ring-[#2E7D5B]/30 focus:ring-4"
-            />
-            <button
-              type="button"
-              onClick={() => setIsAddHospitalOpen(true)}
-              className="h-10 shrink-0 rounded-lg bg-[#2E7D5B] px-3 text-sm font-medium text-white hover:bg-[#256B4D]"
-            >
-              Add hospital
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsChatbotPanelOpen((prev) => !prev)}
-              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
-              title={isChatbotPanelOpen ? "Close chatbot panel" : "Open chatbot panel"}
-              aria-label={isChatbotPanelOpen ? "Close chatbot panel" : "Open chatbot panel"}
-            >
-              <MessageSquare className="h-4 w-4" />
-            </button>
-          </div>
+          {errorMessage ? <p className="mt-3 text-sm text-red-600">{errorMessage}</p> : null}
         </div>
-        {errorMessage ? <p className="mt-3 text-sm text-red-600">{errorMessage}</p> : null}
-      </div>
+      ) : null}
 
       {selectedHospitalIds.length > 0 ? (
         <div className="rounded-2xl border border-[#2E7D5B]/30 bg-[#f3faf6] p-4">
@@ -273,7 +275,7 @@ export function AdminHospitalsPage() {
       <div className="relative flex min-h-0 flex-1 gap-5">
         <div
           className={`flex min-h-0 min-w-0 flex-1 flex-col gap-5 overflow-hidden transition-all duration-200 ${
-            isChatbotPanelOpen ? "pr-[390px]" : "pr-0"
+            isChatbotPanelOpen ? "pr-[420px]" : "pr-0"
           }`}
         >
           <div className="min-h-0 flex-1 rounded-2xl border border-gray-200 bg-white shadow-sm">
@@ -669,11 +671,12 @@ export function AdminHospitalsPage() {
         </div>
 
         <AdminHospitalsChatPanel
-          isOpen={isChatbotPanelOpen}
-          selectedHospitalIds={selectedHospitalIds}
-          tagPrompt={tagPrompt}
-          setTagPrompt={setTagPrompt}
-        />
+            isOpen={isChatbotPanelOpen}
+            onClose={() => setIsChatbotPanelOpen(false)}
+            selectedHospitalIds={selectedHospitalIds}
+            tagPrompt={tagPrompt}
+            setTagPrompt={setTagPrompt}
+          />
       </div>
 
       <Dialog open={isAddHospitalOpen} onOpenChange={setIsAddHospitalOpen}>

@@ -1,3 +1,4 @@
+import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 type ChatMessage = {
@@ -8,6 +9,7 @@ type ChatMessage = {
 
 type AdminHospitalsChatPanelProps = {
   isOpen: boolean;
+  onClose: () => void;
   selectedHospitalIds: string[];
   tagPrompt: string;
   setTagPrompt: (value: string) => void;
@@ -15,6 +17,7 @@ type AdminHospitalsChatPanelProps = {
 
 export function AdminHospitalsChatPanel({
   isOpen,
+  onClose,
   selectedHospitalIds,
   tagPrompt,
   setTagPrompt,
@@ -53,10 +56,21 @@ export function AdminHospitalsChatPanel({
   const showSelectedContext = selectedHospitalIds.length > 0 && tagPrompt.trim().length > 0;
 
   return (
-    <aside className="fixed right-6 top-24 z-50 h-[calc(100vh-8rem)] w-[360px] rounded-2xl border border-gray-200 bg-white shadow-lg">
-      <div className="border-b border-gray-100 p-4">
-        <p className="text-sm font-semibold text-gray-900">Chat context</p>
-        <p className="mt-1 text-xs text-gray-500">Flow-only panel (AI integration later)</p>
+    <aside className="fixed right-0 top-0 z-50 h-screen w-[420px] border-l border-gray-200 bg-white shadow-xl">
+      <div className="flex items-start justify-between gap-2 border-b border-gray-100 p-4">
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-gray-900">Chat context</p>
+          <p className="mt-1 text-xs text-gray-500">Flow-only panel (AI integration later)</p>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="shrink-0 rounded-md border border-gray-200 p-2 text-gray-600 hover:bg-gray-100"
+          aria-label="Close chat panel"
+          title="Close chat"
+        >
+          <X className="h-4 w-4" />
+        </button>
       </div>
 
       {showSelectedContext ? (
