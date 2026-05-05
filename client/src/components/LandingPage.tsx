@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Brain, CalendarCheck, Clock, Cpu, ImagePlus, Loader2, Shield, ThumbsUp } from "lucide-react";
+import { Clock, ImagePlus, Loader2, Shield, ThumbsUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -88,12 +88,6 @@ function HeartbeatDivider() {
         />
       </svg>
     </div>
-  );
-}
-
-function StepIcon({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="w-20 h-20 rounded-full bg-[#e8f5ee] flex items-center justify-center mx-auto mb-5">{children}</div>
   );
 }
 
@@ -269,30 +263,35 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto px-6 md:px-12">
           <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-16">{t.howTitle}</h2>
 
-          <div className="grid md:grid-cols-3 gap-10 text-center">
-            <div>
-              <StepIcon>
-                <Brain className="w-9 h-9 text-[#2E7D5B]" />
-              </StepIcon>
-              <h3 className="text-lg font-bold text-gray-900 mb-3">{t.step1Title}</h3>
-              <p className="text-gray-500 text-sm leading-relaxed">{t.step1Body}</p>
-            </div>
-
-            <div>
-              <StepIcon>
-                <Cpu className="w-9 h-9 text-[#2E7D5B]" />
-              </StepIcon>
-              <h3 className="text-lg font-bold text-gray-900 mb-3">{t.step2Title}</h3>
-              <p className="text-gray-500 text-sm leading-relaxed">{t.step2Body}</p>
-            </div>
-
-            <div>
-              <StepIcon>
-                <CalendarCheck className="w-9 h-9 text-[#2E7D5B]" />
-              </StepIcon>
-              <h3 className="text-lg font-bold text-gray-900 mb-3">{t.step3Title}</h3>
-              <p className="text-gray-500 text-sm leading-relaxed">{t.step3Body}</p>
-            </div>
+          <div className="grid gap-12 md:grid-cols-3">
+            {[
+              { title: t.step1Title, text: t.step1Body, img: "/Images/step-upload.png" },
+              { title: t.step2Title, text: t.step2Body, img: "/Images/step-ai.png" },
+              { title: t.step3Title, text: t.step3Body, img: "/Images/step-calendar.png" },
+            ].map((step, i, arr) => (
+              <div key={step.title} className="relative flex flex-col items-center text-center">
+                <div className="flex h-40 w-40 items-center justify-center rounded-full bg-[#e8f5ee]">
+                  <img
+                    src={step.img}
+                    alt=""
+                    width={512}
+                    height={512}
+                    loading="lazy"
+                    className="h-24 w-24 object-contain"
+                  />
+                </div>
+                {i < arr.length - 1 ? (
+                  <span
+                    aria-hidden
+                    className="absolute right-[-1.4rem] top-[4.4rem] hidden text-3xl leading-none text-[#2E7D5B]/45 md:block"
+                  >
+                    →
+                  </span>
+                ) : null}
+                <h3 className="mt-6 text-[1.35rem] font-bold leading-tight text-gray-900">{step.title}</h3>
+                <p className="mt-2 max-w-[15rem] text-[0.96rem] leading-snug text-gray-500">{step.text}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
