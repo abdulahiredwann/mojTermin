@@ -53,7 +53,8 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     langEnglish: "English",
     langSlovenian: "Slovenian",
     heroTitle: "The fastest path to your healthcare appointment.",
-    heroSubtitle: "Tell us what you need. Add a photo of your referral if you have one — two quick steps.",
+    heroSubtitle:
+      "Tell us what you need. Add a photo of your referral if you have one — two quick steps.",
     labelProblem: "What do you need?",
     placeholderProblem: "e.g. knee MRI, dermatology…",
     attachImageAria: "Attach a photo (referral)",
@@ -91,7 +92,8 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     step1Title: "1. Upload your referral",
     step1Body: "Easily submit your e-referral.",
     step2Title: "2. AI optimization",
-    step2Body: "Artificial intelligence optimizes your referral and finds the most suitable appointment for you.",
+    step2Body:
+      "Artificial intelligence optimizes your referral and finds the most suitable appointment for you.",
     step3Title: "3. Choose appointment",
     step3Body: "Select and confirm your appointment.",
     benefitsTitle: "Why choose MojTermin?",
@@ -116,7 +118,8 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     langEnglish: "Angleščina",
     langSlovenian: "Slovenščina",
     heroTitle: "Najhitrejša pot do vašega zdravstvenega termina.",
-    heroSubtitle: "Napišite, kaj potrebujete. Če imate, dodajte fotografijo napotnice — dva hitra koraka.",
+    heroSubtitle:
+      "Napišite, kaj potrebujete. Če imate, dodajte fotografijo napotnice — dva hitra koraka.",
     labelProblem: "Kaj potrebujete?",
     placeholderProblem: "npr. MRI kolena, dermatolog…",
     attachImageAria: "Priloži fotografijo (napotnica)",
@@ -154,7 +157,8 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     step1Title: "1. Naložite napotnico",
     step1Body: "Enostavno oddajte e-napotnico.",
     step2Title: "2. UI optimizacija",
-    step2Body: "Umetna inteligenca optimizira vašo napotnico in poišče najbolj ustrezen termin za vas.",
+    step2Body:
+      "Umetna inteligenca optimizira vašo napotnico in poišče najbolj ustrezen termin za vas.",
     step3Title: "3. Izberite termin",
     step3Body: "Izberite in potrdite vaš termin.",
     benefitsTitle: "Zakaj izbrati MojTermin?",

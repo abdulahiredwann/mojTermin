@@ -1,63 +1,222 @@
- {/* HOW IT WORKS */}
-        <section className="bg-background py-24">
-          <div className="mx-auto max-w-6xl px-6">
-            <h2 className="text-center text-3xl font-bold text-foreground sm:text-4xl">
-              Kako deluje?
-            </h2>
-            <div className="mt-16 grid gap-12 md:grid-cols-3">
-              {steps.map((s, i) => (
-                <div key={s.title} className="relative flex flex-col items-center text-center">
-                  <div className="flex h-44 w-44 items-center justify-center rounded-full bg-secondary">
-                    <img
-                      src={s.img}
-                      alt=""
-                      width={512}
-                      height={512}
-                      loading="lazy"
-                      className="h-28 w-28 object-contain"
-                    />
+import { createFileRoute } from "@tanstack/react-router";
+import { SiteHeader } from "@/components/SiteHeader";
+import { SiteFooter } from "@/components/SiteFooter";
+import { CrossPattern } from "@/components/CrossPattern";
+import { ShieldCheck, Server, ClipboardCheck, Sparkles, Lock } from "lucide-react";
+import privacyEurope from "@/assets/privacy-europe.png";
+import privacyProcess from "@/assets/privacy-process.png";
+import privacyAi from "@/assets/privacy-ai.png";
+import privacyLock from "@/assets/privacy-lock.png";
+
+export const Route = createFileRoute("/zasebnost")({
+  component: ZasebnostPage,
+  head: () => ({
+    meta: [
+      { title: "Zasebnost | MojTermin" },
+      {
+        name: "description",
+        content:
+          "Vaši podatki so shranjeni in zaščiteni v Evropi, skladno z najvišjimi varnostnimi standardi.",
+      },
+      { property: "og:title", content: "Zasebnost | MojTermin" },
+      {
+        property: "og:description",
+        content:
+          "Varstvo in varnost podatkov sta v središču vsake naše storitve.",
+      },
+    ],
+  }),
+});
+
+type Section = {
+  eyebrow: string;
+  title: string;
+  paragraphs: string[];
+  image: string;
+  alt: string;
+  icon: typeof Server;
+};
+
+const sections: Section[] = [
+  {
+    eyebrow: "01 — Lokacija podatkov",
+    title: "Podatki so shranjeni in zaščiteni v Evropi.",
+    paragraphs: [
+      "Podatki so shranjeni na strežnikih v Sloveniji. Podatkovni centri izpolnjujejo najvišje mednarodne varnostne standarde.",
+      "Storitve MojTermin so skladne z evropskimi in nacionalnimi predpisi o varstvu podatkov.",
+      "Zaščita, ki je celovita, pregledna in se nenehno izboljšuje.",
+    ],
+    image: privacyEurope,
+    alt: "Ilustracija zaščitenega podatkovnega strežnika v Sloveniji",
+    icon: Server,
+  },
+  {
+    eyebrow: "02 — Procesi in nadzor",
+    title: "Varstvo podatkov je v središču vsake nove storitve.",
+    paragraphs: [
+      "Vsaka nova dejavnost obdelave in vsaka tehnična sprememba je podvržena standardiziranemu postopku testiranja in ocenjevanja.",
+      "Tehnični in organizacijski ukrepi, kot so šifriranje, nadzor dostopa in revizije, so standardno integrirani.",
+    ],
+    image: privacyProcess,
+    alt: "Ilustracija postopka preverjanja in revizije varnosti",
+    icon: ClipboardCheck,
+  },
+  {
+    eyebrow: "03 — Upravljanje podatkov",
+    title: "Odgovorno ravnanje s podatki.",
+    paragraphs: [
+      "Kot obdelovalec podatkov MojTermin obdeluje podatke izključno v skladu z navodili zdravstvenih delavcev. Dostop do njih imajo le zdravstvene ekipe in pacienti.",
+      "Vaše podatke varujemo z modernimi tehničnimi in organizacijskimi ukrepi: šifrirana komunikacija (HTTPS), omejen dostop do podatkov, varno shranjevanje podatkov.",
+    ],
+    image: privacyAi,
+    alt: "Ilustracija upravljanja podatkov",
+    icon: Sparkles,
+  },
+  {
+    eyebrow: "04 — OBČUTLJIVI PODATKI",
+    title: "Maksimalna varnost za občutljive zdravstvene podatke.",
+    paragraphs: [
+      "MojTermin varuje občutljive zdravstvene podatke z jasnim poudarkom na varstvu podatkov, varnosti podatkov in skladnosti s predpisi. Zdravstveni podatki se hranijo izključno znotraj Slovenije, obdelujejo v skladu z GDPR in so zaupno zaščiteni na najvišji ravni varnosti.",
+      "Kot obdelovalec podatkov MojTermin obdeluje podatke izključno v skladu z navodili zdravstvenih delavcev. Dostop do njih imajo le zdravstvene ekipe in pacienti.",
+      "Vaše podatke varujemo z modernimi tehničnimi in organizacijskimi ukrepi: šifrirana komunikacija (HTTPS), omejen dostop do podatkov, varno shranjevanje podatkov.",
+    ],
+    image: privacyLock,
+    alt: "Ilustracija ključavnice nad zdravstvenim dokumentom",
+    icon: Lock,
+  },
+];
+
+const pillars = [
+  { icon: Server, label: "Strežniki v Sloveniji" },
+  { icon: ShieldCheck, label: "Skladnost z GDPR" },
+  { icon: Lock, label: "Šifriranje od konca do konca" },
+];
+
+function ZasebnostPage() {
+  return (
+    <div className="flex min-h-screen flex-col bg-background">
+      <SiteHeader />
+      <main className="flex-1">
+        {/* HERO */}
+        <section className="relative overflow-hidden bg-hero-bg">
+          <CrossPattern />
+          <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-6 py-20 md:grid-cols-[1.2fr_1fr] md:py-24">
+            <div>
+              <span className="inline-flex items-center gap-2 rounded-full bg-card/80 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-primary ring-1 ring-border backdrop-blur-sm">
+                <ShieldCheck className="h-3.5 w-3.5" />
+                Vaša zasebnost
+              </span>
+              <h1 className="mt-5 text-4xl font-extrabold leading-tight tracking-tight text-foreground sm:text-5xl">
+                Zaščita, ki ji lahko zaupate.
+              </h1>
+              <div className="mt-5 max-w-lg space-y-4 text-base text-muted-foreground">
+                <p>
+                  Zasebnost je ena ključnih vrednot naše aplikacije. Zavedamo se, da so podatki, povezani z zdravjem, izjemno občutljivi, zato z njimi ravnamo odgovorno, varno in transparentno.
+                </p>
+                <p>
+                  Vaše podatke uporabljamo izključno za to, da vam pomagamo najti hitrejši termin za zdravstveno storitev.
+                </p>
+              </div>
+              <div className="mt-8 flex flex-wrap gap-3">
+                {pillars.map((p) => (
+                  <div
+                    key={p.label}
+                    className="inline-flex items-center gap-2 rounded-full bg-card px-4 py-2 text-sm font-medium text-foreground shadow-sm ring-1 ring-border"
+                  >
+                    <p.icon className="h-4 w-4 text-primary" />
+                    {p.label}
                   </div>
-                  {i < steps.length - 1 && (
-                    <span
-                      aria-hidden
-                      className="absolute right-[-1.5rem] top-20 hidden text-3xl text-primary/60 md:block"
-                    >
-                      →
-                    </span>
-                  )}
-                  <h3 className="mt-6 text-lg font-semibold text-foreground">{s.title}</h3>
-                  <p className="mt-2 max-w-[14rem] text-sm text-muted-foreground">{s.text}</p>
+                ))}
+              </div>
+            </div>
+            <div className="flex justify-center md:justify-end">
+              <div className="relative">
+                <div
+                  aria-hidden
+                  className="absolute inset-0 -z-10 rounded-full bg-secondary blur-2xl"
+                />
+                <div className="flex h-64 w-64 items-center justify-center rounded-full bg-card shadow-sm ring-1 ring-border sm:h-72 sm:w-72">
+                  <ShieldCheck className="h-28 w-28 text-primary" strokeWidth={1.5} />
                 </div>
-              ))}
+              </div>
             </div>
           </div>
         </section>
 
-        {/* WHY */}
-        <section className="relative overflow-hidden bg-soft-bg py-24">
-          <CrossPattern />
-          <div className="relative mx-auto max-w-6xl px-6">
-            <h2 className="text-center text-3xl font-bold text-foreground sm:text-4xl">
-              Zakaj izbrati MojTermin?
-            </h2>
-            <div className="mt-14 grid gap-6 md:grid-cols-3">
-              {features.map((f) => (
-                <div
-                  key={f.title}
-                  className="rounded-2xl bg-card p-8 text-center shadow-sm ring-1 ring-border"
-                >
-                  <img
-                    src={f.img}
-                    alt=""
-                    width={512}
-                    height={512}
-                    loading="lazy"
-                    className="mx-auto h-32 w-32 object-contain"
-                  />
-                  <h3 className="mt-4 text-lg font-semibold text-foreground">{f.title}</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">{f.text}</p>
+        {/* ALTERNATING SECTIONS */}
+        <div className="bg-background">
+          {sections.map((s, i) => {
+            const reversed = i % 2 === 1;
+            const Icon = s.icon;
+            return (
+              <section
+                key={s.title}
+                className={`relative overflow-hidden ${i % 2 === 1 ? "bg-soft-bg" : "bg-background"}`}
+              >
+                {i % 2 === 1 && <CrossPattern />}
+                <div className="relative mx-auto max-w-6xl px-6 py-20 md:py-24">
+                  <div
+                    className={`grid items-center gap-12 md:grid-cols-2 ${
+                      reversed ? "md:[&>*:first-child]:order-2" : ""
+                    }`}
+                  >
+                    {/* Image */}
+                    <div className="flex justify-center">
+                      <div className="relative">
+                        <div
+                          aria-hidden
+                          className="absolute inset-6 -z-10 rounded-[2.5rem] bg-secondary/70 blur-xl"
+                        />
+                        <div className="rounded-[2.5rem] bg-card p-6 shadow-sm ring-1 ring-border sm:p-8">
+                          <img
+                            src={s.image}
+                            alt={s.alt}
+                            width={896}
+                            height={896}
+                            loading="lazy"
+                            className="mx-auto h-56 w-56 object-contain sm:h-72 sm:w-72"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Text */}
+                    <div>
+                      <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-secondary">
+                          <Icon className="h-3.5 w-3.5" />
+                        </span>
+                        {s.eyebrow}
+                      </div>
+                      <h2 className="mt-4 text-2xl font-bold leading-tight text-foreground sm:text-3xl">
+                        {s.title}
+                      </h2>
+                      <div className="mt-5 space-y-4 text-base leading-relaxed text-muted-foreground">
+                        {s.paragraphs.map((p, j) => (
+                          <p key={j}>{p}</p>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              ))}
+              </section>
+            );
+          })}
+        </div>
+
+        {/* CLOSING NOTE */}
+        <section className="bg-background pb-20">
+          <div className="mx-auto max-w-3xl px-6">
+            <div className="flex min-h-[200px] flex-col items-center justify-center rounded-2xl bg-secondary/60 p-8 text-center ring-1 ring-border sm:p-10">
+              <ShieldCheck className="h-10 w-10 text-primary" strokeWidth={1.75} />
+              <p className="mt-4 max-w-xl text-base font-medium text-foreground sm:text-lg">
+                Zaupanje gradimo z vsako podrobnostjo — od kode do procesov.
+              </p>
             </div>
           </div>
         </section>
+      </main>
+      <SiteFooter />
+    </div>
+  );
+}
