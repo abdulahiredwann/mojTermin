@@ -1,5 +1,25 @@
 const prisma = require("../prisma/prisma");
 
+function toNullableString(value) {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed ? trimmed : null;
+}
+
+function toNullableInt(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const num = Number(value);
+  return Number.isFinite(num) ? Math.max(Math.trunc(num), 0) : null;
+}
+
+function toNullableBool(value) {
+  if (value === null || value === undefined || value === "") return null;
+  if (typeof value === "boolean") return value;
+  if (value === "true") return true;
+  if (value === "false") return false;
+  return null;
+}
+
 async function listHospitals(req, res, next) {
   try {
     const page = Math.max(Number(req.query.page) || 1, 1);
@@ -86,4 +106,168 @@ async function listHospitals(req, res, next) {
   }
 }
 
-module.exports = { listHospitals };
+async function createHospital(req, res, next) {
+  try {
+    const name = toNullableString(req.body?.name);
+    if (!name) {
+      return res.status(400).json({ error: "Hospital name is required." });
+    }
+
+    const hospital = await prisma.hospital.create({
+      data: {
+        name,
+        city: toNullableString(req.body?.city),
+        country: toNullableString(req.body?.country),
+        address: toNullableString(req.body?.address),
+        phone: toNullableString(req.body?.phone),
+        email: toNullableString(req.body?.email),
+        website: toNullableString(req.body?.website),
+        emergency24h: toNullableBool(req.body?.emergency24h),
+        bedCount: toNullableInt(req.body?.bedCount),
+        averageWaitDays: toNullableInt(req.body?.averageWaitDays),
+        notes: toNullableString(req.body?.notes),
+      },
+    });
+
+    return res.status(201).json({ hospital });
+  } catch (error) {
+    if (error.code === "P2002") {
+      return res.status(409).json({ error: "Hospital name already exists." });
+    }
+    return next(error);
+  }
+}
+
+async function updateHospital(req, res, next) {
+  try {
+    const hospitalId = req.params.hospitalId;
+    const name = toNullableString(req.body?.name);
+    if (!name) {
+      return res.status(400).json({ error: "Hospital name is required." });
+    }
+
+    const hospital = await prisma.hospital.update({
+      where: { id: hospitalId },
+      data: {
+        name,
+        city: toNullableString(req.body?.city),
+        country: toNullableString(req.body?.country),
+        address: toNullableString(req.body?.address),
+        phone: toNullableString(req.body?.phone),
+        email: toNullableString(req.body?.email),
+        website: toNullableString(req.body?.website),
+        emergency24h: toNullableBool(req.body?.emergency24h),
+        bedCount: toNullableInt(req.body?.bedCount),
+        averageWaitDays: toNullableInt(req.body?.averageWaitDays),
+        notes: toNullableString(req.body?.notes),
+      },
+    });
+
+    return res.json({ hospital });
+  } catch (error) {
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "Hospital not found." });
+    }
+    if (error.code === "P2002") {
+      return res.status(409).json({ error: "Hospital name already exists." });
+    }
+    return next(error);
+  }
+}
+
+async function deleteHospital(req, res, next) {
+  try {
+    await prisma.hospital.delete({
+      where: { id: req.params.hospitalId },
+    });
+    return res.status(204).end();
+  } catch (error) {
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "Hospital not found." });
+    }
+    return next(error);
+  }
+}
+
+async function bulkDeleteHospitals(req, res, next) {
+  try {
+    const hospitalIds = Array.isArray(req.body?.hospitalIds) ? req.body.hospitalIds : [];
+    if (!hospitalIds.length) {
+      return res.status(400).json({ error: "hospitalIds must be a non-empty array." });
+    }
+    const deleted = await prisma.hospital.deleteMany({
+      where: { id: { in: hospitalIds } },
+    });
+    return res.json({ deletedCount: deleted.count });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+async function addService(req, res, next) {
+  try {
+    const hospitalId = req.params.hospitalId;
+    const service = await prisma.hospitalService.create({
+      data: {
+        hospitalId,
+        specialty: toNullableString(req.body?.specialty),
+        procedureName: toNullableString(req.body?.procedureName),
+        estimatedWaitDays: toNullableInt(req.body?.estimatedWaitDays),
+        earliestDate: req.body?.earliestDate ? new Date(req.body.earliestDate) : null,
+        notes: toNullableString(req.body?.notes),
+      },
+    });
+    return res.status(201).json({ service });
+  } catch (error) {
+    if (error.code === "P2003") {
+      return res.status(404).json({ error: "Hospital not found." });
+    }
+    return next(error);
+  }
+}
+
+async function updateService(req, res, next) {
+  try {
+    const service = await prisma.hospitalService.update({
+      where: { id: req.params.serviceId },
+      data: {
+        specialty: toNullableString(req.body?.specialty),
+        procedureName: toNullableString(req.body?.procedureName),
+        estimatedWaitDays: toNullableInt(req.body?.estimatedWaitDays),
+        earliestDate: req.body?.earliestDate ? new Date(req.body.earliestDate) : null,
+        notes: toNullableString(req.body?.notes),
+      },
+    });
+    return res.json({ service });
+  } catch (error) {
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "Service not found." });
+    }
+    return next(error);
+  }
+}
+
+async function deleteService(req, res, next) {
+  try {
+    await prisma.hospitalService.delete({
+      where: { id: req.params.serviceId },
+    });
+    return res.status(204).end();
+  } catch (error) {
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "Service not found." });
+    }
+    return next(error);
+  }
+}
+
+module.exports = {
+  listHospitals,
+  createHospital,
+  updateHospital,
+  deleteHospital,
+  bulkDeleteHospitals,
+  addService,
+  updateService,
+  deleteService,
+};
