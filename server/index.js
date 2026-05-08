@@ -15,30 +15,30 @@ const app = express();
 const port = Number(process.env.PORT || 4000);
 const SEARCH_COOKIE_NAME = "mojtermin_search_id";
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      const raw = process.env.CORS_ORIGINS;
-      // If no allowlist provided, reflect origin (dev-friendly).
-      if (!raw || !raw.trim()) return callback(null, true);
+const corsMiddleware = cors({
+  origin: (origin, callback) => {
+    const raw = process.env.CORS_ORIGINS;
+    // If no allowlist provided, reflect origin (dev-friendly).
+    if (!raw || !raw.trim()) return callback(null, true);
 
-      const allowlist = raw
-        .split(",")
-        .map((v) => v.trim())
-        .filter(Boolean);
+    const allowlist = raw
+      .split(",")
+      .map((v) => v.trim())
+      .filter(Boolean);
 
-      // Allow non-browser requests (no Origin header)
-      if (!origin) return callback(null, true);
+    // Allow non-browser requests (no Origin header)
+    if (!origin) return callback(null, true);
 
-      if (allowlist.includes(origin)) return callback(null, true);
-      return callback(new Error("Not allowed by CORS"));
-    },
-    credentials: true,
-  })
-);
+    if (allowlist.includes(origin)) return callback(null, true);
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+});
 
-// Handle preflight requests for all routes
-app.options("*", cors());
+app.use(corsMiddleware);
+
+// Handle preflight requests for all routes (Express 5 + path-to-regexp doesn't like "*")
+app.options(/.*/, corsMiddleware);
 
 // Cookie parser
 app.use(cookieParser());
