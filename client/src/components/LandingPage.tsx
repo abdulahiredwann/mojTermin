@@ -31,6 +31,7 @@ function HeroIllustration() {
 type SearchResult = {
   intent: string;
   explanation: string;
+  totalHospitals: number;
   cities: Array<{
     name: string;
     country: string;
@@ -65,6 +66,9 @@ export default function LandingPage() {
   const [selectedCity, setSelectedCity] = useState<string>(ALL_CITIES_VALUE);
   const [selectedHospitalId, setSelectedHospitalId] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [submittingRequest, setSubmittingRequest] = useState(false);
+  const [requestSavedId, setRequestSavedId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Filter hospitals by selected city
@@ -94,6 +98,8 @@ export default function LandingPage() {
     setSelectedCity(ALL_CITIES_VALUE);
     setSelectedHospitalId("");
     setSelectedDate("");
+    setEmail("");
+    setRequestSavedId(null);
 
     try {
       const { data } = await api.post<SearchResult>("/search", { query: problem });
@@ -124,6 +130,32 @@ export default function LandingPage() {
       year: "numeric",
     });
   };
+
+  async function handleConfirmRequest() {
+    if (!searchResult || !selectedHospital || !selectedDate) return;
+    setError(null);
+    setSubmittingRequest(true);
+    setRequestSavedId(null);
+    try {
+      const { data } = await api.post<{ request: { id: string } }>("/appointments", {
+        email,
+        query: problem,
+        intent: searchResult.intent,
+        city: selectedHospital.city,
+        hospitalId: selectedHospital.id,
+        hospitalName: selectedHospital.name,
+        preferredDate: selectedDate,
+      });
+      setRequestSavedId(data.request.id);
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ||
+        "Failed to submit appointment request.";
+      setError(msg);
+    } finally {
+      setSubmittingRequest(false);
+    }
+  }
 
   return (
     <div className="relative min-h-screen bg-white overflow-hidden">
@@ -359,14 +391,45 @@ export default function LandingPage() {
                             Earliest available: {formatDate(getEarliestDate(selectedHospital.averageWaitDays))}
                           </p>
                         )}
+
+                        <div className="space-y-2 pt-2">
+                          <Label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                            Email
+                          </Label>
+                          <Input
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="you@example.com"
+                            inputMode="email"
+                            autoComplete="email"
+                            className="h-11 rounded-xl border-gray-200 bg-white text-[15px] shadow-none focus-visible:ring-[#2E7D5B]/30"
+                          />
+                          <p className="text-xs text-gray-500">
+                            We’ll contact you later with confirmation and next steps.
+                          </p>
+                        </div>
                       </div>
 
-                      {/* Confirm Button (placeholder - no save yet) */}
+                      {requestSavedId ? (
+                        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+                          Request submitted. We’ll contact you by email soon with confirmation and next steps.
+                        </div>
+                      ) : null}
+
+                      {/* Confirm Button */}
                       <Button
-                        disabled={!selectedDate}
+                        type="button"
+                        onClick={handleConfirmRequest}
+                        disabled={!selectedDate || !email.trim() || submittingRequest}
                         className="w-full rounded-full bg-[#2E7D5B] py-5 text-sm font-semibold text-white hover:bg-[#256B4D] disabled:opacity-50"
                       >
-                        {selectedDate ? "Confirm Appointment Request" : "Select a date to continue"}
+                        {submittingRequest
+                          ? "Submitting…"
+                          : !selectedDate
+                            ? "Select a date to continue"
+                            : !email.trim()
+                              ? "Enter your email to continue"
+                              : "Confirm Appointment Request"}
                       </Button>
                     </div>
                   )}

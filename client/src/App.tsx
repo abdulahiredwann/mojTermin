@@ -3,6 +3,7 @@ import ContactPage from "./components/ContactPage";
 import LandingPage from "./components/LandingPage";
 import PrivacyPage from "./components/PrivacyPage";
 import { AdminComingSoonPage } from "./components/admin/AdminComingSoonPage";
+import { AdminAppointmentsPage } from "./components/admin/AdminAppointmentsPage";
 import { AdminHospitalsPage } from "./components/admin/AdminHospitalsPage";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { AdminLoginPage } from "./components/admin/AdminLoginPage";
@@ -27,10 +28,7 @@ function App() {
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<AdminComingSoonPage title="User list" />} />
                 <Route path="users" element={<AdminComingSoonPage title="User list" />} />
-                <Route
-                  path="appointments"
-                  element={<AdminComingSoonPage title="Appointment lists" />}
-                />
+                <Route path="appointments" element={<AdminAppointmentsPage />} />
                 <Route path="hospitals" element={<AdminHospitalsPage />} />
                 <Route path="settings" element={<AdminComingSoonPage title="Setting" />} />
               </Route>

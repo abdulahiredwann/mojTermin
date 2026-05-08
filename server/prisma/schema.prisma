@@ -71,6 +71,7 @@ model Hospital {
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
   services       HospitalService[]
+  appointmentRequests AppointmentRequest[]
 }
 
 model HospitalService {
@@ -87,4 +88,23 @@ model HospitalService {
   hospital         Hospital  @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
 
   @@index([hospitalId])
+}
+
+model AppointmentRequest {
+  id            String   @id @default(uuid())
+  email         String
+  query         String
+  intent        String?
+  city          String?
+  hospitalId    String?
+  hospitalName  String?
+  preferredDate DateTime
+  status        String   @default("pending")
+  createdAt     DateTime @default(now())
+
+  hospital Hospital? @relation(fields: [hospitalId], references: [id], onDelete: SetNull)
+
+  @@index([hospitalId])
+  @@index([createdAt])
+  @@index([status])
 }
