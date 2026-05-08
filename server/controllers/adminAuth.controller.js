@@ -3,10 +3,13 @@ const bcrypt = require("bcrypt");
 const prisma = require("../prisma/prisma");
 const { ADMIN_COOKIE_NAME } = require("../middleware/adminAuth.middleware");
 
+const isProd = process.env.NODE_ENV === "production";
+const cookieSameSite = (process.env.ADMIN_COOKIE_SAMESITE || (isProd ? "none" : "lax")).toLowerCase();
 const cookieOptions = {
   httpOnly: true,
-  sameSite: "lax",
-  secure: process.env.NODE_ENV === "production",
+  // Cross-site admin login (frontend on one domain, API on another) requires SameSite=None; Secure.
+  sameSite: cookieSameSite,
+  secure: cookieSameSite === "none" ? true : isProd,
   maxAge: 1000 * 60 * 60 * 24 * 7,
 };
 
@@ -64,8 +67,8 @@ async function logoutAdmin(req, res, next) {
 
     res.clearCookie(ADMIN_COOKIE_NAME, {
       httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      sameSite: cookieSameSite,
+      secure: cookieSameSite === "none" ? true : isProd,
     });
     return res.status(204).end();
   } catch (error) {
