@@ -22,15 +22,15 @@ export function AdminLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="flex min-h-screen w-full">
+    <div className="flex h-screen min-h-0 flex-col overflow-hidden bg-gray-50">
+      <div className="flex min-h-0 flex-1">
         <aside
           className={cn(
-            "flex flex-col border-r border-gray-200 bg-white p-4 transition-all duration-200",
+            "flex h-full min-h-0 shrink-0 flex-col overflow-hidden border-r border-gray-200 bg-white p-4 transition-all duration-200",
             collapsed ? "w-20" : "w-72"
           )}
         >
-          <div>
+          <div className="shrink-0">
             <div className={cn("mb-3 flex items-center", collapsed ? "justify-center" : "justify-between")}>
               <Link to="/admin/users" className="text-xl font-bold text-[#2E7D5B]">
                 {collapsed ? "MT" : "MojTermin Admin"}
@@ -60,35 +60,35 @@ export function AdminLayout() {
             ) : null}
 
             {!collapsed ? <p className="mt-1 text-xs text-gray-500">{admin?.email}</p> : null}
-
-            <nav className="mt-8 space-y-2">
-              {menuItems.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  className={({ isActive }) =>
-                    cn(
-                      "flex items-center rounded-lg py-2 text-sm font-medium transition-colors",
-                      collapsed ? "justify-center px-2" : "gap-2 px-3",
-                      isActive
-                        ? "bg-[#e8f5ee] text-[#2E7D5B]"
-                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                    )
-                  }
-                  title={collapsed ? item.label : undefined}
-                >
-                  <item.icon className="h-4 w-4 shrink-0" />
-                  {!collapsed ? item.label : null}
-                </NavLink>
-              ))}
-            </nav>
           </div>
+
+          <nav className="mt-6 min-h-0 flex-1 space-y-2 overflow-y-auto py-1">
+            {menuItems.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) =>
+                  cn(
+                    "flex items-center rounded-lg py-2 text-sm font-medium transition-colors",
+                    collapsed ? "justify-center px-2" : "gap-2 px-3",
+                    isActive
+                      ? "bg-[#e8f5ee] text-[#2E7D5B]"
+                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  )
+                }
+                title={collapsed ? item.label : undefined}
+              >
+                <item.icon className="h-4 w-4 shrink-0" />
+                {!collapsed ? item.label : null}
+              </NavLink>
+            ))}
+          </nav>
 
           <button
             type="button"
             onClick={handleLogout}
             className={cn(
-              "mt-auto rounded-lg border border-gray-200 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100",
+              "mt-auto shrink-0 rounded-lg border border-gray-200 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100",
               collapsed ? "mx-auto w-10 px-0" : "w-full px-3"
             )}
             title={collapsed ? "Logout" : undefined}
@@ -97,7 +97,7 @@ export function AdminLayout() {
           </button>
         </aside>
 
-        <main className="flex-1 min-h-0 overflow-hidden p-8">
+        <main className="min-h-0 flex-1 overflow-y-auto p-8">
           <Outlet />
         </main>
       </div>

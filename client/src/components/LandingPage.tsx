@@ -1,12 +1,20 @@
-import { useState, useRef } from "react";
-import { ImagePlus, Loader2 } from "lucide-react";
+import { useState, useRef, useMemo } from "react";
+import { ImagePlus, Loader2, MapPin, Building2, Calendar, Search, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { FloatingChatDemo } from "@/components/FloatingChatDemo";
 import { SiteHeader } from "@/components/SiteHeader";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { api } from "@/lib/api";
 
 function HeroIllustration() {
   return (
@@ -20,14 +28,57 @@ function HeroIllustration() {
   );
 }
 
+type SearchResult = {
+  intent: string;
+  explanation: string;
+  cities: Array<{
+    name: string;
+    country: string;
+    hospitalCount: number;
+  }>;
+  hospitals: Array<{
+    id: string;
+    name: string;
+    city: string | null;
+    country: string;
+    address: string | null;
+    phone: string | null;
+    averageWaitDays: number | null;
+    services: Array<{
+      id: string;
+      specialty: string | null;
+      procedureName: string | null;
+      estimatedWaitDays: number | null;
+    }>;
+  }>;
+};
+
+const ALL_CITIES_VALUE = "__ALL__";
+
 export default function LandingPage() {
   const { t } = useLanguage();
   const [problem, setProblem] = useState("");
   const [referralFile, setReferralFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [showResults, setShowResults] = useState(false);
+  const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
+  const [selectedCity, setSelectedCity] = useState<string>(ALL_CITIES_VALUE);
+  const [selectedHospitalId, setSelectedHospitalId] = useState<string>("");
+  const [selectedDate, setSelectedDate] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Filter hospitals by selected city
+  const filteredHospitals = useMemo(() => {
+    if (!searchResult) return [];
+    if (selectedCity === ALL_CITIES_VALUE) return searchResult.hospitals;
+    return searchResult.hospitals.filter((h) => h.city === selectedCity);
+  }, [searchResult, selectedCity]);
+
+  // Get selected hospital details
+  const selectedHospital = useMemo(() => {
+    if (!selectedHospitalId || !searchResult) return null;
+    return searchResult.hospitals.find((h) => h.id === selectedHospitalId) || null;
+  }, [selectedHospitalId, searchResult]);
 
   async function handleAnalyze(e: React.FormEvent) {
     e.preventDefault();
@@ -39,11 +90,40 @@ export default function LandingPage() {
       return;
     }
     setLoading(true);
-    setShowResults(false);
-    await new Promise((r) => setTimeout(r, 1400));
-    setShowResults(true);
-    setLoading(false);
+    setSearchResult(null);
+    setSelectedCity(ALL_CITIES_VALUE);
+    setSelectedHospitalId("");
+    setSelectedDate("");
+
+    try {
+      const { data } = await api.post<SearchResult>("/search", { query: problem });
+      setSearchResult(data);
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ||
+        "Failed to search. Please try again.";
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
   }
+
+  // Calculate earliest available date based on hospital wait days
+  const getEarliestDate = (waitDays: number | null) => {
+    if (!waitDays) return new Date();
+    const date = new Date();
+    date.setDate(date.getDate() + waitDays);
+    return date;
+  };
+
+  // Format date for display
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
 
   return (
     <div className="relative min-h-screen bg-white overflow-hidden">
@@ -152,38 +232,144 @@ export default function LandingPage() {
                 </Button>
               </form>
 
-              {showResults ? (
-                <div className="max-w-lg space-y-4 rounded-2xl border border-[#2E7D5B]/15 bg-[#f6fbf8] p-6">
-                  <h2 className="text-lg font-bold text-gray-900">
-                    {t.resultsTitle}
-                  </h2>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {t.resultsMockNote}
-                  </p>
-                  <ul className="space-y-3">
-                    {t.mockSlots.map((slot) => (
-                      <li
-                        key={slot.provider}
-                        className="rounded-xl border border-white bg-white p-4 shadow-sm"
+              {searchResult ? (
+                <div className="max-w-lg space-y-5 rounded-2xl border border-[#2E7D5B]/15 bg-[#f6fbf8] p-6">
+                  {/* AI Understanding */}
+                  <div className="space-y-2">
+                    <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                      <Search className="h-5 w-5 text-[#2E7D5B]" />
+                      {searchResult.intent}
+                    </h2>
+                    <p className="text-sm text-gray-600">{searchResult.explanation}</p>
+                    <p className="text-xs text-gray-500">
+                      Found {searchResult.totalHospitals} hospitals in {searchResult.cities.length} cities
+                    </p>
+                  </div>
+
+                  {/* City Selection */}
+                  {searchResult.cities.length > 0 && (
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                        <MapPin className="h-4 w-4 text-[#2E7D5B]" />
+                        Select City
+                      </Label>
+                      <Select
+                        value={selectedCity}
+                        onValueChange={(value) => {
+                          setSelectedCity(value);
+                          setSelectedHospitalId(""); // Reset hospital when city changes
+                        }}
                       >
-                        <p className="font-semibold text-gray-900">
-                          {slot.provider}
+                        <SelectTrigger className="h-11 rounded-xl border-gray-200 bg-white">
+                          <SelectValue placeholder="Choose a city..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={ALL_CITIES_VALUE}>All cities</SelectItem>
+                          {searchResult.cities.map((city) => (
+                            <SelectItem key={city.name} value={city.name}>
+                              {city.name} ({city.hospitalCount} hospitals)
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {/* Hospital Selection */}
+                  {filteredHospitals.length > 0 && (
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                        <Building2 className="h-4 w-4 text-[#2E7D5B]" />
+                        Select Hospital
+                      </Label>
+                      <Select
+                        value={selectedHospitalId}
+                        onValueChange={setSelectedHospitalId}
+                      >
+                        <SelectTrigger className="h-11 rounded-xl border-gray-200 bg-white">
+                          <SelectValue placeholder="Choose a hospital..." />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-72">
+                          {filteredHospitals.map((hospital) => (
+                            <SelectItem key={hospital.id} value={hospital.id}>
+                              <div className="flex flex-col items-start">
+                                <span className="font-medium">{hospital.name}</span>
+                                <span className="text-xs text-gray-500">
+                                  {hospital.city} • {hospital.services[0]?.specialty || "General"}
+                                </span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {/* Selected Hospital Details */}
+                  {selectedHospital && (
+                    <div className="rounded-xl border border-white bg-white p-4 shadow-sm space-y-3">
+                      <div>
+                        <p className="font-semibold text-gray-900">{selectedHospital.name}</p>
+                        <p className="text-sm text-gray-500">
+                          {selectedHospital.address || selectedHospital.city}
                         </p>
-                        <p className="mt-2 text-sm text-gray-600">
-                          <span className="font-medium text-[#2E7D5B]">
-                            {t.resultWaitLabel}:
-                          </span>{" "}
-                          {slot.wait}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          <span className="font-medium text-[#2E7D5B]">
-                            {t.resultNextLabel}:
-                          </span>{" "}
-                          {slot.next}
-                        </p>
-                      </li>
-                    ))}
-                  </ul>
+                        {selectedHospital.phone && (
+                          <p className="text-sm text-gray-500">{selectedHospital.phone}</p>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2 text-sm">
+                        <Clock className="h-4 w-4 text-[#2E7D5B]" />
+                        <span className="text-gray-600">
+                          Average wait: {selectedHospital.averageWaitDays || "14"} days
+                        </span>
+                      </div>
+
+                      {selectedHospital.services.length > 0 && (
+                        <div className="space-y-1">
+                          <p className="text-xs font-medium text-gray-700">Available services:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {selectedHospital.services.map((service) => (
+                              <span
+                                key={service.id}
+                                className="inline-flex rounded-full bg-[#e8f5ee] px-2 py-0.5 text-xs text-[#2E7D5B]"
+                              >
+                                {service.specialty || service.procedureName || "General"}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Date Selection */}
+                      <div className="space-y-2 pt-2 border-t border-gray-100">
+                        <Label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                          <Calendar className="h-4 w-4 text-[#2E7D5B]" />
+                          Preferred Appointment Date
+                        </Label>
+                        <input
+                          type="date"
+                          value={selectedDate}
+                          onChange={(e) => setSelectedDate(e.target.value)}
+                          min={new Date().toISOString().split("T")[0]}
+                          className="h-11 w-full rounded-xl border border-gray-200 bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-[#2E7D5B]/30"
+                        />
+                        {selectedHospital.averageWaitDays && (
+                          <p className="text-xs text-gray-500">
+                            Earliest available: {formatDate(getEarliestDate(selectedHospital.averageWaitDays))}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Confirm Button (placeholder - no save yet) */}
+                      <Button
+                        disabled={!selectedDate}
+                        className="w-full rounded-full bg-[#2E7D5B] py-5 text-sm font-semibold text-white hover:bg-[#256B4D] disabled:opacity-50"
+                      >
+                        {selectedDate ? "Confirm Appointment Request" : "Select a date to continue"}
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ) : null}
             </div>

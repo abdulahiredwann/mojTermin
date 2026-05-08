@@ -1,8 +1,12 @@
 import { MessageSquare } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { AdminHospitalsChatPanel } from "@/components/admin/AdminHospitalsChatPanel";
+import {
+  AdminHospitalsChatPanel,
+  type HospitalChatMessageVm,
+  type HospitalChatSessionVm,
+} from "@/components/admin/AdminHospitalsChatPanel";
 import {
   Dialog,
   DialogContent,
@@ -47,6 +51,54 @@ function formatDate(value: string | null) {
   return date.toLocaleDateString();
 }
 
+function isDraftHospitalId(id: string) {
+  return id.startsWith("pending-");
+}
+
+type ChatProposedHospital = {
+  tempId: string;
+  name: string;
+  city: string | null;
+  country: string | null;
+  averageWaitDays: number | null;
+  services: Array<{
+    tempServiceId: string;
+    specialty: string;
+    procedureName: string;
+    estimatedWaitDays: number | null;
+  }>;
+};
+
+const CHAT_CONTEXT_STORAGE_KEY = "mojtermin_admin_hospital_chat_context";
+
+function mapProposedToRow(p: ChatProposedHospital): HospitalRow {
+  return {
+    id: p.tempId,
+    name: p.name,
+    city: p.city,
+    country: p.country ?? "Slovenia",
+    address: null,
+    phone: null,
+    email: null,
+    website: null,
+    emergency24h: null,
+    bedCount: null,
+    averageWaitDays: p.averageWaitDays,
+    isActive: true,
+    notes: null,
+    serviceCount: p.services.length,
+    services: p.services.map((s) => ({
+      id: s.tempServiceId,
+      specialty: s.specialty,
+      procedureName: s.procedureName,
+      estimatedWaitDays: s.estimatedWaitDays,
+      earliestDate: null,
+      isActive: true,
+      notes: null,
+    })),
+  };
+}
+
 export function AdminHospitalsPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -73,6 +125,15 @@ export function AdminHospitalsPage() {
     estimatedWaitDays: "",
   });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [pendingDraftRows, setPendingDraftRows] = useState<HospitalRow[]>([]);
+  const [chatContextId, setChatContextId] = useState<string | null>(() => {
+    try {
+      return sessionStorage.getItem(CHAT_CONTEXT_STORAGE_KEY);
+    } catch {
+      return null;
+    }
+  });
+  const [isCreatingChatSession, setIsCreatingChatSession] = useState(false);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["admin-hospitals", page, limit, search],
@@ -88,6 +149,10 @@ export function AdminHospitalsPage() {
   });
 
   const rows = useMemo(() => data?.hospitals ?? [], [data]);
+  const displayRows = useMemo(
+    () => [...pendingDraftRows, ...rows],
+    [pendingDraftRows, rows]
+  );
   const pagination = data?.pagination;
   const allSelected =
     rows.length > 0 && rows.every((row) => selectedHospitalIds.includes(row.id));
@@ -134,7 +199,9 @@ export function AdminHospitalsPage() {
 
   const bulkDeleteMutation = useMutation({
     mutationFn: async () => {
-      await api.post("/admin/hospitals/bulk-delete", { hospitalIds: selectedHospitalIds });
+      const serverIds = selectedHospitalIds.filter((id) => !isDraftHospitalId(id));
+      if (serverIds.length === 0) return;
+      await api.post("/admin/hospitals/bulk-delete", { hospitalIds: serverIds });
     },
     onSuccess: async () => {
       setSelectedHospitalIds([]);
@@ -192,6 +259,139 @@ export function AdminHospitalsPage() {
     },
   });
 
+  const chatMessagesQuery = useQuery({
+    queryKey: ["admin-hospital-chat", chatContextId],
+    queryFn: async () => {
+      const res = await api.get<{
+        contextId: string;
+        messages: Array<{ id: string; role: string; content: string; createdAt: string }>;
+      }>(`/admin/hospitals/chat-sessions/${chatContextId}/messages`);
+      return res.data;
+    },
+    enabled: Boolean(isChatbotPanelOpen && chatContextId && !isCreatingChatSession),
+  });
+
+  const chatMessages = useMemo((): HospitalChatMessageVm[] => {
+    const raw = chatMessagesQuery.data?.messages ?? [];
+    return raw.map((m) => ({
+      id: m.id,
+      role: m.role === "user" ? "user" : "assistant",
+      text: m.content,
+    }));
+  }, [chatMessagesQuery.data]);
+
+  const chatSessionsQuery = useQuery({
+    queryKey: ["admin-hospital-chat-sessions"],
+    queryFn: async () => {
+      const res = await api.get<{
+        sessions: Array<{
+          id: string;
+          title: string | null;
+          createdAt: string;
+          updatedAt: string;
+        }>;
+      }>("/admin/hospitals/chat-sessions");
+      return res.data;
+    },
+    enabled: Boolean(isChatbotPanelOpen),
+  });
+
+  const chatSessions = useMemo((): HospitalChatSessionVm[] => {
+    return (chatSessionsQuery.data?.sessions ?? []).map((s) => ({
+      id: s.id,
+      title: s.title,
+      createdAt: s.createdAt,
+      updatedAt: s.updatedAt,
+    }));
+  }, [chatSessionsQuery.data]);
+
+  useEffect(() => {
+    if (!isChatbotPanelOpen) return;
+    if (chatContextId) return;
+    let cancelled = false;
+    setIsCreatingChatSession(true);
+    void (async () => {
+      try {
+        const { data } = await api.post<{ contextId: string }>("/admin/hospitals/chat-sessions");
+        if (cancelled) return;
+        setChatContextId(data.contextId);
+        sessionStorage.setItem(CHAT_CONTEXT_STORAGE_KEY, data.contextId);
+      } catch {
+        if (!cancelled) setErrorMessage("Could not start chat session.");
+      } finally {
+        if (!cancelled) setIsCreatingChatSession(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isChatbotPanelOpen, chatContextId]);
+
+  const newHospitalChatMutation = useMutation({
+    mutationFn: async () => {
+      const { data } = await api.post<{ contextId: string }>("/admin/hospitals/chat-sessions");
+      return data.contextId;
+    },
+    onSuccess: (contextId) => {
+      setErrorMessage(null);
+      queryClient.removeQueries({ queryKey: ["admin-hospital-chat"] });
+      void queryClient.invalidateQueries({ queryKey: ["admin-hospital-chat-sessions"] });
+      setChatContextId(contextId);
+      sessionStorage.setItem(CHAT_CONTEXT_STORAGE_KEY, contextId);
+      void queryClient.invalidateQueries({ queryKey: ["admin-hospital-chat", contextId] });
+    },
+    onError: () => {
+      setErrorMessage("Could not start a new chat.");
+    },
+  });
+
+  const bulkSaveDraftsMutation = useMutation({
+    mutationFn: async () => {
+      const payload = {
+        hospitals: pendingDraftRows.map((h) => ({
+          name: h.name,
+          city: h.city,
+          country: h.country,
+          averageWaitDays: h.averageWaitDays,
+          services: h.services.map((s) => ({
+            specialty: s.specialty,
+            procedureName: s.procedureName,
+            estimatedWaitDays: s.estimatedWaitDays,
+          })),
+        })),
+      };
+      await api.post("/admin/hospitals/bulk-create", payload);
+    },
+    onSuccess: async () => {
+      setErrorMessage(null);
+      setPendingDraftRows([]);
+      await invalidateList();
+    },
+    onError: (err: unknown) => {
+      const data = (err as { response?: { data?: { error?: string } } })?.response?.data;
+      setErrorMessage(
+        typeof data?.error === "string" ? data.error : "Could not save draft hospitals."
+      );
+    },
+  });
+
+  const handleChatSubmitMessage = async (text: string) => {
+    if (!chatContextId) return;
+    const { data } = await api.post<{
+      summary: string;
+      proposedHospitals: ChatProposedHospital[];
+      contextId: string;
+    }>("/admin/hospitals/chat-simulate", { message: text, contextId: chatContextId });
+    if (data.contextId !== chatContextId) {
+      setChatContextId(data.contextId);
+      sessionStorage.setItem(CHAT_CONTEXT_STORAGE_KEY, data.contextId);
+    }
+    const mapped = data.proposedHospitals.map(mapProposedToRow);
+    setPendingDraftRows((prev) => [...mapped, ...prev]);
+    await queryClient.invalidateQueries({ queryKey: ["admin-hospital-chat", data.contextId] });
+    await queryClient.invalidateQueries({ queryKey: ["admin-hospital-chat-sessions"] });
+  };
+
   const toggleRowSelection = (hospitalId: string, checked: boolean) => {
     setSelectedHospitalIds((prev) =>
       checked ? [...new Set([...prev, hospitalId])] : prev.filter((id) => id !== hospitalId)
@@ -200,6 +400,11 @@ export function AdminHospitalsPage() {
 
   return (
     <section className="flex h-full min-h-0 flex-col gap-5 overflow-hidden">
+      {errorMessage ? (
+        <div className="shrink-0 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-800">
+          {errorMessage}
+        </div>
+      ) : null}
       {!isChatbotPanelOpen ? (
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -237,7 +442,6 @@ export function AdminHospitalsPage() {
               </button>
             </div>
           </div>
-          {errorMessage ? <p className="mt-3 text-sm text-red-600">{errorMessage}</p> : null}
         </div>
       ) : null}
 
@@ -271,6 +475,48 @@ export function AdminHospitalsPage() {
           </div>
         </div>
       ) : null}
+
+      <div
+        className={`transition-all duration-200 ${
+          isChatbotPanelOpen ? "pr-[420px]" : "pr-0"
+        }`}
+      >
+        {pendingDraftRows.length > 0 ? (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-amber-950">
+                  {pendingDraftRows.length} draft hospital
+                  {pendingDraftRows.length === 1 ? "" : "s"} from chat
+                </p>
+                <p className="text-xs text-amber-900/80">
+                  New rows are highlighted in the table. Save to write them to the database, or discard.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPendingDraftRows([])}
+                  className="h-9 rounded-md border border-amber-300 bg-white px-3 text-sm font-medium text-amber-950 hover:bg-amber-100/80"
+                >
+                  Discard drafts
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setErrorMessage(null);
+                    bulkSaveDraftsMutation.mutate();
+                  }}
+                  disabled={bulkSaveDraftsMutation.isPending}
+                  className="h-9 rounded-md bg-[#2E7D5B] px-4 text-sm font-medium text-white hover:bg-[#256B4D] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {bulkSaveDraftsMutation.isPending ? "Saving…" : "Save drafts"}
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </div>
 
       <div className="relative flex min-h-0 flex-1 gap-5">
         <div
@@ -307,17 +553,26 @@ export function AdminHospitalsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {rows.map((hospital) => (
-                  <tr key={hospital.id} className="align-top">
+                {displayRows.map((hospital) => {
+                  const isDraft = isDraftHospitalId(hospital.id);
+                  return (
+                  <tr
+                    key={hospital.id}
+                    className={`align-top ${isDraft ? "bg-emerald-50/90" : ""}`}
+                  >
                     <td className="px-4 py-4">
-                      <input
-                        type="checkbox"
-                        checked={selectedHospitalIds.includes(hospital.id)}
-                        onChange={(e) => toggleRowSelection(hospital.id, e.target.checked)}
-                      />
+                      {isDraft ? (
+                        <input type="checkbox" disabled className="opacity-40" title="Save draft rows from the banner" />
+                      ) : (
+                        <input
+                          type="checkbox"
+                          checked={selectedHospitalIds.includes(hospital.id)}
+                          onChange={(e) => toggleRowSelection(hospital.id, e.target.checked)}
+                        />
+                      )}
                     </td>
                     <td className="px-4 py-4">
-                      {editingHospitalId === hospital.id ? (
+                      {!isDraft && editingHospitalId === hospital.id ? (
                         <input
                           value={editingHospitalForm.name ?? ""}
                           onChange={(e) =>
@@ -326,7 +581,14 @@ export function AdminHospitalsPage() {
                           className="h-9 w-full rounded-md border border-gray-300 px-2 text-sm"
                         />
                       ) : (
-                        <p className="font-semibold text-gray-900">{hospital.name}</p>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="font-semibold text-gray-900">{hospital.name}</p>
+                          {isDraft ? (
+                            <span className="rounded-full bg-emerald-200/90 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-900">
+                              New
+                            </span>
+                          ) : null}
+                        </div>
                       )}
                       <p className="mt-1 text-xs text-gray-500">
                         Beds: {hospital.bedCount ?? "-"} | Emergency 24h:{" "}
@@ -338,7 +600,7 @@ export function AdminHospitalsPage() {
                       </p>
                     </td>
                     <td className="px-4 py-4 text-sm text-gray-700">
-                      {editingHospitalId === hospital.id ? (
+                      {!isDraft && editingHospitalId === hospital.id ? (
                         <input
                           value={editingHospitalForm.city ?? ""}
                           onChange={(e) =>
@@ -370,176 +632,204 @@ export function AdminHospitalsPage() {
                     </td>
                     <td className="px-4 py-4">
                       <div className="space-y-2">
-                        {hospital.services.length === 0 ? (
-                          <p className="text-sm text-gray-500">No services</p>
-                        ) : (
-                          hospital.services.map((service) => (
-                            <div key={service.id} className="rounded-md bg-gray-50 px-2 py-1.5">
-                              {editingServiceId === service.id ? (
-                                <div className="space-y-1">
-                                  <input
-                                    value={editingServiceForm.specialty}
-                                    onChange={(e) =>
-                                      setEditingServiceForm((prev) => ({
-                                        ...prev,
-                                        specialty: e.target.value,
-                                      }))
-                                    }
-                                    placeholder="Specialty"
-                                    className="h-8 w-full rounded border border-gray-300 px-2 text-xs"
-                                  />
-                                  <input
-                                    value={editingServiceForm.procedureName}
-                                    onChange={(e) =>
-                                      setEditingServiceForm((prev) => ({
-                                        ...prev,
-                                        procedureName: e.target.value,
-                                      }))
-                                    }
-                                    placeholder="Procedure"
-                                    className="h-8 w-full rounded border border-gray-300 px-2 text-xs"
-                                  />
-                                  <input
-                                    value={editingServiceForm.estimatedWaitDays}
-                                    onChange={(e) =>
-                                      setEditingServiceForm((prev) => ({
-                                        ...prev,
-                                        estimatedWaitDays: e.target.value,
-                                      }))
-                                    }
-                                    placeholder="Wait days"
-                                    className="h-8 w-full rounded border border-gray-300 px-2 text-xs"
-                                  />
-                                  <div className="flex gap-1">
-                                    <button
-                                      type="button"
-                                      className="rounded border border-gray-300 px-2 py-1 text-xs"
-                                      onClick={() =>
-                                        updateServiceMutation.mutate({
-                                          hospitalId: hospital.id,
-                                          serviceId: service.id,
-                                        })
-                                      }
-                                    >
-                                      Save
-                                    </button>
-                                    <button
-                                      type="button"
-                                      className="rounded border border-gray-300 px-2 py-1 text-xs"
-                                      onClick={() => setEditingServiceId(null)}
-                                    >
-                                      Cancel
-                                    </button>
-                                  </div>
-                                </div>
-                              ) : (
-                                <>
+                        {isDraft ? (
+                          <>
+                            {hospital.services.length === 0 ? (
+                              <p className="text-sm text-gray-500">No services</p>
+                            ) : (
+                              hospital.services.map((service) => (
+                                <div
+                                  key={service.id}
+                                  className="rounded-md border border-emerald-100 bg-white/90 px-2 py-1.5"
+                                >
                                   <p className="text-xs font-semibold text-gray-800">
                                     {service.specialty ?? "-"}
                                   </p>
                                   <p className="text-xs text-gray-600">
                                     {service.procedureName ?? "-"} | Wait:{" "}
-                                    {service.estimatedWaitDays ?? "-"} days | Earliest:{" "}
-                                    {formatDate(service.earliestDate)}
+                                    {service.estimatedWaitDays ?? "-"} days
                                   </p>
-                                  <div className="mt-1 flex gap-1">
-                                    <button
-                                      type="button"
-                                      className="rounded border border-gray-300 px-2 py-0.5 text-xs"
-                                      onClick={() => {
-                                        setEditingServiceId(service.id);
-                                        setEditingServiceForm({
-                                          specialty: service.specialty ?? "",
-                                          procedureName: service.procedureName ?? "",
-                                          estimatedWaitDays:
-                                            service.estimatedWaitDays?.toString() ?? "",
-                                        });
-                                      }}
-                                    >
-                                      Edit
-                                    </button>
-                                    <button
-                                      type="button"
-                                      className="rounded border border-red-300 px-2 py-0.5 text-xs text-red-700"
-                                      onClick={() =>
-                                        deleteServiceMutation.mutate({
-                                          hospitalId: hospital.id,
-                                          serviceId: service.id,
-                                        })
-                                      }
-                                    >
-                                      Delete
-                                    </button>
-                                  </div>
-                                </>
-                              )}
-                            </div>
-                          ))
-                        )}
-                        {addingServiceForHospitalId === hospital.id ? (
-                          <div className="rounded-md border border-dashed border-gray-300 p-2">
-                            <input
-                              value={newServiceForm.specialty}
-                              onChange={(e) =>
-                                setNewServiceForm((prev) => ({ ...prev, specialty: e.target.value }))
-                              }
-                              placeholder="Specialty"
-                              className="mb-1 h-8 w-full rounded border border-gray-300 px-2 text-xs"
-                            />
-                            <input
-                              value={newServiceForm.procedureName}
-                              onChange={(e) =>
-                                setNewServiceForm((prev) => ({
-                                  ...prev,
-                                  procedureName: e.target.value,
-                                }))
-                              }
-                              placeholder="Procedure"
-                              className="mb-1 h-8 w-full rounded border border-gray-300 px-2 text-xs"
-                            />
-                            <input
-                              value={newServiceForm.estimatedWaitDays}
-                              onChange={(e) =>
-                                setNewServiceForm((prev) => ({
-                                  ...prev,
-                                  estimatedWaitDays: e.target.value,
-                                }))
-                              }
-                              placeholder="Wait days"
-                              className="h-8 w-full rounded border border-gray-300 px-2 text-xs"
-                            />
-                            <div className="mt-2 flex gap-1">
-                              <button
-                                type="button"
-                                className="rounded border border-gray-300 px-2 py-1 text-xs"
-                                onClick={() => addServiceMutation.mutate()}
-                              >
-                                Add
-                              </button>
-                              <button
-                                type="button"
-                                className="rounded border border-gray-300 px-2 py-1 text-xs"
-                                onClick={() => setAddingServiceForHospitalId(null)}
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          </div>
+                                </div>
+                              ))
+                            )}
+                          </>
                         ) : (
-                          <button
-                            type="button"
-                            className="rounded border border-gray-300 px-2 py-1 text-xs"
-                            onClick={() => {
-                              setAddingServiceForHospitalId(hospital.id);
-                              setNewServiceForm({
-                                specialty: "",
-                                procedureName: "",
-                                estimatedWaitDays: "",
-                              });
-                            }}
-                          >
-                            Add service
-                          </button>
+                          <>
+                            {hospital.services.length === 0 ? (
+                              <p className="text-sm text-gray-500">No services</p>
+                            ) : (
+                              hospital.services.map((service) => (
+                                <div key={service.id} className="rounded-md bg-gray-50 px-2 py-1.5">
+                                  {editingServiceId === service.id ? (
+                                    <div className="space-y-1">
+                                      <input
+                                        value={editingServiceForm.specialty}
+                                        onChange={(e) =>
+                                          setEditingServiceForm((prev) => ({
+                                            ...prev,
+                                            specialty: e.target.value,
+                                          }))
+                                        }
+                                        placeholder="Specialty"
+                                        className="h-8 w-full rounded border border-gray-300 px-2 text-xs"
+                                      />
+                                      <input
+                                        value={editingServiceForm.procedureName}
+                                        onChange={(e) =>
+                                          setEditingServiceForm((prev) => ({
+                                            ...prev,
+                                            procedureName: e.target.value,
+                                          }))
+                                        }
+                                        placeholder="Procedure"
+                                        className="h-8 w-full rounded border border-gray-300 px-2 text-xs"
+                                      />
+                                      <input
+                                        value={editingServiceForm.estimatedWaitDays}
+                                        onChange={(e) =>
+                                          setEditingServiceForm((prev) => ({
+                                            ...prev,
+                                            estimatedWaitDays: e.target.value,
+                                          }))
+                                        }
+                                        placeholder="Wait days"
+                                        className="h-8 w-full rounded border border-gray-300 px-2 text-xs"
+                                      />
+                                      <div className="flex gap-1">
+                                        <button
+                                          type="button"
+                                          className="rounded border border-gray-300 px-2 py-1 text-xs"
+                                          onClick={() =>
+                                            updateServiceMutation.mutate({
+                                              hospitalId: hospital.id,
+                                              serviceId: service.id,
+                                            })
+                                          }
+                                        >
+                                          Save
+                                        </button>
+                                        <button
+                                          type="button"
+                                          className="rounded border border-gray-300 px-2 py-1 text-xs"
+                                          onClick={() => setEditingServiceId(null)}
+                                        >
+                                          Cancel
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <>
+                                      <p className="text-xs font-semibold text-gray-800">
+                                        {service.specialty ?? "-"}
+                                      </p>
+                                      <p className="text-xs text-gray-600">
+                                        {service.procedureName ?? "-"} | Wait:{" "}
+                                        {service.estimatedWaitDays ?? "-"} days | Earliest:{" "}
+                                        {formatDate(service.earliestDate)}
+                                      </p>
+                                      <div className="mt-1 flex gap-1">
+                                        <button
+                                          type="button"
+                                          className="rounded border border-gray-300 px-2 py-0.5 text-xs"
+                                          onClick={() => {
+                                            setEditingServiceId(service.id);
+                                            setEditingServiceForm({
+                                              specialty: service.specialty ?? "",
+                                              procedureName: service.procedureName ?? "",
+                                              estimatedWaitDays:
+                                                service.estimatedWaitDays?.toString() ?? "",
+                                            });
+                                          }}
+                                        >
+                                          Edit
+                                        </button>
+                                        <button
+                                          type="button"
+                                          className="rounded border border-red-300 px-2 py-0.5 text-xs text-red-700"
+                                          onClick={() =>
+                                            deleteServiceMutation.mutate({
+                                              hospitalId: hospital.id,
+                                              serviceId: service.id,
+                                            })
+                                          }
+                                        >
+                                          Delete
+                                        </button>
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
+                              ))
+                            )}
+                            {addingServiceForHospitalId === hospital.id ? (
+                              <div className="rounded-md border border-dashed border-gray-300 p-2">
+                                <input
+                                  value={newServiceForm.specialty}
+                                  onChange={(e) =>
+                                    setNewServiceForm((prev) => ({
+                                      ...prev,
+                                      specialty: e.target.value,
+                                    }))
+                                  }
+                                  placeholder="Specialty"
+                                  className="mb-1 h-8 w-full rounded border border-gray-300 px-2 text-xs"
+                                />
+                                <input
+                                  value={newServiceForm.procedureName}
+                                  onChange={(e) =>
+                                    setNewServiceForm((prev) => ({
+                                      ...prev,
+                                      procedureName: e.target.value,
+                                    }))
+                                  }
+                                  placeholder="Procedure"
+                                  className="mb-1 h-8 w-full rounded border border-gray-300 px-2 text-xs"
+                                />
+                                <input
+                                  value={newServiceForm.estimatedWaitDays}
+                                  onChange={(e) =>
+                                    setNewServiceForm((prev) => ({
+                                      ...prev,
+                                      estimatedWaitDays: e.target.value,
+                                    }))
+                                  }
+                                  placeholder="Wait days"
+                                  className="h-8 w-full rounded border border-gray-300 px-2 text-xs"
+                                />
+                                <div className="mt-2 flex gap-1">
+                                  <button
+                                    type="button"
+                                    className="rounded border border-gray-300 px-2 py-1 text-xs"
+                                    onClick={() => addServiceMutation.mutate()}
+                                  >
+                                    Add
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="rounded border border-gray-300 px-2 py-1 text-xs"
+                                    onClick={() => setAddingServiceForHospitalId(null)}
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                className="rounded border border-gray-300 px-2 py-1 text-xs"
+                                onClick={() => {
+                                  setAddingServiceForHospitalId(hospital.id);
+                                  setNewServiceForm({
+                                    specialty: "",
+                                    procedureName: "",
+                                    estimatedWaitDays: "",
+                                  });
+                                }}
+                              >
+                                Add service
+                              </button>
+                            )}
+                          </>
                         )}
                       </div>
                     </td>
@@ -558,7 +848,11 @@ export function AdminHospitalsPage() {
                       </span>
                     </td>
                     <td className="px-4 py-4">
-                      {editingHospitalId === hospital.id ? (
+                      {isDraft ? (
+                        <p className="max-w-[140px] text-xs font-medium leading-snug text-emerald-800">
+                          Pending — use Save drafts above
+                        </p>
+                      ) : editingHospitalId === hospital.id ? (
                         <div className="flex gap-1">
                           <button
                             type="button"
@@ -612,8 +906,9 @@ export function AdminHospitalsPage() {
                       )}
                     </td>
                   </tr>
-                ))}
-                {rows.length === 0 ? (
+                  );
+                })}
+                {displayRows.length === 0 ? (
                   <tr>
                     <td className="px-4 py-8 text-sm text-gray-500" colSpan={8}>
                       No hospitals found for this filter.
@@ -676,6 +971,19 @@ export function AdminHospitalsPage() {
             selectedHospitalIds={selectedHospitalIds}
             tagPrompt={tagPrompt}
             setTagPrompt={setTagPrompt}
+            contextId={chatContextId}
+            sessions={chatSessions}
+            isLoadingSessions={chatSessionsQuery.isFetching}
+            onSelectSession={(contextId) => {
+              setChatContextId(contextId);
+              sessionStorage.setItem(CHAT_CONTEXT_STORAGE_KEY, contextId);
+              void queryClient.invalidateQueries({ queryKey: ["admin-hospital-chat", contextId] });
+            }}
+            messages={chatMessages}
+            isLoadingMessages={chatMessagesQuery.isFetching}
+            isStartingSession={isCreatingChatSession}
+            onNewChat={() => newHospitalChatMutation.mutate()}
+            onSubmitMessage={handleChatSubmitMessage}
           />
       </div>
 

@@ -1,4 +1,5 @@
 const prisma = require("../prisma/prisma");
+const { runHospitalAssistantModel } = require("../services/hospitalChatOpenAI");
 
 function toNullableString(value) {
   if (typeof value !== "string") return null;
@@ -261,6 +262,206 @@ async function deleteService(req, res, next) {
   }
 }
 
+async function createHospitalChatSession(req, res, next) {
+  try {
+    const session = await prisma.adminHospitalChatSession.create({
+      data: { adminId: req.admin.id },
+    });
+    return res.status(201).json({ contextId: session.id });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+async function listHospitalChatMessages(req, res, next) {
+  try {
+    const contextId = req.params.contextId;
+    const session = await prisma.adminHospitalChatSession.findFirst({
+      where: { id: contextId, adminId: req.admin.id },
+      select: { id: true },
+    });
+    if (!session) {
+      return res.status(404).json({ error: "Chat not found." });
+    }
+    const messages = await prisma.adminHospitalChatMessage.findMany({
+      where: { sessionId: contextId },
+      orderBy: { createdAt: "asc" },
+      select: { id: true, role: true, content: true, createdAt: true },
+    });
+    return res.json({ contextId, messages });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+async function listHospitalChatSessions(req, res, next) {
+  try {
+    const sessions = await prisma.adminHospitalChatSession.findMany({
+      where: { adminId: req.admin.id },
+      orderBy: { updatedAt: "desc" },
+      take: 50,
+      select: {
+        id: true,
+        title: true,
+        createdAt: true,
+        updatedAt: true,
+        messages: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: { role: true, content: true, createdAt: true },
+        },
+      },
+    });
+
+    return res.json({
+      sessions: sessions.map((s) => ({
+        id: s.id,
+        title: s.title,
+        createdAt: s.createdAt,
+        updatedAt: s.updatedAt,
+        lastMessage: s.messages[0]
+          ? {
+              role: s.messages[0].role,
+              content: s.messages[0].content,
+              createdAt: s.messages[0].createdAt,
+            }
+          : null,
+      })),
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+async function chatSimulateHospitals(req, res, next) {
+  try {
+    const message = typeof req.body?.message === "string" ? req.body.message.trim() : "";
+    if (!message) {
+      return res.status(400).json({ error: "message is required." });
+    }
+
+    const contextIdRaw = typeof req.body?.contextId === "string" ? req.body.contextId.trim() : "";
+
+    let session;
+    if (contextIdRaw) {
+      session = await prisma.adminHospitalChatSession.findFirst({
+        where: { id: contextIdRaw, adminId: req.admin.id },
+      });
+      if (!session) {
+        return res.status(404).json({ error: "Chat session not found." });
+      }
+    } else {
+      session = await prisma.adminHospitalChatSession.create({
+        data: { adminId: req.admin.id },
+      });
+    }
+
+    await prisma.adminHospitalChatMessage.create({
+      data: {
+        sessionId: session.id,
+        role: "user",
+        content: message,
+      },
+    });
+
+    if (!session.title) {
+      await prisma.adminHospitalChatSession.update({
+        where: { id: session.id },
+        data: { title: message.slice(0, 120) },
+      });
+    }
+
+    const dbMessages = await prisma.adminHospitalChatMessage.findMany({
+      where: { sessionId: session.id },
+      orderBy: { createdAt: "asc" },
+      select: { role: true, content: true },
+    });
+
+    const history = dbMessages
+      .filter((m) => m.role === "user" || m.role === "assistant")
+      .map((m) => ({ role: m.role, content: m.content }));
+
+    let summary;
+    let proposedHospitals;
+
+    try {
+      const result = await runHospitalAssistantModel(history);
+      summary = result.summary;
+      proposedHospitals = result.proposedHospitals;
+    } catch (err) {
+      if (err.code === "OPENAI_NOT_CONFIGURED") {
+        return res.status(503).json({
+          error: "OpenAI is not configured. Set OPENAI_API_KEY on the server.",
+        });
+      }
+      throw err;
+    }
+
+    await prisma.adminHospitalChatMessage.create({
+      data: {
+        sessionId: session.id,
+        role: "assistant",
+        content: summary,
+      },
+    });
+
+    return res.json({
+      summary,
+      proposedHospitals,
+      contextId: session.id,
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+async function bulkCreateHospitals(req, res, next) {
+  try {
+    const hospitals = Array.isArray(req.body?.hospitals) ? req.body.hospitals : [];
+    if (!hospitals.length) {
+      return res.status(400).json({ error: "hospitals must be a non-empty array." });
+    }
+
+    for (const item of hospitals) {
+      const name = toNullableString(item?.name);
+      if (!name) {
+        return res.status(400).json({ error: "Each hospital needs a name." });
+      }
+    }
+
+    let created = 0;
+    await prisma.$transaction(async (tx) => {
+      for (const item of hospitals) {
+        const name = toNullableString(item?.name);
+        const services = Array.isArray(item?.services) ? item.services : [];
+        await tx.hospital.create({
+          data: {
+            name,
+            city: toNullableString(item?.city),
+            country: toNullableString(item?.country) ?? "Slovenia",
+            averageWaitDays: toNullableInt(item?.averageWaitDays),
+            services: {
+              create: services.map((s) => ({
+                specialty: toNullableString(s?.specialty),
+                procedureName: toNullableString(s?.procedureName),
+                estimatedWaitDays: toNullableInt(s?.estimatedWaitDays),
+              })),
+            },
+          },
+        });
+        created += 1;
+      }
+    });
+
+    return res.status(201).json({ createdCount: created });
+  } catch (error) {
+    if (error.code === "P2002") {
+      return res.status(409).json({ error: "A hospital name already exists." });
+    }
+    return next(error);
+  }
+}
+
 module.exports = {
   listHospitals,
   createHospital,
@@ -270,4 +471,9 @@ module.exports = {
   addService,
   updateService,
   deleteService,
+  createHospitalChatSession,
+  listHospitalChatSessions,
+  listHospitalChatMessages,
+  chatSimulateHospitals,
+  bulkCreateHospitals,
 };

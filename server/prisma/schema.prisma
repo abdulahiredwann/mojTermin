@@ -25,6 +25,31 @@ model Admin {
   sessionToken String?  @unique
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  hospitalChatSessions AdminHospitalChatSession[]
+}
+
+model AdminHospitalChatSession {
+  id        String   @id @default(uuid())
+  adminId   String
+  admin     Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  title     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  messages  AdminHospitalChatMessage[]
+
+  @@index([adminId])
+}
+
+model AdminHospitalChatMessage {
+  id        String   @id @default(uuid())
+  sessionId String
+  session   AdminHospitalChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role      String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([sessionId])
 }
 
 model Hospital {
