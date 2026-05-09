@@ -58,13 +58,13 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     langSlovenian: "Slovenian",
     heroTitle: "The fastest path to your healthcare appointment.",
     heroSubtitle:
-      "Tell us what you need. Add a photo of your referral if you have one — two quick steps.",
+      "Tell us what you need and your city — we’ll match you with available hospitals.",
     labelProblem: "What do you need?",
     placeholderProblem: "e.g. knee MRI, dermatology…",
     attachImageAria: "Attach a photo (referral)",
     analyzeButton: "Check availability",
     analyzing: "Checking…",
-    heroValidationNeedInput: "Add a short description or attach a photo.",
+    heroValidationNeedInput: "Describe what you need.",
     resultsTitle: "Example matches (preview)",
     resultsMockNote:
       "Demo data for testing. Later this will use your text, image analysis, and live providers.",
@@ -127,13 +127,13 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     langSlovenian: "Slovenščina",
     heroTitle: "Najhitrejša pot do vašega zdravstvenega termina.",
     heroSubtitle:
-      "Napišite, kaj potrebujete. Če imate, dodajte fotografijo napotnice — dva hitra koraka.",
+      "Napišite, kaj potrebujete, in izberite mesto — ujemali vas bomo z razpoložljivimi zdravstvenimi zavodi.",
     labelProblem: "Kaj potrebujete?",
     placeholderProblem: "npr. MRI kolena, dermatolog…",
     attachImageAria: "Priloži fotografijo (napotnica)",
     analyzeButton: "Preveri razpoložljivost",
     analyzing: "Preverjam…",
-    heroValidationNeedInput: "Vpišite kratek opis ali priložite fotografijo.",
+    heroValidationNeedInput: "Opišite, kaj potrebujete.",
     resultsTitle: "Primer ujemanj (predogled)",
     resultsMockNote:
       "Demo podatki za testiranje. Kasneje bomo uporabili vaš besedilo, analizo slike in dejanske ponudnike.",

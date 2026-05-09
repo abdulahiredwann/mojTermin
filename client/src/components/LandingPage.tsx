@@ -1,5 +1,6 @@
-import { useState, useRef, useMemo } from "react";
-import { ImagePlus, Loader2, MapPin, Building2, Calendar, Search, Clock } from "lucide-react";
+import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { ChevronDown, Loader2, MapPin, Building2, Calendar, Search, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { FloatingChatDemo } from "@/components/FloatingChatDemo";
 import { SiteHeader } from "@/components/SiteHeader";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -28,10 +38,16 @@ function HeroIllustration() {
   );
 }
 
+type SlovenianLocation = {
+  city: string;
+  region: string;
+};
+
 type SearchResult = {
   intent: string;
   explanation: string;
   totalHospitals: number;
+  filterCity?: string | null;
   cities: Array<{
     name: string;
     country: string;
@@ -54,29 +70,34 @@ type SearchResult = {
   }>;
 };
 
-const ALL_CITIES_VALUE = "__ALL__";
-
 export default function LandingPage() {
   const { t } = useLanguage();
   const [problem, setProblem] = useState("");
-  const [referralFile, setReferralFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
-  const [selectedCity, setSelectedCity] = useState<string>(ALL_CITIES_VALUE);
   const [selectedHospitalId, setSelectedHospitalId] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [submittingRequest, setSubmittingRequest] = useState(false);
   const [requestSavedId, setRequestSavedId] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Filter hospitals by selected city
+  const [selectedLocation, setSelectedLocation] = useState<SlovenianLocation | null>(null);
+  const [cityPopoverOpen, setCityPopoverOpen] = useState(false);
+
+  const { data: locations = [] } = useQuery({
+    queryKey: ["slovenian-locations"],
+    queryFn: async () => {
+      const res = await api.get<{ locations: SlovenianLocation[] }>("/search/locations");
+      return res.data.locations;
+    },
+    staleTime: 1000 * 60 * 60 * 24,
+  });
+
   const filteredHospitals = useMemo(() => {
     if (!searchResult) return [];
-    if (selectedCity === ALL_CITIES_VALUE) return searchResult.hospitals;
-    return searchResult.hospitals.filter((h) => h.city === selectedCity);
-  }, [searchResult, selectedCity]);
+    return searchResult.hospitals;
+  }, [searchResult]);
 
   // Get selected hospital details
   const selectedHospital = useMemo(() => {
@@ -87,22 +108,26 @@ export default function LandingPage() {
   async function handleAnalyze(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    const hasText = problem.trim().length > 0;
-    const hasFile = referralFile !== null;
-    if (!hasText && !hasFile) {
+    if (!problem.trim()) {
       setError(t.heroValidationNeedInput);
+      return;
+    }
+    if (!selectedLocation) {
+      setError("Please choose your city.");
       return;
     }
     setLoading(true);
     setSearchResult(null);
-    setSelectedCity(ALL_CITIES_VALUE);
     setSelectedHospitalId("");
     setSelectedDate("");
     setEmail("");
     setRequestSavedId(null);
 
     try {
-      const { data } = await api.post<SearchResult>("/search", { query: problem });
+      const { data } = await api.post<SearchResult>("/search", {
+        query: problem,
+        city: selectedLocation.city,
+      });
       setSearchResult(data);
     } catch (err: unknown) {
       const msg =
@@ -202,48 +227,77 @@ export default function LandingPage() {
                   <Label htmlFor="problem" className="text-sm text-gray-700">
                     {t.labelProblem}
                   </Label>
-                  <div className="relative flex gap-1">
-                    <Input
-                      id="problem"
-                      name="problem"
-                      autoComplete="off"
-                      placeholder={t.placeholderProblem}
-                      value={problem}
-                      onChange={(e) => setProblem(e.target.value)}
-                      maxLength={180}
-                      className="h-11 flex-1 rounded-xl border-gray-200 pr-1 text-[15px] shadow-none focus-visible:ring-[#2E7D5B]/30"
-                    />
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      capture="environment"
-                      className="sr-only"
-                      onChange={(e) => {
-                        const f = e.target.files?.[0];
-                        if (f && !f.type.startsWith("image/")) {
-                          setReferralFile(null);
-                          return;
-                        }
-                        setReferralFile(f ?? null);
-                      }}
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      aria-label={t.attachImageAria}
-                      title={t.attachImageAria}
-                      onClick={() => fileInputRef.current?.click()}
-                      className={`h-11 w-11 shrink-0 rounded-xl border-gray-200 ${
-                        referralFile
-                          ? "border-[#2E7D5B] bg-[#e8f5ee] text-[#2E7D5B]"
-                          : "text-gray-500 hover:text-[#2E7D5B]"
-                      }`}
+                  <Input
+                    id="problem"
+                    name="problem"
+                    autoComplete="off"
+                    placeholder={t.placeholderProblem}
+                    value={problem}
+                    onChange={(e) => setProblem(e.target.value)}
+                    maxLength={180}
+                    className="h-11 w-full rounded-xl border-gray-200 text-[15px] shadow-none focus-visible:ring-[#2E7D5B]/30"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-2 text-sm text-gray-700">
+                    <MapPin className="h-4 w-4 text-[#2E7D5B]" />
+                    Your city
+                  </Label>
+                  <Popover open={cityPopoverOpen} onOpenChange={setCityPopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={cityPopoverOpen}
+                        className="h-11 w-full justify-between rounded-xl border-gray-200 bg-white px-3 text-left font-normal text-[15px] hover:bg-white"
+                      >
+                        <span className={selectedLocation ? "text-gray-900" : "text-gray-500"}>
+                          {selectedLocation ? selectedLocation.city : "Choose your city"}
+                        </span>
+                        <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      className="z-[100] w-[min(calc(100vw-2rem),28rem)] max-h-[min(420px,70vh)] p-0"
+                      align="start"
+                      side="bottom"
+                      sideOffset={8}
+                      collisionPadding={16}
+                      avoidCollisions
                     >
-                      <ImagePlus className="h-5 w-5" />
-                    </Button>
-                  </div>
+                      <Command shouldFilter className="rounded-xl border-0">
+                        <CommandInput placeholder="Filter cities…" className="h-11" />
+                        <CommandList className="max-h-[min(320px,55vh)]">
+                          <CommandEmpty>No city found.</CommandEmpty>
+                          <CommandGroup>
+                            {locations.map((loc) => (
+                              <CommandItem
+                                key={`${loc.region}-${loc.city}`}
+                                value={`${loc.city} ${loc.region}`}
+                                className="cursor-pointer rounded-lg text-gray-900 data-[selected=true]:bg-[#2E7D5B] data-[selected=true]:text-white data-[selected=true]:[&_.city-region]:text-white/90 aria-selected:bg-[#2E7D5B] aria-selected:text-white"
+                                onSelect={() => {
+                                  setSelectedLocation(loc);
+                                  setCityPopoverOpen(false);
+                                }}
+                              >
+                                <div className="flex flex-col">
+                                  <span className="font-medium">{loc.city}</span>
+                                  <span className="city-region text-xs text-gray-500">{loc.region}</span>
+                                </div>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  {selectedLocation ? (
+                    <p className="text-xs text-gray-500">
+                      Region: <span className="font-medium text-gray-700">{selectedLocation.region}</span>
+                    </p>
+                  ) : null}
                 </div>
 
                 {error ? <p className="text-xs text-red-600">{error}</p> : null}
@@ -274,38 +328,11 @@ export default function LandingPage() {
                     </h2>
                     <p className="text-sm text-gray-600">{searchResult.explanation}</p>
                     <p className="text-xs text-gray-500">
-                      Found {searchResult.totalHospitals} hospitals in {searchResult.cities.length} cities
+                      {searchResult.filterCity
+                        ? `Found ${searchResult.totalHospitals} hospital${searchResult.totalHospitals === 1 ? "" : "s"} in ${searchResult.filterCity}.`
+                        : `Found ${searchResult.totalHospitals} hospital${searchResult.totalHospitals === 1 ? "" : "s"} in ${searchResult.cities.length} cities.`}
                     </p>
                   </div>
-
-                  {/* City Selection */}
-                  {searchResult.cities.length > 0 && (
-                    <div className="space-y-2">
-                      <Label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                        <MapPin className="h-4 w-4 text-[#2E7D5B]" />
-                        Select City
-                      </Label>
-                      <Select
-                        value={selectedCity}
-                        onValueChange={(value) => {
-                          setSelectedCity(value);
-                          setSelectedHospitalId(""); // Reset hospital when city changes
-                        }}
-                      >
-                        <SelectTrigger className="h-11 rounded-xl border-gray-200 bg-white">
-                          <SelectValue placeholder="Choose a city..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value={ALL_CITIES_VALUE}>All cities</SelectItem>
-                          {searchResult.cities.map((city) => (
-                            <SelectItem key={city.name} value={city.name}>
-                              {city.name} ({city.hospitalCount} hospitals)
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
 
                   {/* Hospital Selection */}
                   {filteredHospitals.length > 0 && (
@@ -321,12 +348,16 @@ export default function LandingPage() {
                         <SelectTrigger className="h-11 rounded-xl border-gray-200 bg-white">
                           <SelectValue placeholder="Choose a hospital..." />
                         </SelectTrigger>
-                        <SelectContent className="max-h-72">
+                        <SelectContent className="z-[100] max-h-72" position="popper" sideOffset={8}>
                           {filteredHospitals.map((hospital) => (
-                            <SelectItem key={hospital.id} value={hospital.id}>
+                            <SelectItem
+                              key={hospital.id}
+                              value={hospital.id}
+                              className="cursor-pointer rounded-lg text-gray-900 focus:bg-[#2E7D5B] focus:text-white data-[highlighted]:bg-[#2E7D5B] data-[highlighted]:text-white data-[highlighted]:[&_.hospital-meta]:text-white/90 data-[state=checked]:bg-[#2E7D5B] data-[state=checked]:text-white"
+                            >
                               <div className="flex flex-col items-start">
                                 <span className="font-medium">{hospital.name}</span>
-                                <span className="text-xs text-gray-500">
+                                <span className="hospital-meta text-xs text-gray-500">
                                   {hospital.city} • {hospital.services[0]?.specialty || "General"}
                                 </span>
                               </div>

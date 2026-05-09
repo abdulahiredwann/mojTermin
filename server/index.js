@@ -15,6 +15,14 @@ const app = express();
 const port = Number(process.env.PORT || 4000);
 const SEARCH_COOKIE_NAME = "mojtermin_search_id";
 
+function normalizeOrigin(value) {
+  if (!value || typeof value !== "string") return "";
+  let u = value.trim();
+  if (!u) return "";
+  // Strip trailing slash so https://a.com and https://a.com/ match
+  return u.replace(/\/+$/, "");
+}
+
 const corsMiddleware = cors({
   origin: (origin, callback) => {
     const raw = process.env.CORS_ORIGINS;
@@ -23,14 +31,17 @@ const corsMiddleware = cors({
 
     const allowlist = raw
       .split(",")
-      .map((v) => v.trim())
+      .map((v) => normalizeOrigin(v))
       .filter(Boolean);
 
     // Allow non-browser requests (no Origin header)
     if (!origin) return callback(null, true);
 
-    if (allowlist.includes(origin)) return callback(null, true);
-    return callback(new Error("Not allowed by CORS"));
+    const reqOrigin = normalizeOrigin(origin);
+    if (allowlist.includes(reqOrigin)) return callback(null, true);
+
+    // Deny without throwing — Error() bubbles to Express as 500 / log spam
+    return callback(null, false);
   },
   credentials: true,
 });

@@ -1,0 +1,106 @@
+REGIONS + CITIES
+OSREDNJESLOVENSKA
+- Ljubljana
+- Domžale
+- Kamnik
+- Grosuplje
+- Vrhnika
+- Medvode
+- Logatec
+- Litija
+- Ivančna Gorica
+- Mengeš
+- Komenda
+- Borovnica
+- Moravče
+- Šmartno pri Litiji
+GORENJSKA
+- Kranj
+- Jesenice
+- Škofja Loka
+- Radovljica
+- Bled
+- Bohinj
+- Tržič
+- Naklo
+- Žiri
+- Železniki
+- Kranjska Gora
+PODRAVSKA
+- Maribor
+- Ptuj
+- Slovenska Bistrica
+- Ruše
+- Lenart
+- Hoče
+- Miklavž na Dravskem polju
+- Duplek
+- Pesnica
+- Kidričevo
+SAVINJSKA
+- Celje
+- Velenje
+- Žalec
+- Laško
+- Rogaška Slatina
+- Šentjur
+- Mozirje
+- Šoštanj
+- Polzela
+- Braslovče
+POMURSKA
+- Murska Sobota
+- Lendava
+- Gornja Radgona
+- Beltinci
+- Odranci
+- Puconci
+- Tišina
+- Turnišče
+- Velika Polana
+- Apače
+KOROŠKA
+- Slovenj Gradec
+- Ravne na Koroškem
+- Dravograd
+- Prevalje
+- Radlje ob Dravi
+- Mislinja
+- Lovrenc na Pohorju
+GORIŠKA
+- Nova Gorica
+- Ajdovščina
+- Tolmin
+- Idrija
+- Vipava
+- Šempeter pri Gorici
+- Kobarid
+- Cerkno
+OBALNO-KRAŠKA
+- Koper
+- Izola
+- Piran
+- Portorož
+- Lucija
+- Ankaran
+- Sežana
+PRIMORSKO-NOTRANJSKA
+- Postojna
+- Cerknica
+- Ilirska Bistrica
+JUGOVZHODNA SLOVENIJA
+- Novo mesto
+- Kočevje
+- Trebnje
+- Metlika
+- Črnomelj
+- Žužemberk
+- Semič
+POSAVSKA
+- Krško
+- Brežice
+- Sevnica
+ZASAVSKA
+- Trbovlje
+- Zagorje ob Savi
+- Hrastnik

@@ -1,5 +1,19 @@
 const prisma = require("../prisma/prisma");
 const { analyzePatientSearch } = require("../services/patientSearchOpenAI");
+const {
+  getSortedLocations,
+  normalizeCityToken,
+} = require("../services/slovenianLocations");
+
+function resolveOfficialCity(userCity) {
+  if (typeof userCity !== "string" || !userCity.trim()) return null;
+  const want = normalizeCityToken(userCity);
+  const list = getSortedLocations();
+  const exact = list.find((l) => normalizeCityToken(l.city) === want);
+  if (exact) return exact.city;
+  const partial = list.find((l) => normalizeCityToken(l.city).includes(want) || want.includes(normalizeCityToken(l.city)));
+  return partial ? partial.city : userCity.trim();
+}
 
 async function searchAppointments(req, res, next) {
   try {
@@ -7,6 +21,9 @@ async function searchAppointments(req, res, next) {
     if (!query) {
       return res.status(400).json({ error: "Query is required." });
     }
+
+    const userCityRaw = typeof req.body?.city === "string" ? req.body.city.trim() : "";
+    const officialCity = userCityRaw ? resolveOfficialCity(userCityRaw) : null;
 
     // Use AI to analyze the search query
     let analysis;
@@ -44,6 +61,16 @@ async function searchAppointments(req, res, next) {
         : {}),
     };
 
+    const cityClause = officialCity
+      ? { city: { equals: officialCity, mode: "insensitive" } }
+      : analysis.cities.length > 0
+        ? {
+            OR: analysis.cities.map((c) => ({
+              city: { contains: c, mode: "insensitive" },
+            })),
+          }
+        : {};
+
     // Find hospitals with matching services
     const hospitals = await prisma.hospital.findMany({
       where: {
@@ -51,13 +78,7 @@ async function searchAppointments(req, res, next) {
         services: {
           some: serviceWhere,
         },
-        ...(analysis.cities.length > 0
-          ? {
-              OR: analysis.cities.map((c) => ({
-                city: { contains: c, mode: "insensitive" },
-              })),
-            }
-          : {}),
+        ...cityClause,
       },
       include: {
         services: {
@@ -110,6 +131,7 @@ async function searchAppointments(req, res, next) {
       intent: analysis.intent,
       explanation: analysis.explanation,
       query,
+      filterCity: officialCity,
       cities,
       hospitals: hospitalsList,
       totalHospitals: hospitalsList.length,
@@ -144,7 +166,17 @@ async function getCities(req, res, next) {
   }
 }
 
+async function listLocations(req, res, next) {
+  try {
+    const locations = getSortedLocations();
+    return res.json({ locations });
+  } catch (error) {
+    return next(error);
+  }
+}
+
 module.exports = {
   searchAppointments,
   getCities,
+  listLocations,
 };
