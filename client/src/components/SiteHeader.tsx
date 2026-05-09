@@ -98,8 +98,20 @@ export function SiteHeader({ borderBottom = true }: SiteHeaderProps) {
             {t.navContact}
           </Link>
         </nav>
-        <div className="hidden md:block">
+        <div className="hidden items-center gap-3 md:flex">
           <LanguageToggle />
+          <Link
+            to="/login"
+            className="rounded-full px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:text-[#2E7D5B]"
+          >
+            {t.authLogin}
+          </Link>
+          <Link
+            to="/signup"
+            className="rounded-full bg-[#2E7D5B] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#256B4D]"
+          >
+            {t.authSignup}
+          </Link>
         </div>
         <button
           type="button"
@@ -156,6 +168,21 @@ export function SiteHeader({ borderBottom = true }: SiteHeaderProps) {
 
             <div className="mt-6 border-t border-gray-100 pt-6">
               <LanguageToggle />
+            </div>
+
+            <div className="mt-auto flex flex-col gap-2 border-t border-gray-100 pt-6">
+              <Link
+                to="/login"
+                className="flex h-11 items-center justify-center rounded-xl border border-gray-200 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+              >
+                {t.authLogin}
+              </Link>
+              <Link
+                to="/signup"
+                className="flex h-11 items-center justify-center rounded-xl bg-[#2E7D5B] text-sm font-medium text-white transition-colors hover:bg-[#256B4D]"
+              >
+                {t.authSignup}
+              </Link>
             </div>
           </aside>
         </div>

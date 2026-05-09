@@ -1,7 +1,9 @@
 import AboutPage from "./components/AboutPage";
 import ContactPage from "./components/ContactPage";
 import LandingPage from "./components/LandingPage";
+import { LoginPage } from "./components/LoginPage";
 import PrivacyPage from "./components/PrivacyPage";
+import { SignupPage } from "./components/SignupPage";
 import { AdminComingSoonPage } from "./components/admin/AdminComingSoonPage";
 import { AdminAppointmentsPage } from "./components/admin/AdminAppointmentsPage";
 import { AdminHospitalsPage } from "./components/admin/AdminHospitalsPage";
@@ -22,6 +24,8 @@ function App() {
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
 
             <Route path="/admin/login" element={<AdminLoginPage />} />
             <Route element={<AdminProtectedRoute />}>

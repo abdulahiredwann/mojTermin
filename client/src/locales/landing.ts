@@ -50,6 +50,22 @@ export type LandingStrings = {
   chatPlaceholder: string;
   chatSendAria: string;
   chatDemoReply: string;
+  authLogin: string;
+  authSignup: string;
+  authLoginTitle: string;
+  authSignupTitle: string;
+  authEmail: string;
+  authPassword: string;
+  authConfirmPassword: string;
+  authName: string;
+  authPhone: string;
+  authLoginButton: string;
+  authSignupButton: string;
+  authOrContinueWith: string;
+  authContinueWithGoogle: string;
+  authNoAccount: string;
+  authHaveAccount: string;
+  authForgotPassword: string;
 };
 
 export const landingCopy: Record<Locale, LandingStrings> = {
@@ -121,6 +137,22 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     chatSendAria: "Send message",
     chatDemoReply:
       "Thanks — this is a UI-only demo. Soon this will connect to our real assistant, your request, and live provider data.",
+    authLogin: "Log in",
+    authSignup: "Sign up",
+    authLoginTitle: "Welcome back",
+    authSignupTitle: "Create your account",
+    authEmail: "Email",
+    authPassword: "Password",
+    authConfirmPassword: "Confirm password",
+    authName: "Full name",
+    authPhone: "Phone number",
+    authLoginButton: "Log in",
+    authSignupButton: "Create account",
+    authOrContinueWith: "or continue with",
+    authContinueWithGoogle: "Continue with Google",
+    authNoAccount: "Don't have an account?",
+    authHaveAccount: "Already have an account?",
+    authForgotPassword: "Forgot password?",
   },
   sl: {
     langEnglish: "Angleščina",
@@ -190,5 +222,21 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     chatSendAria: "Pošlji sporočilo",
     chatDemoReply:
       "Hvala — to je demo samo v vmesniku. Kmalu bo povezano z našim pomočnikom, vašo zahtevo in podatki ponudnikov.",
+    authLogin: "Prijava",
+    authSignup: "Registracija",
+    authLoginTitle: "Dobrodošli nazaj",
+    authSignupTitle: "Ustvarite račun",
+    authEmail: "E-pošta",
+    authPassword: "Geslo",
+    authConfirmPassword: "Potrdi geslo",
+    authName: "Polno ime",
+    authPhone: "Telefonska številka",
+    authLoginButton: "Prijava",
+    authSignupButton: "Ustvari račun",
+    authOrContinueWith: "ali nadaljuj z",
+    authContinueWithGoogle: "Nadaljuj z Google",
+    authNoAccount: "Nimate računa?",
+    authHaveAccount: "Že imate račun?",
+    authForgotPassword: "Pozabljeno geslo?",
   },
 };
