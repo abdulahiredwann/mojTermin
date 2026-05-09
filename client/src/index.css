@@ -43,6 +43,37 @@
   }
 }
 
+/* Hero dropdowns: green + white ONLY on the active/hovered row.
+   Never use [data-selected] alone — cmdk sets that attribute on every row. */
+@layer components {
+  /* cmdk CommandItem: highlighted row */
+  .mojtermin-green-option[data-selected="true"],
+  .mojtermin-green-option[aria-selected="true"] {
+    background-color: #2e7d5b !important;
+    color: #ffffff !important;
+  }
+  .mojtermin-green-option[data-selected="true"] *,
+  .mojtermin-green-option[aria-selected="true"] * {
+    color: #ffffff !important;
+  }
+  .mojtermin-green-option[data-selected="true"] .city-region,
+  .mojtermin-green-option[aria-selected="true"] .city-region {
+    color: rgba(255, 255, 255, 0.9) !important;
+  }
+
+  /* Radix SelectItem: keyboard/mouse highlight only */
+  .mojtermin-green-option[data-highlighted] {
+    background-color: #2e7d5b !important;
+    color: #ffffff !important;
+  }
+  .mojtermin-green-option[data-highlighted] * {
+    color: #ffffff !important;
+  }
+  .mojtermin-green-option[data-highlighted] .hospital-meta {
+    color: rgba(255, 255, 255, 0.9) !important;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;

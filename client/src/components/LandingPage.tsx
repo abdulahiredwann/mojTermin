@@ -276,14 +276,14 @@ export default function LandingPage() {
                               <CommandItem
                                 key={`${loc.region}-${loc.city}`}
                                 value={`${loc.city} ${loc.region}`}
-                                className="cursor-pointer rounded-lg text-gray-900 data-[selected=true]:bg-[#2E7D5B] data-[selected=true]:text-white data-[selected=true]:[&_.city-region]:text-white/90 aria-selected:bg-[#2E7D5B] aria-selected:text-white"
+                                className="mojtermin-green-option cursor-pointer rounded-lg text-gray-900"
                                 onSelect={() => {
                                   setSelectedLocation(loc);
                                   setCityPopoverOpen(false);
                                 }}
                               >
                                 <div className="flex flex-col">
-                                  <span className="font-medium">{loc.city}</span>
+                                  <span className="font-medium text-gray-900">{loc.city}</span>
                                   <span className="city-region text-xs text-gray-500">{loc.region}</span>
                                 </div>
                               </CommandItem>
@@ -353,10 +353,10 @@ export default function LandingPage() {
                             <SelectItem
                               key={hospital.id}
                               value={hospital.id}
-                              className="cursor-pointer rounded-lg text-gray-900 focus:bg-[#2E7D5B] focus:text-white data-[highlighted]:bg-[#2E7D5B] data-[highlighted]:text-white data-[highlighted]:[&_.hospital-meta]:text-white/90 data-[state=checked]:bg-[#2E7D5B] data-[state=checked]:text-white"
+                              className="mojtermin-green-option cursor-pointer rounded-lg text-gray-900"
                             >
                               <div className="flex flex-col items-start">
-                                <span className="font-medium">{hospital.name}</span>
+                                <span className="font-medium text-gray-900">{hospital.name}</span>
                                 <span className="hospital-meta text-xs text-gray-500">
                                   {hospital.city} • {hospital.services[0]?.specialty || "General"}
                                 </span>
