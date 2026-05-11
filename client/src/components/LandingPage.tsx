@@ -21,6 +21,15 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { FloatingChatDemo } from "@/components/FloatingChatDemo";
 import { SiteHeader } from "@/components/SiteHeader";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -70,8 +79,15 @@ type SearchResult = {
   }>;
 };
 
+type ConfirmRequestSummary = {
+  hospitalName: string;
+  email: string;
+  preferredDateLabel: string;
+  notifyWhenAvailable: boolean;
+};
+
 export default function LandingPage() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const [problem, setProblem] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -80,7 +96,11 @@ export default function LandingPage() {
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [submittingRequest, setSubmittingRequest] = useState(false);
-  const [requestSavedId, setRequestSavedId] = useState<string | null>(null);
+  const [confirmRequestOpen, setConfirmRequestOpen] = useState(false);
+  const [confirmRequestSummary, setConfirmRequestSummary] = useState<ConfirmRequestSummary | null>(
+    null,
+  );
+  const [notifyWhenAvailable, setNotifyWhenAvailable] = useState(false);
 
   const [selectedLocation, setSelectedLocation] = useState<SlovenianLocation | null>(null);
   const [cityPopoverOpen, setCityPopoverOpen] = useState(false);
@@ -121,7 +141,7 @@ export default function LandingPage() {
     setSelectedHospitalId("");
     setSelectedDate("");
     setEmail("");
-    setRequestSavedId(null);
+    setNotifyWhenAvailable(false);
 
     try {
       const { data } = await api.post<SearchResult>("/search", {
@@ -149,20 +169,36 @@ export default function LandingPage() {
 
   // Format date for display
   const formatDate = (date: Date) => {
-    return date.toLocaleDateString("en-GB", {
+    return date.toLocaleDateString(locale === "sl" ? "sl-SI" : "en-GB", {
       day: "2-digit",
       month: "short",
       year: "numeric",
     });
   };
 
+  function resetHeroAvailabilitySection() {
+    setSearchResult(null);
+    setSelectedHospitalId("");
+    setSelectedDate("");
+    setEmail("");
+    setNotifyWhenAvailable(false);
+  }
+
+  function handleConfirmDialogOpenChange(open: boolean) {
+    setConfirmRequestOpen(open);
+    if (!open) {
+      setConfirmRequestSummary(null);
+      resetHeroAvailabilitySection();
+    }
+  }
+
   async function handleConfirmRequest() {
     if (!searchResult || !selectedHospital || !selectedDate) return;
     setError(null);
     setSubmittingRequest(true);
-    setRequestSavedId(null);
+    const preferredDateLabel = formatDate(new Date(`${selectedDate}T12:00:00`));
     try {
-      const { data } = await api.post<{ request: { id: string } }>("/appointments", {
+      await api.post<{ request: { id: string } }>("/appointments", {
         email,
         query: problem,
         intent: searchResult.intent,
@@ -170,8 +206,15 @@ export default function LandingPage() {
         hospitalId: selectedHospital.id,
         hospitalName: selectedHospital.name,
         preferredDate: selectedDate,
+        notifyWhenAvailable,
       });
-      setRequestSavedId(data.request.id);
+      setConfirmRequestSummary({
+        hospitalName: selectedHospital.name,
+        email: email.trim(),
+        preferredDateLabel,
+        notifyWhenAvailable,
+      });
+      setConfirmRequestOpen(true);
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { error?: string } } })?.response?.data?.error ||
@@ -405,23 +448,47 @@ export default function LandingPage() {
                       )}
 
                       {/* Date Selection */}
-                      <div className="space-y-2 pt-2 border-t border-gray-100">
-                        <Label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                          <Calendar className="h-4 w-4 text-[#2E7D5B]" />
-                          Preferred Appointment Date
-                        </Label>
-                        <input
-                          type="date"
-                          value={selectedDate}
-                          onChange={(e) => setSelectedDate(e.target.value)}
-                          min={new Date().toISOString().split("T")[0]}
-                          className="h-11 w-full rounded-xl border border-gray-200 bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-[#2E7D5B]/30"
-                        />
-                        {selectedHospital.averageWaitDays && (
-                          <p className="text-xs text-gray-500">
-                            Earliest available: {formatDate(getEarliestDate(selectedHospital.averageWaitDays))}
-                          </p>
-                        )}
+                      <div className="space-y-2 border-t border-gray-100 pt-2">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-4">
+                          <div className="min-w-0 flex-1 space-y-2">
+                            <Label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                              <Calendar className="h-4 w-4 text-[#2E7D5B]" />
+                              Preferred Appointment Date
+                            </Label>
+                            <input
+                              type="date"
+                              value={selectedDate}
+                              onChange={(e) => setSelectedDate(e.target.value)}
+                              min={new Date().toISOString().split("T")[0]}
+                              className="h-11 w-full rounded-xl border border-gray-200 bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-[#2E7D5B]/30"
+                            />
+                            {selectedHospital.averageWaitDays ? (
+                              <p className="text-xs text-gray-500">
+                                Earliest available:{" "}
+                                {formatDate(getEarliestDate(selectedHospital.averageWaitDays))}
+                              </p>
+                            ) : null}
+                          </div>
+                          <div className="flex-1 rounded-xl border border-gray-100 bg-gray-50/90 p-3 sm:max-w-[min(100%,20rem)]">
+                            <div className="flex gap-3">
+                              <Checkbox
+                                id="landing-notify"
+                                checked={notifyWhenAvailable}
+                                onCheckedChange={(v) => setNotifyWhenAvailable(v === true)}
+                                className="mt-0.5 border-[#2E7D5B] data-[state=checked]:border-[#2E7D5B] data-[state=checked]:bg-[#2E7D5B]"
+                              />
+                              <div className="min-w-0">
+                                <label
+                                  htmlFor="landing-notify"
+                                  className="cursor-pointer text-sm font-medium leading-snug text-gray-800"
+                                >
+                                  {t.dashboardNotifyCheckbox}
+                                </label>
+                                <p className="mt-1 text-xs text-gray-500">{t.dashboardNotifyHint}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
 
                         <div className="space-y-2 pt-2">
                           <Label className="flex items-center gap-2 text-sm font-medium text-gray-700">
@@ -440,12 +507,6 @@ export default function LandingPage() {
                           </p>
                         </div>
                       </div>
-
-                      {requestSavedId ? (
-                        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-                          Request submitted. We’ll contact you by email soon with confirmation and next steps.
-                        </div>
-                      ) : null}
 
                       {/* Confirm Button */}
                       <Button
@@ -599,6 +660,53 @@ export default function LandingPage() {
           <p className="text-xs text-gray-400">{t.footerCopyright}</p>
         </div>
       </footer>
+
+      <Dialog open={confirmRequestOpen} onOpenChange={handleConfirmDialogOpenChange}>
+        <DialogContent className="border-gray-200 sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t.confirmRequestModalTitle}</DialogTitle>
+            <DialogDescription>{t.confirmRequestModalDescription}</DialogDescription>
+          </DialogHeader>
+          {confirmRequestSummary ? (
+            <div className="space-y-4 text-sm">
+              <div className="space-y-1">
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                  {t.confirmRequestModalHospital}
+                </p>
+                <p className="font-semibold text-gray-900">{confirmRequestSummary.hospitalName}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                  {t.confirmRequestModalEmail}
+                </p>
+                <p className="font-semibold text-gray-900">{confirmRequestSummary.email}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                  {t.confirmRequestModalPreferredDate}
+                </p>
+                <p className="font-semibold text-gray-900">
+                  {confirmRequestSummary.preferredDateLabel}
+                </p>
+              </div>
+              <p className="rounded-lg bg-[#f6fbf8] px-3 py-2 text-gray-700">
+                {confirmRequestSummary.notifyWhenAvailable
+                  ? t.confirmRequestModalNotifyOn
+                  : t.confirmRequestModalNotifyOff}
+              </p>
+            </div>
+          ) : null}
+          <DialogFooter>
+            <Button
+              type="button"
+              className="w-full rounded-full bg-[#2E7D5B] text-white sm:w-auto"
+              onClick={() => handleConfirmDialogOpenChange(false)}
+            >
+              {t.confirmRequestModalOk}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <FloatingChatDemo />
     </div>

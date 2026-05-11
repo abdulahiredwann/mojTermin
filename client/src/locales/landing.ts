@@ -95,6 +95,16 @@ export type LandingStrings = {
   dashboardSelectHospital: string;
   dashboardPreferredAppointmentDate: string;
   dashboardEmailNote: string;
+  dashboardNotifyCheckbox: string;
+  dashboardNotifyHint: string;
+  confirmRequestModalTitle: string;
+  confirmRequestModalDescription: string;
+  confirmRequestModalHospital: string;
+  confirmRequestModalEmail: string;
+  confirmRequestModalPreferredDate: string;
+  confirmRequestModalNotifyOn: string;
+  confirmRequestModalNotifyOff: string;
+  confirmRequestModalOk: string;
   userAreaTagline: string;
   userNavMyAppointments: string;
   userNavHospitals: string;
@@ -224,6 +234,18 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     dashboardSelectHospital: "Select hospital",
     dashboardPreferredAppointmentDate: "Preferred appointment date",
     dashboardEmailNote: "We use your account email for this request.",
+    dashboardNotifyCheckbox: "Notify me when a slot is available (SMS & email)",
+    dashboardNotifyHint:
+      "We’ll use your account email and phone on file. Automated alerts aren’t active yet — we’ll store your preference.",
+    confirmRequestModalTitle: "Request submitted",
+    confirmRequestModalDescription: "Here’s a summary of what we recorded.",
+    confirmRequestModalHospital: "Hospital",
+    confirmRequestModalEmail: "Email",
+    confirmRequestModalPreferredDate: "Preferred date",
+    confirmRequestModalNotifyOn:
+      "We’ll notify you by SMS and email when a slot becomes available at this hospital.",
+    confirmRequestModalNotifyOff: "No availability alerts for this request.",
+    confirmRequestModalOk: "OK",
     userAreaTagline: "My care",
     userNavMyAppointments: "My appointments",
     userNavHospitals: "Hospitals",
@@ -355,6 +377,18 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     dashboardSelectHospital: "Izberi zdravstveni zavod",
     dashboardPreferredAppointmentDate: "Želeni datum termina",
     dashboardEmailNote: "Za to zahtevo uporabimo e-pošto vašega računa.",
+    dashboardNotifyCheckbox: "Obvesti me, ko je prost termin (SMS in e-pošta)",
+    dashboardNotifyHint:
+      "Uporabili bomo e-pošto in telefon iz računa. Samodejna obvestila še niso vključena — shranimo vašo željo.",
+    confirmRequestModalTitle: "Zahteva je oddana",
+    confirmRequestModalDescription: "Povzetek zapisa.",
+    confirmRequestModalHospital: "Zdravstveni zavod",
+    confirmRequestModalEmail: "E-pošta",
+    confirmRequestModalPreferredDate: "Želeni datum",
+    confirmRequestModalNotifyOn:
+      "Ko bo na tem zavodu prost termin, vas bomo obvestili po SMS in e-pošti.",
+    confirmRequestModalNotifyOff: "Za to zahtevo brez obvestil o prostem mestu.",
+    confirmRequestModalOk: "V redu",
     userAreaTagline: "Moja skrb",
     userNavMyAppointments: "Moji termini",
     userNavHospitals: "Zdravstveni zavodi",

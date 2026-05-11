@@ -114,6 +114,8 @@ model AppointmentRequest {
   hospitalId    String?
   hospitalName  String?
   preferredDate DateTime
+  /** User opted in to SMS + email when a slot opens (no worker yet) */
+  notifyWhenAvailable Boolean @default(false)
   status        String   @default("pending")
   createdAt     DateTime @default(now())
 

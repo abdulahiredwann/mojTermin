@@ -23,6 +23,13 @@ function parseDateOnly(value) {
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
+function parseBooleanFlag(value) {
+  if (value === true || value === false) return value;
+  if (value === "true" || value === 1 || value === "1") return true;
+  if (value === "false" || value === 0 || value === "0") return false;
+  return false;
+}
+
 async function createAppointmentRequest(req, res, next) {
   try {
     let email = typeof req.body?.email === "string" ? req.body.email.trim() : "";
@@ -32,7 +39,7 @@ async function createAppointmentRequest(req, res, next) {
     const hospitalName = toNullableString(req.body?.hospitalName);
     const city = toNullableString(req.body?.city);
     const intent = toNullableString(req.body?.intent);
-
+    const notifyWhenAvailable = parseBooleanFlag(req.body?.notifyWhenAvailable);
     const userId = req.user?.id ?? null;
     if (userId && req.user?.email) {
       email = req.user.email.trim();
@@ -69,6 +76,7 @@ async function createAppointmentRequest(req, res, next) {
         hospitalId,
         hospitalName,
         preferredDate,
+        notifyWhenAvailable,
         status: "pending",
       },
       select: {
@@ -116,6 +124,7 @@ async function listAppointmentRequests(req, res, next) {
         hospitalId: r.hospitalId,
         hospitalName: r.hospitalName ?? r.hospital?.name ?? null,
         preferredDate: r.preferredDate,
+        notifyWhenAvailable: r.notifyWhenAvailable,
         status: r.status,
         createdAt: r.createdAt,
       })),

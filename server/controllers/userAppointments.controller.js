@@ -21,6 +21,7 @@ async function listMyAppointmentRequests(req, res, next) {
       hospitalId: r.hospitalId,
       hospitalName: r.hospitalName ?? r.hospital?.name ?? null,
       preferredDate: r.preferredDate,
+      notifyWhenAvailable: r.notifyWhenAvailable,
       status: r.status,
       createdAt: r.createdAt,
     }));
