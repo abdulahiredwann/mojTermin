@@ -195,13 +195,7 @@ export function UserDashboardPage() {
 
   return (
     <div className="relative mx-auto max-w-3xl">
-      <div className="pointer-events-none absolute -right-8 top-0 z-0 hidden h-72 w-72 md:block">
-        <svg viewBox="0 0 200 200" className="h-full w-full" fill="none">
-          <circle cx="170" cy="40" r="120" fill="#2E7D5B" opacity="0.07" />
-        </svg>
-      </div>
-
-      <div className="relative z-10 space-y-8">
+      <div className="space-y-8">
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 md:text-3xl">
             {t.dashboardPageTitle}
@@ -215,6 +209,13 @@ export function UserDashboardPage() {
               {t.dashboardCardTotal}
             </p>
             <p className="mt-1 text-2xl font-bold text-[#2E7D5B]">{stats.total}</p>
+            <Link
+              to="/user/appointments"
+              className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-[#2E7D5B] hover:underline"
+            >
+              {t.dashboardHistoryTitle}
+              <ChevronRight className="h-3 w-3" aria-hidden />
+            </Link>
           </div>
           <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
             <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
@@ -222,18 +223,30 @@ export function UserDashboardPage() {
             </p>
             <p className="mt-1 text-2xl font-bold text-amber-700">{pendingCount}</p>
           </div>
-          <div className="rounded-2xl border border-[#2E7D5B]/15 bg-white p-4 shadow-sm sm:col-span-1">
-            <p className="text-xs font-medium uppercase tracking-wide text-[#2E7D5B]/80">
-              {t.dashboardAccountEmail}
-            </p>
-            <p className="mt-1 truncate text-sm font-semibold text-gray-900">{user?.email}</p>
-            <Link
-              to="/user/appointments"
-              className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-[#2E7D5B] hover:underline"
-            >
-              {t.dashboardHistoryTitle}
-              <ChevronRight className="h-3 w-3" aria-hidden />
-            </Link>
+          <div className="rounded-2xl border border-[#2E7D5B]/20 bg-gradient-to-br from-[#f6fbf8] to-white p-4 shadow-sm sm:col-span-1">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#2E7D5B]">
+                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden>
+                  <path
+                    d="M12 2C8.5 2 3 5 3 12C3 17.5 8 22 12 22C16 22 21 17.5 21 12C21 5 15.5 2 12 2Z"
+                    fill="white"
+                    opacity="0.9"
+                  />
+                  <path d="M9 11H15M12 8V14" stroke="#2E7D5B" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-[#2E7D5B]">MojTermin</p>
+                <p className="mt-1 text-xs leading-snug text-gray-600">{t.dashboardMarketingBlurb}</p>
+                <Link
+                  to="/about"
+                  className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[#2E7D5B] hover:underline"
+                >
+                  {t.dashboardMarketingCta}
+                  <ChevronRight className="h-3 w-3" aria-hidden />
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
 

@@ -78,6 +78,9 @@ export type LandingStrings = {
   dashboardYourCity: string;
   dashboardCardTotal: string;
   dashboardCardPending: string;
+  dashboardCardHistory: string;
+  dashboardMarketingBlurb: string;
+  dashboardMarketingCta: string;
   dashboardNewRequestTitle: string;
   dashboardHistoryTitle: string;
   dashboardEmptyHistory: string;
@@ -202,6 +205,10 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     dashboardYourCity: "Your city",
     dashboardCardTotal: "Total requests",
     dashboardCardPending: "Pending",
+    dashboardCardHistory: "History",
+    dashboardMarketingBlurb:
+      "We help you find shorter waits and clearer paths to care across Slovenia.",
+    dashboardMarketingCta: "About MojTermin",
     dashboardNewRequestTitle: "Check availability",
     dashboardHistoryTitle: "Your appointment requests",
     dashboardEmptyHistory: "You don’t have any requests yet. Submit one using the form above.",
@@ -328,6 +335,10 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     dashboardYourCity: "Vaše mesto",
     dashboardCardTotal: "Skupaj zahtev",
     dashboardCardPending: "V čakanju",
+    dashboardCardHistory: "Zgodovina",
+    dashboardMarketingBlurb:
+      "Pomagamo vam poiskati krajše čakalne čase in jasnejšo pot do zdravstvene oskrbe.",
+    dashboardMarketingCta: "O MojTermin",
     dashboardNewRequestTitle: "Preveri razpoložljivost",
     dashboardHistoryTitle: "Vaše zahteve za termin",
     dashboardEmptyHistory:
