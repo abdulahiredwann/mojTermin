@@ -13,10 +13,14 @@ import { AdminProtectedRoute } from "./components/admin/AdminProtectedRoute";
 import { AdminAuthProvider } from "./contexts/AdminAuthContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { UserAuthProvider } from "./contexts/UserAuthContext";
+import { UserAiPage } from "./components/UserAiPage";
+import { UserAppointmentsPage } from "./components/UserAppointmentsPage";
 import { UserDashboardPage } from "./components/UserDashboardPage";
+import { UserHospitalsPage } from "./components/UserHospitalsPage";
+import { UserLayout } from "./components/UserLayout";
 import { UserProtectedRoute } from "./components/UserProtectedRoute";
 import { UserSettingsPage } from "./components/UserSettingsPage";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 function App() {
   return (
@@ -33,8 +37,14 @@ function App() {
             <Route path="/signup" element={<SignupPage />} />
 
             <Route element={<UserProtectedRoute />}>
-              <Route path="/user/dashboard" element={<UserDashboardPage />} />
-              <Route path="/user/settings" element={<UserSettingsPage />} />
+              <Route path="/user" element={<UserLayout />}>
+                <Route index element={<Navigate to="/user/dashboard" replace />} />
+                <Route path="dashboard" element={<UserDashboardPage />} />
+                <Route path="appointments" element={<UserAppointmentsPage />} />
+                <Route path="hospitals" element={<UserHospitalsPage />} />
+                <Route path="ai" element={<UserAiPage />} />
+                <Route path="settings" element={<UserSettingsPage />} />
+              </Route>
             </Route>
 
             <Route path="/admin/login" element={<AdminLoginPage />} />

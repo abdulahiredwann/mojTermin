@@ -92,6 +92,16 @@ export type LandingStrings = {
   dashboardSelectHospital: string;
   dashboardPreferredAppointmentDate: string;
   dashboardEmailNote: string;
+  userAreaTagline: string;
+  userNavMyAppointments: string;
+  userNavHospitals: string;
+  userNavAi: string;
+  userLayoutBackHome: string;
+  userAiPageTitle: string;
+  userAiPageIntro: string;
+  userHospitalsPageTitle: string;
+  userHospitalsPageIntro: string;
+  userHospitalsGoToSearch: string;
 };
 
 export const landingCopy: Record<Locale, LandingStrings> = {
@@ -207,6 +217,18 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     dashboardSelectHospital: "Select hospital",
     dashboardPreferredAppointmentDate: "Preferred appointment date",
     dashboardEmailNote: "We use your account email for this request.",
+    userAreaTagline: "My care",
+    userNavMyAppointments: "My appointments",
+    userNavHospitals: "Hospitals",
+    userNavAi: "AI assistant",
+    userLayoutBackHome: "Back to site",
+    userAiPageTitle: "AI assistant",
+    userAiPageIntro:
+      "Use the floating button to open the assistant. This is a preview — soon it will be connected to your requests and providers.",
+    userHospitalsPageTitle: "Hospitals",
+    userHospitalsPageIntro:
+      "Explore hospitals matched to what you need from your dashboard. Full directory search is coming soon.",
+    userHospitalsGoToSearch: "Check availability",
   },
   sl: {
     langEnglish: "Angleščina",
@@ -322,5 +344,17 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     dashboardSelectHospital: "Izberi zdravstveni zavod",
     dashboardPreferredAppointmentDate: "Želeni datum termina",
     dashboardEmailNote: "Za to zahtevo uporabimo e-pošto vašega računa.",
+    userAreaTagline: "Moja skrb",
+    userNavMyAppointments: "Moji termini",
+    userNavHospitals: "Zdravstveni zavodi",
+    userNavAi: "AI pomočnik",
+    userLayoutBackHome: "Nazaj na stran",
+    userAiPageTitle: "AI pomočnik",
+    userAiPageIntro:
+      "Odprite plavajoči gumb za pomočnika. Predogled — kmalu povezan z zahtevami in ponudniki.",
+    userHospitalsPageTitle: "Zdravstveni zavodi",
+    userHospitalsPageIntro:
+      "Na nadzorni plošči poiščite ujemajoče zavode glede vaše potrebe. Celoten imenik prihaja.",
+    userHospitalsGoToSearch: "Preveri razpoložljivost",
   },
 };
