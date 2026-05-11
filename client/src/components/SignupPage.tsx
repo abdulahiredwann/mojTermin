@@ -1,10 +1,11 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SiteHeader } from "@/components/SiteHeader";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useUserAuth } from "@/contexts/UserAuthContext";
 
 function GoogleIcon() {
   return (
@@ -31,23 +32,45 @@ function GoogleIcon() {
 
 export function SignupPage() {
   const { t } = useLanguage();
+  const { register, user, loading: authLoading } = useUserAuth();
+  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  useEffect(() => {
+    if (!authLoading && user) {
+      navigate("/user/dashboard", { replace: true });
+    }
+  }, [authLoading, user, navigate]);
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError(t.authPasswordMismatch);
       return;
     }
 
-    console.log("Signup attempt:", { name, email, phone, password });
+    setBusy(true);
+    try {
+      await register({
+        name,
+        email,
+        password,
+        ...(phone.trim() ? { phone: phone.trim() } : {}),
+      });
+      navigate("/user/dashboard", { replace: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not sign up.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   function handleGoogleSignup() {
@@ -190,9 +213,10 @@ export function SignupPage() {
 
               <Button
                 type="submit"
-                className="h-11 w-full rounded-full bg-[#2E7D5B] text-sm font-semibold text-white shadow-md shadow-[#2E7D5B]/15 hover:bg-[#256B4D]"
+                disabled={busy}
+                className="h-11 w-full rounded-full bg-[#2E7D5B] text-sm font-semibold text-white shadow-md shadow-[#2E7D5B]/15 hover:bg-[#256B4D] disabled:opacity-60"
               >
-                {t.authSignupButton}
+                {busy ? "…" : t.authSignupButton}
               </Button>
             </form>
           </div>

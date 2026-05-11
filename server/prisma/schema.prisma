@@ -90,8 +90,23 @@ model HospitalService {
   @@index([hospitalId])
 }
 
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  phone        String?
+  password     String
+  sessionToken String?  @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  appointmentRequests AppointmentRequest[]
+}
+
 model AppointmentRequest {
   id            String   @id @default(uuid())
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   email         String
   query         String
   intent        String?
@@ -104,6 +119,7 @@ model AppointmentRequest {
 
   hospital Hospital? @relation(fields: [hospitalId], references: [id], onDelete: SetNull)
 
+  @@index([userId])
   @@index([hospitalId])
   @@index([createdAt])
   @@index([status])

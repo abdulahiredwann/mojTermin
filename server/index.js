@@ -8,6 +8,8 @@ const adminAuthRoutes = require("./routes/adminAuth.routes");
 const adminHospitalsRoutes = require("./routes/adminHospitals.routes");
 const patientSearchRoutes = require("./routes/patientSearch.routes");
 const appointmentsRoutes = require("./routes/appointments.routes");
+const userAuthRoutes = require("./routes/userAuth.routes");
+const userRoutes = require("./routes/user.routes");
 
 dotenv.config();
 
@@ -65,6 +67,8 @@ app.use("/api/admin/auth", adminAuthRoutes);
 app.use("/api/admin/hospitals", adminHospitalsRoutes);
 app.use("/api/search", patientSearchRoutes);
 app.use("/api/appointments", appointmentsRoutes);
+app.use("/api/auth", userAuthRoutes);
+app.use("/api/user", userRoutes);
 
 app.post("/api/availability", async (req, res, next) => {
   try {

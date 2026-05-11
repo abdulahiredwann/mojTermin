@@ -1,10 +1,11 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SiteHeader } from "@/components/SiteHeader";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useUserAuth } from "@/contexts/UserAuthContext";
 
 function GoogleIcon() {
   return (
@@ -31,12 +32,33 @@ function GoogleIcon() {
 
 export function LoginPage() {
   const { t } = useLanguage();
+  const { login, user, loading: authLoading } = useUserAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit(e: React.FormEvent) {
+  useEffect(() => {
+    if (!authLoading && user) {
+      navigate("/user/dashboard", { replace: true });
+    }
+  }, [authLoading, user, navigate]);
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    console.log("Login attempt:", { email, password });
+    setError(null);
+    setBusy(true);
+    try {
+      await login(email, password);
+      const from = (location.state as { from?: string } | null)?.from;
+      navigate(from && from.startsWith("/") ? from : "/user/dashboard", { replace: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Login failed.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   function handleGoogleLogin() {
@@ -119,11 +141,14 @@ export function LoginPage() {
                 />
               </div>
 
+              {error ? <p className="text-sm text-red-600">{error}</p> : null}
+
               <Button
                 type="submit"
-                className="h-11 w-full rounded-full bg-[#2E7D5B] text-sm font-semibold text-white shadow-md shadow-[#2E7D5B]/15 hover:bg-[#256B4D]"
+                disabled={busy}
+                className="h-11 w-full rounded-full bg-[#2E7D5B] text-sm font-semibold text-white shadow-md shadow-[#2E7D5B]/15 hover:bg-[#256B4D] disabled:opacity-60"
               >
-                {t.authLoginButton}
+                {busy ? "…" : t.authLoginButton}
               </Button>
             </form>
 

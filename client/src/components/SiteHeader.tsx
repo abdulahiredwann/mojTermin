@@ -1,7 +1,31 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { ChevronDown, LayoutDashboard, LogOut, Settings } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useUserAuth } from "@/contexts/UserAuthContext";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+
+function userInitials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) {
+    const a = parts[0][0];
+    const b = parts[parts.length - 1][0];
+    if (a && b) return `${a}${b}`.toUpperCase();
+  }
+  const s = name.trim();
+  if (s.length >= 2) return s.slice(0, 2).toUpperCase();
+  if (s.length === 1) return s.toUpperCase();
+  return "?";
+}
 
 function MojTerminLogo() {
   return (
@@ -57,6 +81,8 @@ type SiteHeaderProps = { borderBottom?: boolean };
 
 export function SiteHeader({ borderBottom = true }: SiteHeaderProps) {
   const { locale, t } = useLanguage();
+  const { user, loading: userLoading, logout } = useUserAuth();
+  const navigate = useNavigate();
   const { pathname } = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -100,18 +126,91 @@ export function SiteHeader({ borderBottom = true }: SiteHeaderProps) {
         </nav>
         <div className="hidden items-center gap-3 md:flex">
           <LanguageToggle />
-          <Link
-            to="/login"
-            className="rounded-full px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:text-[#2E7D5B]"
-          >
-            {t.authLogin}
-          </Link>
-          <Link
-            to="/signup"
-            className="rounded-full bg-[#2E7D5B] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#256B4D]"
-          >
-            {t.authSignup}
-          </Link>
+          {userLoading ? (
+            <span className="text-sm text-gray-400">…</span>
+          ) : user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="flex max-w-[min(100%,17rem)] items-center gap-2 rounded-full border border-gray-200 bg-white py-1 pl-1 pr-2.5 text-left shadow-sm outline-none transition hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-[#2E7D5B]/30"
+                  aria-label={t.userMenuAria}
+                >
+                  <Avatar className="h-9 w-9">
+                    <AvatarFallback className="bg-[#2E7D5B] text-sm font-semibold text-white">
+                      {userInitials(user.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold leading-tight text-gray-900">{user.name}</p>
+                    <p className="truncate text-xs leading-tight text-gray-500">{user.email}</p>
+                  </div>
+                  <ChevronDown className="h-4 w-4 shrink-0 text-gray-400" aria-hidden />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56" collisionPadding={12}>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="truncate text-sm font-medium text-gray-900">{user.name}</span>
+                    <span className="truncate text-xs text-gray-500">{user.email}</span>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link
+                    to="/user/dashboard"
+                    className={cn(
+                      "flex cursor-pointer items-center gap-2",
+                      pathname === "/user/dashboard" && "bg-gray-50",
+                    )}
+                  >
+                    <LayoutDashboard className="h-4 w-4 shrink-0 text-[#2E7D5B]" />
+                    {t.authDashboard}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link
+                    to="/user/settings"
+                    className={cn(
+                      "flex cursor-pointer items-center gap-2",
+                      pathname === "/user/settings" && "bg-gray-50",
+                    )}
+                  >
+                    <Settings className="h-4 w-4 shrink-0 text-[#2E7D5B]" />
+                    {t.authSettings}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="flex cursor-pointer items-center gap-2 text-red-600 focus:bg-red-50 focus:text-red-700"
+                  onSelect={(event) => {
+                    event.preventDefault();
+                    logout().finally(() => {
+                      navigate("/");
+                    });
+                  }}
+                >
+                  <LogOut className="h-4 w-4 shrink-0" />
+                  {t.authLogout}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="rounded-full px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:text-[#2E7D5B]"
+              >
+                {t.authLogin}
+              </Link>
+              <Link
+                to="/signup"
+                className="rounded-full bg-[#2E7D5B] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#256B4D]"
+              >
+                {t.authSignup}
+              </Link>
+            </>
+          )}
         </div>
         <button
           type="button"
@@ -170,19 +269,65 @@ export function SiteHeader({ borderBottom = true }: SiteHeaderProps) {
               <LanguageToggle />
             </div>
 
-            <div className="mt-auto flex flex-col gap-2 border-t border-gray-100 pt-6">
-              <Link
-                to="/login"
-                className="flex h-11 items-center justify-center rounded-xl border border-gray-200 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
-              >
-                {t.authLogin}
-              </Link>
-              <Link
-                to="/signup"
-                className="flex h-11 items-center justify-center rounded-xl bg-[#2E7D5B] text-sm font-medium text-white transition-colors hover:bg-[#256B4D]"
-              >
-                {t.authSignup}
-              </Link>
+            <div className="mt-auto flex flex-col gap-3 border-t border-gray-100 pt-6">
+              {userLoading ? null : user ? (
+                <>
+                  <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 px-3 py-3">
+                    <Avatar className="h-11 w-11">
+                      <AvatarFallback className="bg-[#2E7D5B] text-sm font-semibold text-white">
+                        {userInitials(user.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-semibold text-gray-900">{user.name}</p>
+                      <p className="truncate text-xs text-gray-500">{user.email}</p>
+                    </div>
+                  </div>
+                  <Link
+                    to="/user/dashboard"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex h-11 items-center gap-2 rounded-xl bg-[#2E7D5B] px-3 text-sm font-medium text-white transition-colors hover:bg-[#256B4D]"
+                  >
+                    <LayoutDashboard className="h-4 w-4 shrink-0" />
+                    {t.authDashboard}
+                  </Link>
+                  <Link
+                    to="/user/settings"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex h-11 items-center gap-2 rounded-xl border border-gray-200 px-3 text-sm font-medium text-gray-800 transition-colors hover:bg-gray-50"
+                  >
+                    <Settings className="h-4 w-4 shrink-0 text-[#2E7D5B]" />
+                    {t.authSettings}
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await logout();
+                      setMobileMenuOpen(false);
+                      navigate("/");
+                    }}
+                    className="flex h-11 items-center gap-2 rounded-xl border border-red-100 bg-red-50/80 px-3 text-sm font-medium text-red-700 transition-colors hover:bg-red-50"
+                  >
+                    <LogOut className="h-4 w-4 shrink-0" />
+                    {t.authLogout}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    className="flex h-11 items-center justify-center rounded-xl border border-gray-200 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                  >
+                    {t.authLogin}
+                  </Link>
+                  <Link
+                    to="/signup"
+                    className="flex h-11 items-center justify-center rounded-xl bg-[#2E7D5B] text-sm font-medium text-white transition-colors hover:bg-[#256B4D]"
+                  >
+                    {t.authSignup}
+                  </Link>
+                </>
+              )}
             </div>
           </aside>
         </div>

@@ -25,13 +25,18 @@ function parseDateOnly(value) {
 
 async function createAppointmentRequest(req, res, next) {
   try {
-    const email = typeof req.body?.email === "string" ? req.body.email.trim() : "";
+    let email = typeof req.body?.email === "string" ? req.body.email.trim() : "";
     const query = typeof req.body?.query === "string" ? req.body.query.trim() : "";
     const preferredDate = parseDateOnly(req.body?.preferredDate);
     const hospitalId = toNullableString(req.body?.hospitalId);
     const hospitalName = toNullableString(req.body?.hospitalName);
     const city = toNullableString(req.body?.city);
     const intent = toNullableString(req.body?.intent);
+
+    const userId = req.user?.id ?? null;
+    if (userId && req.user?.email) {
+      email = req.user.email.trim();
+    }
 
     if (!isValidEmail(email)) {
       return res.status(400).json({ error: "Valid email is required." });
@@ -56,6 +61,7 @@ async function createAppointmentRequest(req, res, next) {
 
     const saved = await prisma.appointmentRequest.create({
       data: {
+        userId,
         email,
         query,
         intent,

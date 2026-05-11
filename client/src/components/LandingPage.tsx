@@ -113,7 +113,7 @@ export default function LandingPage() {
       return;
     }
     if (!selectedLocation) {
-      setError("Please choose your city.");
+      setError(t.heroValidationPickCity);
       return;
     }
     setLoading(true);

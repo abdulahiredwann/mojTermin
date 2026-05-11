@@ -1,5 +1,6 @@
 const express = require("express");
 const { requireAdminAuth } = require("../middleware/adminAuth.middleware");
+const { optionalUserAuth } = require("../middleware/userAuth.middleware");
 const {
   createAppointmentRequest,
   listAppointmentRequests,
@@ -7,10 +8,8 @@ const {
 
 const router = express.Router();
 
-// Public: create request from landing page
-router.post("/", createAppointmentRequest);
+router.post("/", optionalUserAuth, createAppointmentRequest);
 
-// Admin: list requests
 router.get("/", requireAdminAuth, listAppointmentRequests);
 
 module.exports = router;

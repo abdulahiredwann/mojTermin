@@ -66,6 +66,32 @@ export type LandingStrings = {
   authNoAccount: string;
   authHaveAccount: string;
   authForgotPassword: string;
+  authLogout: string;
+  authDashboard: string;
+  authSettings: string;
+  authPasswordMismatch: string;
+  userMenuAria: string;
+  userSettingsIntro: string;
+  heroValidationPickCity: string;
+  dashboardPageTitle: string;
+  dashboardIntro: string;
+  dashboardYourCity: string;
+  dashboardCardTotal: string;
+  dashboardCardPending: string;
+  dashboardNewRequestTitle: string;
+  dashboardHistoryTitle: string;
+  dashboardEmptyHistory: string;
+  dashboardTableSubmitted: string;
+  dashboardTableStatus: string;
+  dashboardTableHospital: string;
+  dashboardTableNeed: string;
+  dashboardTableWhen: string;
+  dashboardAccountEmail: string;
+  dashboardReferralPhoto: string;
+  dashboardReferralPhotoHint: string;
+  dashboardSelectHospital: string;
+  dashboardPreferredAppointmentDate: string;
+  dashboardEmailNote: string;
 };
 
 export const landingCopy: Record<Locale, LandingStrings> = {
@@ -153,6 +179,34 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     authNoAccount: "Don't have an account?",
     authHaveAccount: "Already have an account?",
     authForgotPassword: "Forgot password?",
+    authLogout: "Log out",
+    authDashboard: "Dashboard",
+    authSettings: "Settings",
+    userMenuAria: "Account menu",
+    userSettingsIntro:
+      "Manage your account preferences here. More options will be available soon.",
+    authPasswordMismatch: "Passwords do not match.",
+    heroValidationPickCity: "Please choose your city.",
+    dashboardPageTitle: "Your dashboard",
+    dashboardIntro: "Check availability, add an optional referral photo, and track your requests.",
+    dashboardYourCity: "Your city",
+    dashboardCardTotal: "Total requests",
+    dashboardCardPending: "Pending",
+    dashboardNewRequestTitle: "Check availability",
+    dashboardHistoryTitle: "Your appointment requests",
+    dashboardEmptyHistory: "You don’t have any requests yet. Submit one using the form above.",
+    dashboardTableSubmitted: "Submitted",
+    dashboardTableStatus: "Status",
+    dashboardTableHospital: "Hospital",
+    dashboardTableNeed: "What you asked for",
+    dashboardTableWhen: "Preferred date",
+    dashboardAccountEmail: "Contact email",
+    dashboardReferralPhoto: "Referral image (optional)",
+    dashboardReferralPhotoHint:
+      "Upload coming soon — selecting a file is only stored in your browser for now.",
+    dashboardSelectHospital: "Select hospital",
+    dashboardPreferredAppointmentDate: "Preferred appointment date",
+    dashboardEmailNote: "We use your account email for this request.",
   },
   sl: {
     langEnglish: "Angleščina",
@@ -238,5 +292,35 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     authNoAccount: "Nimate računa?",
     authHaveAccount: "Že imate račun?",
     authForgotPassword: "Pozabljeno geslo?",
+    authLogout: "Odjava",
+    authDashboard: "Nadzorna plošča",
+    authSettings: "Nastavitve",
+    userMenuAria: "Meni računa",
+    userSettingsIntro:
+      "Tukaj boste kmalu upravljali nastavitve računa. Funkcija je v pripravi.",
+    authPasswordMismatch: "Gesli se ne ujemata.",
+    heroValidationPickCity: "Izberite mesto.",
+    dashboardPageTitle: "Vaša nadzorna plošča",
+    dashboardIntro:
+      "Preverite razpoložljivost, dodajte neobvezno fotografijo napotnice in spremljajte svoje zahteve.",
+    dashboardYourCity: "Vaše mesto",
+    dashboardCardTotal: "Skupaj zahtev",
+    dashboardCardPending: "V čakanju",
+    dashboardNewRequestTitle: "Preveri razpoložljivost",
+    dashboardHistoryTitle: "Vaše zahteve za termin",
+    dashboardEmptyHistory:
+      "Še nimate zahtev. Oddajte jo z obrazcom zgoraj.",
+    dashboardTableSubmitted: "Oddano",
+    dashboardTableStatus: "Stanje",
+    dashboardTableHospital: "Zdravstveni zavod",
+    dashboardTableNeed: "Kaj ste iskali",
+    dashboardTableWhen: "Želen datum",
+    dashboardAccountEmail: "Kontakt e-pošta",
+    dashboardReferralPhoto: "Slika napotnice (neobvezno)",
+    dashboardReferralPhotoHint:
+      "Nalaganje pride kmalu — izbira datoteka je za zdaj le v brskalniku.",
+    dashboardSelectHospital: "Izberi zdravstveni zavod",
+    dashboardPreferredAppointmentDate: "Želeni datum termina",
+    dashboardEmailNote: "Za to zahtevo uporabimo e-pošto vašega računa.",
   },
 };

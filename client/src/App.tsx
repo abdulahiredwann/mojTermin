@@ -12,6 +12,10 @@ import { AdminLoginPage } from "./components/admin/AdminLoginPage";
 import { AdminProtectedRoute } from "./components/admin/AdminProtectedRoute";
 import { AdminAuthProvider } from "./contexts/AdminAuthContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
+import { UserAuthProvider } from "./contexts/UserAuthContext";
+import { UserDashboardPage } from "./components/UserDashboardPage";
+import { UserProtectedRoute } from "./components/UserProtectedRoute";
+import { UserSettingsPage } from "./components/UserSettingsPage";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 function App() {
@@ -19,6 +23,7 @@ function App() {
     <LanguageProvider>
       <AdminAuthProvider>
         <BrowserRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
+          <UserAuthProvider>
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
@@ -26,6 +31,11 @@ function App() {
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
+
+            <Route element={<UserProtectedRoute />}>
+              <Route path="/user/dashboard" element={<UserDashboardPage />} />
+              <Route path="/user/settings" element={<UserSettingsPage />} />
+            </Route>
 
             <Route path="/admin/login" element={<AdminLoginPage />} />
             <Route element={<AdminProtectedRoute />}>
@@ -38,6 +48,7 @@ function App() {
               </Route>
             </Route>
           </Routes>
+          </UserAuthProvider>
         </BrowserRouter>
       </AdminAuthProvider>
     </LanguageProvider>
