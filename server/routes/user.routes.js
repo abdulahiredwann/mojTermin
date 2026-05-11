@@ -1,9 +1,15 @@
 const express = require("express");
 const { requireUserAuth } = require("../middleware/userAuth.middleware");
-const { listMyAppointmentRequests } = require("../controllers/userAppointments.controller");
+const {
+  listMyAppointmentRequests,
+  updateMyAppointmentRequest,
+  deleteMyAppointmentRequest,
+} = require("../controllers/userAppointments.controller");
 
 const router = express.Router();
 
 router.get("/appointments", requireUserAuth, listMyAppointmentRequests);
+router.patch("/appointments/:id", requireUserAuth, updateMyAppointmentRequest);
+router.delete("/appointments/:id", requireUserAuth, deleteMyAppointmentRequest);
 
 module.exports = router;

@@ -89,6 +89,14 @@ export type LandingStrings = {
   dashboardTableHospital: string;
   dashboardTableNeed: string;
   dashboardTableWhen: string;
+  dashboardTableActions: string;
+  dashboardEditPreferredDate: string;
+  dashboardSave: string;
+  dashboardCancel: string;
+  dashboardDelete: string;
+  dashboardDeleteRequestTitle: string;
+  dashboardDeleteRequestBody: string;
+  dashboardConfirmDelete: string;
   dashboardAccountEmail: string;
   dashboardReferralPhoto: string;
   dashboardReferralPhotoHint: string;
@@ -227,6 +235,15 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     dashboardTableHospital: "Hospital",
     dashboardTableNeed: "What you asked for",
     dashboardTableWhen: "Preferred date",
+    dashboardTableActions: "Actions",
+    dashboardEditPreferredDate: "Edit date",
+    dashboardSave: "Save",
+    dashboardCancel: "Cancel",
+    dashboardDelete: "Delete",
+    dashboardDeleteRequestTitle: "Delete this request?",
+    dashboardDeleteRequestBody:
+      "It will be removed from your list. You can submit a new request from the dashboard anytime.",
+    dashboardConfirmDelete: "Delete request",
     dashboardAccountEmail: "Contact email",
     dashboardReferralPhoto: "Referral image (optional)",
     dashboardReferralPhotoHint:
@@ -370,6 +387,15 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     dashboardTableHospital: "Zdravstveni zavod",
     dashboardTableNeed: "Kaj ste iskali",
     dashboardTableWhen: "Želen datum",
+    dashboardTableActions: "Dejanja",
+    dashboardEditPreferredDate: "Uredi datum",
+    dashboardSave: "Shrani",
+    dashboardCancel: "Prekliči",
+    dashboardDelete: "Izbriši",
+    dashboardDeleteRequestTitle: "Želite izbrisati to zahtevo?",
+    dashboardDeleteRequestBody:
+      "Odstranjena bo s seznama. Novo zahtevo lahko oddate kadar koli z nadzorne plošče.",
+    dashboardConfirmDelete: "Izbriši zahtevo",
     dashboardAccountEmail: "Kontakt e-pošta",
     dashboardReferralPhoto: "Slika napotnice (neobvezno)",
     dashboardReferralPhotoHint:
