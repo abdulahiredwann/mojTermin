@@ -9,7 +9,10 @@ export function UserSettingsPage() {
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900 md:text-3xl">{t.authSettings}</h1>
-        <p className="mt-2 text-sm text-gray-600 md:text-base">{t.userSettingsIntro}</p>
+        <p className="mt-2 text-sm text-gray-600 md:text-base">{t.settingsComingSoonIntro}</p>
+        <p className="mt-3 inline-flex rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-900 ring-1 ring-amber-200">
+          {t.comingSoon}
+        </p>
       </div>
       {user ? (
         <dl className="space-y-4 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">

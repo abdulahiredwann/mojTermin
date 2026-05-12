@@ -1,13 +1,6 @@
 import { useMemo, useState } from "react";
-import {
-  Bot,
-  Building2,
-  CalendarCheck,
-  LayoutDashboard,
-  LogOut,
-  Menu,
-  Settings,
-} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { CalendarCheck, LayoutDashboard, LogOut, Menu, Settings } from "lucide-react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -36,6 +29,13 @@ function userInitials(name: string) {
   return "?";
 }
 
+type UserNavItem = {
+  to: string;
+  label: string;
+  Icon: LucideIcon;
+  subtitle?: string;
+};
+
 export function UserLayout() {
   const { t } = useLanguage();
   const { user, logout } = useUserAuth();
@@ -43,13 +43,16 @@ export function UserLayout() {
   const { pathname } = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const items = useMemo(
+  const items: UserNavItem[] = useMemo(
     () => [
       { to: "/user/dashboard", label: t.authDashboard, Icon: LayoutDashboard },
       { to: "/user/appointments", label: t.userNavMyAppointments, Icon: CalendarCheck },
-      { to: "/user/hospitals", label: t.userNavHospitals, Icon: Building2 },
-      { to: "/user/ai", label: t.userNavAi, Icon: Bot },
-      { to: "/user/settings", label: t.authSettings, Icon: Settings },
+      {
+        to: "/user/settings",
+        label: t.authSettings,
+        Icon: Settings,
+        subtitle: t.comingSoon,
+      },
     ],
     [t],
   );
@@ -94,10 +97,15 @@ export function UserLayout() {
         </div>
 
         <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-3">
-          {items.map(({ to, label, Icon }) => (
+          {items.map(({ to, label, Icon, subtitle }) => (
             <NavLink key={to} to={to} className={({ isActive }) => navLinkClass(isActive)}>
-              <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden />
-              {label}
+              <Icon className="h-[18px] w-[18px] shrink-0 self-start pt-0.5" aria-hidden />
+              <span className="flex min-w-0 flex-col">
+                <span className="leading-snug">{label}</span>
+                {subtitle ? (
+                  <span className="truncate text-[10px] font-normal leading-tight text-gray-400">{subtitle}</span>
+                ) : null}
+              </span>
             </NavLink>
           ))}
         </nav>
@@ -144,15 +152,20 @@ export function UserLayout() {
                 <p className="text-xs font-medium text-gray-500">{t.userAreaTagline}</p>
               </SheetHeader>
               <nav className="flex flex-col gap-1 p-3">
-                {items.map(({ to, label, Icon }) => (
+                {items.map(({ to, label, Icon, subtitle }) => (
                   <NavLink
                     key={to}
                     to={to}
                     onClick={() => setDrawerOpen(false)}
                     className={({ isActive }) => cn(navLinkClass(isActive), "py-3")}
                   >
-                    <Icon className="h-[18px] w-[18px] shrink-0" />
-                    {label}
+                    <Icon className="h-[18px] w-[18px] shrink-0 self-start pt-0.5" />
+                    <span className="flex min-w-0 flex-col">
+                      <span className="leading-snug">{label}</span>
+                      {subtitle ? (
+                        <span className="truncate text-[10px] font-normal leading-tight text-gray-400">{subtitle}</span>
+                      ) : null}
+                    </span>
                   </NavLink>
                 ))}
               </nav>
@@ -203,8 +216,12 @@ export function UserLayout() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/user/settings" className="cursor-pointer">
-                    {t.authSettings}
+                  <Link to="/user/settings" className="cursor-pointer flex-col items-stretch gap-0.5 py-2">
+                    <span className="flex items-center gap-2">
+                      <Settings className="h-4 w-4 shrink-0 text-[#2E7D5B]" />
+                      <span>{t.authSettings}</span>
+                    </span>
+                    <span className="pl-6 text-xs font-normal text-gray-500">{t.comingSoon}</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -232,10 +249,10 @@ export function UserLayout() {
 
       {/* Mobile bottom navigation */}
       <nav
-        className="fixed bottom-0 left-0 right-0 z-30 grid grid-cols-5 border-t border-gray-200 bg-white pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-4px_24px_-4px_rgba(0,0,0,0.08)] md:hidden"
+        className="fixed bottom-0 left-0 right-0 z-30 grid grid-cols-3 border-t border-gray-200 bg-white pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-4px_24px_-4px_rgba(0,0,0,0.08)] md:hidden"
         aria-label={t.userAreaTagline}
       >
-        {items.map(({ to, label, Icon }) => (
+        {items.map(({ to, label, Icon, subtitle }) => (
           <NavLink
             key={to}
             to={to}
@@ -247,8 +264,11 @@ export function UserLayout() {
             }
           >
             <Icon className={cn("h-5 w-5 shrink-0", pathname === to && "stroke-[2.5]")} />
-            <span className="max-w-full truncate px-0.5 text-[10px] font-medium leading-tight sm:text-[11px]">
-              {label}
+            <span className="flex max-w-full flex-col items-center leading-tight">
+              <span className="truncate px-0.5 text-[10px] font-medium sm:text-[11px]">{label}</span>
+              {subtitle ? (
+                <span className="truncate text-[9px] font-normal text-gray-400">{subtitle}</span>
+              ) : null}
             </span>
           </NavLink>
         ))}

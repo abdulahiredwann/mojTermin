@@ -69,6 +69,8 @@ export type LandingStrings = {
   authLogout: string;
   authDashboard: string;
   authSettings: string;
+  comingSoon: string;
+  settingsComingSoonIntro: string;
   authPasswordMismatch: string;
   userMenuAria: string;
   userSettingsIntro: string;
@@ -115,14 +117,7 @@ export type LandingStrings = {
   confirmRequestModalOk: string;
   userAreaTagline: string;
   userNavMyAppointments: string;
-  userNavHospitals: string;
-  userNavAi: string;
   userLayoutBackHome: string;
-  userAiPageTitle: string;
-  userAiPageIntro: string;
-  userHospitalsPageTitle: string;
-  userHospitalsPageIntro: string;
-  userHospitalsGoToSearch: string;
 };
 
 export const landingCopy: Record<Locale, LandingStrings> = {
@@ -213,6 +208,9 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     authLogout: "Log out",
     authDashboard: "Dashboard",
     authSettings: "Settings",
+    comingSoon: "Coming soon",
+    settingsComingSoonIntro:
+      "Account settings aren’t editable yet — this section is coming soon. Your basic profile below is read-only.",
     userMenuAria: "Account menu",
     userSettingsIntro:
       "Manage your account preferences here. More options will be available soon.",
@@ -265,16 +263,7 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     confirmRequestModalOk: "OK",
     userAreaTagline: "My care",
     userNavMyAppointments: "My appointments",
-    userNavHospitals: "Hospitals",
-    userNavAi: "AI assistant",
     userLayoutBackHome: "Back to site",
-    userAiPageTitle: "AI assistant",
-    userAiPageIntro:
-      "Use the floating button to open the assistant. This is a preview — soon it will be connected to your requests and providers.",
-    userHospitalsPageTitle: "Hospitals",
-    userHospitalsPageIntro:
-      "Explore hospitals matched to what you need from your dashboard. Full directory search is coming soon.",
-    userHospitalsGoToSearch: "Check availability",
   },
   sl: {
     langEnglish: "Angleščina",
@@ -363,6 +352,9 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     authLogout: "Odjava",
     authDashboard: "Nadzorna plošča",
     authSettings: "Nastavitve",
+    comingSoon: "Kmalu",
+    settingsComingSoonIntro:
+      "Nastavitve računa še niso na voljo — ta del prihaja kmalu. Spodaj so samo za branje osnovni podatki.",
     userMenuAria: "Meni računa",
     userSettingsIntro:
       "Tukaj boste kmalu upravljali nastavitve računa. Funkcija je v pripravi.",
@@ -417,15 +409,6 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     confirmRequestModalOk: "V redu",
     userAreaTagline: "Moja skrb",
     userNavMyAppointments: "Moji termini",
-    userNavHospitals: "Zdravstveni zavodi",
-    userNavAi: "AI pomočnik",
     userLayoutBackHome: "Nazaj na stran",
-    userAiPageTitle: "AI pomočnik",
-    userAiPageIntro:
-      "Odprite plavajoči gumb za pomočnika. Predogled — kmalu povezan z zahtevami in ponudniki.",
-    userHospitalsPageTitle: "Zdravstveni zavodi",
-    userHospitalsPageIntro:
-      "Na nadzorni plošči poiščite ujemajoče zavode glede vaše potrebe. Celoten imenik prihaja.",
-    userHospitalsGoToSearch: "Preveri razpoložljivost",
   },
 };

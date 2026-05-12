@@ -172,12 +172,15 @@ export function SiteHeader({ borderBottom = true }: SiteHeaderProps) {
                   <Link
                     to="/user/settings"
                     className={cn(
-                      "flex cursor-pointer items-center gap-2",
+                      "flex cursor-pointer flex-col gap-0.5 py-2",
                       pathname === "/user/settings" && "bg-gray-50",
                     )}
                   >
-                    <Settings className="h-4 w-4 shrink-0 text-[#2E7D5B]" />
-                    {t.authSettings}
+                    <span className="flex items-center gap-2">
+                      <Settings className="h-4 w-4 shrink-0 text-[#2E7D5B]" />
+                      <span>{t.authSettings}</span>
+                    </span>
+                    <span className="pl-6 text-xs font-normal text-gray-500">{t.comingSoon}</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -294,10 +297,13 @@ export function SiteHeader({ borderBottom = true }: SiteHeaderProps) {
                   <Link
                     to="/user/settings"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex h-11 items-center gap-2 rounded-xl border border-gray-200 px-3 text-sm font-medium text-gray-800 transition-colors hover:bg-gray-50"
+                    className="flex min-h-[2.75rem] flex-col justify-center gap-0.5 rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-800 transition-colors hover:bg-gray-50"
                   >
-                    <Settings className="h-4 w-4 shrink-0 text-[#2E7D5B]" />
-                    {t.authSettings}
+                    <span className="flex items-center gap-2">
+                      <Settings className="h-4 w-4 shrink-0 text-[#2E7D5B]" />
+                      <span>{t.authSettings}</span>
+                    </span>
+                    <span className="pl-6 text-xs font-normal text-gray-500">{t.comingSoon}</span>
                   </Link>
                   <button
                     type="button"

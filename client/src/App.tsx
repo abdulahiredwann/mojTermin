@@ -13,10 +13,8 @@ import { AdminProtectedRoute } from "./components/admin/AdminProtectedRoute";
 import { AdminAuthProvider } from "./contexts/AdminAuthContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { UserAuthProvider } from "./contexts/UserAuthContext";
-import { UserAiPage } from "./components/UserAiPage";
-import { UserAppointmentsPage } from "./components/UserAppointmentsPage";
 import { UserDashboardPage } from "./components/UserDashboardPage";
-import { UserHospitalsPage } from "./components/UserHospitalsPage";
+import { UserAppointmentsPage } from "./components/UserAppointmentsPage";
 import { UserLayout } from "./components/UserLayout";
 import { UserProtectedRoute } from "./components/UserProtectedRoute";
 import { UserSettingsPage } from "./components/UserSettingsPage";
@@ -41,8 +39,8 @@ function App() {
                 <Route index element={<Navigate to="/user/dashboard" replace />} />
                 <Route path="dashboard" element={<UserDashboardPage />} />
                 <Route path="appointments" element={<UserAppointmentsPage />} />
-                <Route path="hospitals" element={<UserHospitalsPage />} />
-                <Route path="ai" element={<UserAiPage />} />
+                <Route path="hospitals" element={<Navigate to="/user/dashboard" replace />} />
+                <Route path="ai" element={<Navigate to="/user/dashboard" replace />} />
                 <Route path="settings" element={<UserSettingsPage />} />
               </Route>
             </Route>
