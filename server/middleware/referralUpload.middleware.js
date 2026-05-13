@@ -36,8 +36,10 @@ const storage = multer.diskStorage({
 });
 
 const MAX_REFERRAL_IMAGES = 15;
+/** Ephemeral uploads for POST /search (vision preview); smaller limit to control cost. */
+const MAX_SEARCH_REFERRAL_IMAGES = 8;
 
-const upload = multer({
+const uploadAppointments = multer({
   storage,
   limits: {
     fileSize: 10 * 1024 * 1024,
@@ -52,23 +54,45 @@ const upload = multer({
   },
 });
 
+const uploadSearch = multer({
+  storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024,
+    files: MAX_SEARCH_REFERRAL_IMAGES,
+  },
+  fileFilter: (_req, file, cb) => {
+    if (/^image\/(jpeg|png|gif|webp)$/i.test(file.mimetype)) {
+      cb(null, true);
+      return;
+    }
+    cb(new Error("Only JPEG, PNG, GIF, and WebP images are allowed."));
+  },
+});
+
 /** Only run multer when the client sends multipart/form-data */
 function maybeReferralUpload(req, res, next) {
   const ct = req.headers["content-type"];
   if (typeof ct === "string" && ct.includes("multipart/form-data")) {
-    return upload.array("referralImages", MAX_REFERRAL_IMAGES)(req, res, next);
+    return uploadAppointments.array("referralImages", MAX_REFERRAL_IMAGES)(req, res, next);
   }
   next();
 }
 
-function referralMulterErrorHandler(err, req, res, next) {
+/** Multipart for POST /api/search — same field name, fewer files, files deleted after analysis. */
+function maybeSearchReferralUpload(req, res, next) {
+  const ct = req.headers["content-type"];
+  if (typeof ct === "string" && ct.includes("multipart/form-data")) {
+    return uploadSearch.array("referralImages", MAX_SEARCH_REFERRAL_IMAGES)(req, res, next);
+  }
+  next();
+}
+
+function referralUploadErrorHandler(err, req, res, next) {
   if (!err) return next();
 
   if (err instanceof multer.MulterError) {
     if (err.code === "LIMIT_FILE_COUNT" || err.code === "LIMIT_UNEXPECTED_FILE") {
-      return res
-        .status(400)
-        .json({ error: `Too many images (maximum ${MAX_REFERRAL_IMAGES}).` });
+      return res.status(400).json({ error: "Too many images for this request." });
     }
     if (err.code === "LIMIT_FILE_SIZE") {
       return res.status(400).json({ error: "Each image must be 10 MB or smaller." });
@@ -83,11 +107,17 @@ function referralMulterErrorHandler(err, req, res, next) {
   return next(err);
 }
 
+/** @deprecated use referralUploadErrorHandler */
+const referralMulterErrorHandler = referralUploadErrorHandler;
+
 module.exports = {
   uploadsRoot,
   referralsRelativePrefix: "referrals",
   MAX_REFERRAL_IMAGES,
+  MAX_SEARCH_REFERRAL_IMAGES,
   maybeReferralUpload,
+  maybeSearchReferralUpload,
+  referralUploadErrorHandler,
   referralMulterErrorHandler,
   ensureReferralsDir,
 };

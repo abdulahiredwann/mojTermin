@@ -61,4 +61,5 @@ async function analyzePatientSearch(query) {
 
 module.exports = {
   analyzePatientSearch,
+  getOpenAIClient,
 };

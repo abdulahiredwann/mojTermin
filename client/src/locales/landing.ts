@@ -104,6 +104,10 @@ export type LandingStrings = {
   dashboardReferralPhotoHint: string;
   dashboardReferralAttachedLabel: string;
   dashboardReferralRemoveFromListAria: string;
+  dashboardReferralAiPanelTitle: string;
+  dashboardReferralAiPanelHint: string;
+  dashboardReferralAiError: string;
+  dashboardReferralSearchLimitNote: string;
   dashboardSelectHospital: string;
   dashboardPreferredAppointmentDate: string;
   dashboardEmailNote: string;
@@ -247,9 +251,15 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     dashboardAccountEmail: "Contact email",
     dashboardReferralPhoto: "Referral image (optional)",
     dashboardReferralPhotoHint:
-      "JPEG, PNG, GIF, or WebP — up to 15 images, 10 MB each. Attached when you confirm. Use Ctrl/Cmd to pick several.",
+      "JPEG, PNG, GIF, or WebP — up to 15 images, 10 MB each. On “Check availability” we run AI vision on them and show findings beside hospitals. Use Ctrl/Cmd to pick several.",
     dashboardReferralAttachedLabel: "Referral photos",
     dashboardReferralRemoveFromListAria: "Remove file from upload list",
+    dashboardReferralAiPanelTitle: "From your referral images (AI)",
+    dashboardReferralAiPanelHint:
+      "Extracted for testing — confirm against your documents. Not a medical diagnosis.",
+    dashboardReferralAiError: "Image analysis failed; results use your text only.",
+    dashboardReferralSearchLimitNote:
+      "Only the first 8 images are used for AI analysis when checking availability. All selected images (up to 15) are still sent when you confirm the request.",
     dashboardSelectHospital: "Select hospital",
     dashboardPreferredAppointmentDate: "Preferred appointment date",
     dashboardEmailNote: "We use your account email for this request.",
@@ -395,9 +405,15 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     dashboardAccountEmail: "Kontakt e-pošta",
     dashboardReferralPhoto: "Slika napotnice (neobvezno)",
     dashboardReferralPhotoHint:
-      "JPEG, PNG, GIF ali WebP — do 15 slik po 10 MB. Priloži ob potrditvi. Z Ctrl/Ukaz izberite več datotek.",
+      "JPEG, PNG, GIF ali WebP — do 15 slik po 10 MB. Ob »Preveri razpoložljivost« zaženemo AI-pogled na slike in prikažemo izluščeno vsebino. Z Ctrl/Ukaz izberite več datotek.",
     dashboardReferralAttachedLabel: "Fotografije napotnice",
     dashboardReferralRemoveFromListAria: "Odstrani datoteko s seznama",
+    dashboardReferralAiPanelTitle: "Iz slik napotnice (AI)",
+    dashboardReferralAiPanelHint:
+      "Izluščeno za preizkus — preverite z dokumenti. Ni zdravniške diagnoze.",
+    dashboardReferralAiError: "Analiza slike ni uspela; uporabljen je le vaš opis.",
+    dashboardReferralSearchLimitNote:
+      "Za AI analizo ob preverjanju razpoložljivosti se uporabi prvih 8 slik. Vse izbrane (do 15) se pošljejo ob potrditvi zahteve.",
     dashboardSelectHospital: "Izberi zdravstveni zavod",
     dashboardPreferredAppointmentDate: "Želeni datum termina",
     dashboardEmailNote: "Za to zahtevo uporabimo e-pošto vašega računa.",

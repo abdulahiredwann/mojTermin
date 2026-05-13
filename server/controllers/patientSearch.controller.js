@@ -1,9 +1,18 @@
+const fs = require("fs/promises");
 const prisma = require("../prisma/prisma");
 const { analyzePatientSearch } = require("../services/patientSearchOpenAI");
+const {
+  analyzeReferralImagesFromFiles,
+  buildAugmentedSearchQuery,
+} = require("../services/referralVisionOpenAI");
 const {
   getSortedLocations,
   normalizeCityToken,
 } = require("../services/slovenianLocations");
+
+async function unlinkUploadPaths(files) {
+  await Promise.all((files || []).map((f) => fs.unlink(f.path).catch(() => {})));
+}
 
 function resolveOfficialCity(userCity) {
   if (typeof userCity !== "string" || !userCity.trim()) return null;
@@ -11,25 +20,67 @@ function resolveOfficialCity(userCity) {
   const list = getSortedLocations();
   const exact = list.find((l) => normalizeCityToken(l.city) === want);
   if (exact) return exact.city;
-  const partial = list.find((l) => normalizeCityToken(l.city).includes(want) || want.includes(normalizeCityToken(l.city)));
+  const partial = list.find(
+    (l) =>
+      normalizeCityToken(l.city).includes(want) || want.includes(normalizeCityToken(l.city)),
+  );
   return partial ? partial.city : userCity.trim();
 }
 
 async function searchAppointments(req, res, next) {
+  const uploaded = Array.isArray(req.files) ? req.files : [];
+
   try {
     const query = typeof req.body?.query === "string" ? req.body.query.trim() : "";
     if (!query) {
+      await unlinkUploadPaths(uploaded);
       return res.status(400).json({ error: "Query is required." });
     }
 
     const userCityRaw = typeof req.body?.city === "string" ? req.body.city.trim() : "";
     const officialCity = userCityRaw ? resolveOfficialCity(userCityRaw) : null;
 
-    // Use AI to analyze the search query
+    let visionPayload = null;
+    let visionForSearch = null;
+
+    if (uploaded.length > 0) {
+      try {
+        visionForSearch = await analyzeReferralImagesFromFiles(uploaded);
+        visionPayload = {
+          headline: visionForSearch.headline,
+          detailsMarkdown: visionForSearch.detailsMarkdown,
+          specialtyHints: visionForSearch.specialtyHints,
+          procedureHints: visionForSearch.procedureHints,
+          rawEntities: visionForSearch.rawEntities,
+          model: visionForSearch.model,
+          imageCount: uploaded.length,
+        };
+      } catch (vErr) {
+        if (vErr?.code === "OPENAI_NOT_CONFIGURED") {
+          await unlinkUploadPaths(uploaded);
+          return res.status(503).json({
+            error: "Search service is temporarily unavailable. Please try again later.",
+          });
+        }
+        visionPayload = {
+          error: typeof vErr?.message === "string" ? vErr.message : "Image analysis failed.",
+          headline: "",
+          detailsMarkdown: "",
+          specialtyHints: [],
+          procedureHints: [],
+          rawEntities: [],
+          imageCount: uploaded.length,
+        };
+      }
+    }
+
+    const augmentedQuery = buildAugmentedSearchQuery(query, visionForSearch);
+
     let analysis;
     try {
-      analysis = await analyzePatientSearch(query);
+      analysis = await analyzePatientSearch(augmentedQuery);
     } catch (err) {
+      await unlinkUploadPaths(uploaded);
       if (err.code === "OPENAI_NOT_CONFIGURED") {
         return res.status(503).json({
           error: "Search service is temporarily unavailable. Please try again later.",
@@ -38,20 +89,20 @@ async function searchAppointments(req, res, next) {
       throw err;
     }
 
-    // Build database query based on AI analysis
-    const specialtyFilters = analysis.specialties.length > 0
-      ? analysis.specialties.map((s) => ({
-          specialty: { contains: s, mode: "insensitive" },
-        }))
-      : [];
+    const specialtyFilters =
+      analysis.specialties.length > 0
+        ? analysis.specialties.map((s) => ({
+            specialty: { contains: s, mode: "insensitive" },
+          }))
+        : [];
 
-    const procedureFilters = analysis.procedures.length > 0
-      ? analysis.procedures.map((p) => ({
-          procedureName: { contains: p, mode: "insensitive" },
-        }))
-      : [];
+    const procedureFilters =
+      analysis.procedures.length > 0
+        ? analysis.procedures.map((p) => ({
+            procedureName: { contains: p, mode: "insensitive" },
+          }))
+        : [];
 
-    // Combine service filters
     const serviceWhere = {
       isActive: true,
       ...(specialtyFilters.length > 0 || procedureFilters.length > 0
@@ -71,7 +122,6 @@ async function searchAppointments(req, res, next) {
           }
         : {};
 
-    // Find hospitals with matching services
     const hospitals = await prisma.hospital.findMany({
       where: {
         isActive: true,
@@ -91,7 +141,6 @@ async function searchAppointments(req, res, next) {
       take: 50,
     });
 
-    // Extract unique cities from results
     const citiesMap = new Map();
     hospitals.forEach((h) => {
       if (h.city && !citiesMap.has(h.city)) {
@@ -107,10 +156,9 @@ async function searchAppointments(req, res, next) {
     });
 
     const cities = Array.from(citiesMap.values()).sort((a, b) =>
-      a.name.localeCompare(b.name)
+      a.name.localeCompare(b.name),
     );
 
-    // Format hospitals for dropdown
     const hospitalsList = hospitals.map((h) => ({
       id: h.id,
       name: h.name,
@@ -127,6 +175,8 @@ async function searchAppointments(req, res, next) {
       })),
     }));
 
+    await unlinkUploadPaths(uploaded);
+
     return res.json({
       intent: analysis.intent,
       explanation: analysis.explanation,
@@ -135,8 +185,10 @@ async function searchAppointments(req, res, next) {
       cities,
       hospitals: hospitalsList,
       totalHospitals: hospitalsList.length,
+      referralVision: visionPayload,
     });
   } catch (error) {
+    await unlinkUploadPaths(uploaded);
     return next(error);
   }
 }

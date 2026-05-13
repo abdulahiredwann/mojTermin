@@ -12,6 +12,7 @@ import {
   Search,
   Upload,
   X,
+  Sparkles,
   CheckCircle2,
 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -38,10 +39,22 @@ import {
 } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserAuth } from "@/contexts/UserAuthContext";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 type SlovenianLocation = { city: string; region: string };
+
+type ReferralVisionPayload = {
+  headline?: string;
+  detailsMarkdown?: string;
+  specialtyHints?: string[];
+  procedureHints?: string[];
+  rawEntities?: string[];
+  model?: string;
+  imageCount?: number;
+  error?: string;
+};
 
 type SearchResult = {
   intent: string;
@@ -64,6 +77,7 @@ type SearchResult = {
       estimatedWaitDays: number | null;
     }>;
   }>;
+  referralVision?: ReferralVisionPayload | null;
 };
 
 type ConfirmRequestSummary = {
@@ -80,6 +94,111 @@ function hospitalEstimatedWaitDays(hospital: SearchResult["hospitals"][number]):
 }
 
 const MAX_REFERRAL_IMAGES = 15;
+/** Must match server `MAX_SEARCH_REFERRAL_IMAGES` for POST /search */
+const MAX_SEARCH_REFERRAL_IMAGES = 8;
+
+function renderMarkdownishParagraphs(text: string) {
+  if (!text?.trim()) return null;
+  return text
+    .trim()
+    .split(/\n+/)
+    .map((line, i) => {
+      const trimmed = line.trim();
+      if (!trimmed) return null;
+      const parts = trimmed.split(/(\*\*[^*]+\*\*)/g);
+      return (
+        <p key={i} className="mb-2 whitespace-pre-wrap text-sm leading-relaxed text-gray-700 last:mb-0">
+          {parts.map((part, j) => {
+            if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
+              return (
+                <strong key={j} className="font-semibold text-gray-900">
+                  {part.slice(2, -2)}
+                </strong>
+              );
+            }
+            return <span key={j}>{part}</span>;
+          })}
+        </p>
+      );
+    });
+}
+
+function ReferralVisionPanel({
+  data,
+  copy,
+}: {
+  data: ReferralVisionPayload;
+  copy: {
+    dashboardReferralAiPanelTitle: string;
+    dashboardReferralAiPanelHint: string;
+    dashboardReferralAiError: string;
+  };
+}) {
+  return (
+    <aside className="w-full shrink-0 rounded-xl border border-[#2E7D5B]/25 bg-white p-4 shadow-sm lg:sticky lg:top-4 lg:max-w-[min(100%,22rem)] xl:max-w-[min(100%,24rem)]">
+      <div className="flex items-start gap-2 border-b border-gray-100 pb-3">
+        <Sparkles className="h-5 w-5 shrink-0 text-amber-500" aria-hidden />
+        <div className="min-w-0">
+          <p className="text-sm font-bold text-gray-900">{copy.dashboardReferralAiPanelTitle}</p>
+          <p className="mt-1 text-[11px] leading-snug text-gray-500">
+            {copy.dashboardReferralAiPanelHint}
+          </p>
+        </div>
+      </div>
+      {data.error ? (
+        <div className="mt-3 space-y-1 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-950">
+          <p className="font-medium">{copy.dashboardReferralAiError}</p>
+          {import.meta.env.DEV ? (
+            <p className="break-words font-mono text-[10px] opacity-80">{data.error}</p>
+          ) : null}
+        </div>
+      ) : null}
+      {!data.error && data.headline ? (
+        <p className="mt-3 text-sm font-semibold leading-snug text-[#2E7D5B]">{data.headline}</p>
+      ) : null}
+      {data.imageCount != null && data.imageCount > 0 ? (
+        <p className="mt-1 text-[10px] text-gray-400">
+          {data.imageCount} {data.imageCount === 1 ? "image" : "images"}
+          {data.model ? ` · ${data.model}` : ""}
+        </p>
+      ) : data.model && !data.error ? (
+        <p className="mt-2 text-[10px] text-gray-400">Model: {data.model}</p>
+      ) : null}
+      {!data.error && data.detailsMarkdown ? (
+        <ScrollArea className="mt-3 max-h-[min(50vh,24rem)] pr-3">
+          <div>{renderMarkdownishParagraphs(data.detailsMarkdown)}</div>
+        </ScrollArea>
+      ) : null}
+      {!data.error &&
+      ((data.specialtyHints?.length ?? 0) > 0 || (data.procedureHints?.length ?? 0) > 0) ? (
+        <div className="mt-3 flex flex-wrap gap-1 border-t border-gray-100 pt-3">
+          {[...(data.specialtyHints ?? []), ...(data.procedureHints ?? [])]
+            .slice(0, 14)
+            .map((tag, idx) => (
+              <span
+                key={`${tag}-${idx}`}
+                className="inline-flex rounded-full bg-[#f0faf4] px-2 py-0.5 text-[11px] font-medium text-[#256B4D]"
+              >
+                {tag}
+              </span>
+            ))}
+        </div>
+      ) : null}
+      {!data.error && (data.rawEntities?.length ?? 0) > 0 ? (
+        <details className="mt-3 border-t border-gray-100 pt-2">
+          <summary className="cursor-pointer text-[11px] font-medium text-gray-600 hover:text-gray-900">
+            Raw mentions
+          </summary>
+          <ul className="mt-2 list-inside list-disc space-y-0.5 text-[11px] text-gray-600">
+            {(data.rawEntities ?? []).slice(0, 20).map((e, i) => (
+              <li key={`${e}-${i}`}>{e}</li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
+    </aside>
+  );
+}
 
 type UserAppointmentStatsPayload = {
   stats: { total: number; byStatus: Record<string, number> };
@@ -156,11 +275,23 @@ export function UserDashboardPage() {
     setNotifyWhenAvailable(false);
 
     try {
-      const { data } = await api.post<SearchResult>("/search", {
-        query: problem,
-        city: selectedLocation.city,
-      });
-      setSearchResult(data);
+      const searchFiles = referralFiles.slice(0, MAX_SEARCH_REFERRAL_IMAGES);
+      if (searchFiles.length > 0) {
+        const fd = new FormData();
+        fd.append("query", problem);
+        fd.append("city", selectedLocation.city);
+        for (const f of searchFiles) {
+          fd.append("referralImages", f);
+        }
+        const { data } = await api.post<SearchResult>("/search", fd);
+        setSearchResult(data);
+      } else {
+        const { data } = await api.post<SearchResult>("/search", {
+          query: problem,
+          city: selectedLocation.city,
+        });
+        setSearchResult(data);
+      }
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { error?: string } } })?.response?.data?.error ||
@@ -440,6 +571,11 @@ export function UserDashboardPage() {
                   ))}
                 </ul>
               ) : null}
+              {referralFiles.length > MAX_SEARCH_REFERRAL_IMAGES ? (
+                <p className="text-[11px] leading-snug text-amber-900/90">
+                  {t.dashboardReferralSearchLimitNote}
+                </p>
+              ) : null}
             </div>
 
             {error ? <p className="text-xs text-red-600">{error}</p> : null}
@@ -473,78 +609,115 @@ export function UserDashboardPage() {
             <p className="text-sm text-gray-600 md:text-base">{searchResult.explanation}</p>
           </div>
 
+          {searchResult.referralVision && filteredHospitals.length === 0 ? (
+            <ReferralVisionPanel
+              data={searchResult.referralVision}
+              copy={{
+                dashboardReferralAiPanelTitle: t.dashboardReferralAiPanelTitle,
+                dashboardReferralAiPanelHint: t.dashboardReferralAiPanelHint,
+                dashboardReferralAiError: t.dashboardReferralAiError,
+              }}
+            />
+          ) : null}
+
           {filteredHospitals.length > 0 ? (
             <div className="space-y-3">
               <Label className="flex items-center gap-2 text-sm font-medium text-gray-700">
                 <Building2 className="h-4 w-4 text-[#2E7D5B]" />
                 {t.dashboardSelectHospital}
               </Label>
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {filteredHospitals.map((hospital) => {
-                  const waitDays = hospitalEstimatedWaitDays(hospital);
-                  const isSelected = selectedHospitalId === hospital.id;
-                  return (
-                    <button
-                      key={hospital.id}
-                      type="button"
-                      onClick={() => setSelectedHospitalId(hospital.id)}
-                      className={cn(
-                        "rounded-xl border bg-white p-4 text-left shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E7D5B]/40",
-                        isSelected
-                          ? "border-[#2E7D5B] ring-2 ring-[#2E7D5B]/20"
-                          : "border-gray-200 hover:border-[#2E7D5B]/35",
-                      )}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="min-w-0 font-semibold leading-snug text-gray-900">
-                          {hospital.name}
-                        </p>
-                        {isSelected ? (
-                          <CheckCircle2
-                            className="h-5 w-5 shrink-0 text-[#2E7D5B]"
-                            aria-hidden
-                          />
-                        ) : null}
-                      </div>
-                      <p className="mt-1.5 text-sm text-gray-500">
-                        {[hospital.address, hospital.city].filter(Boolean).join(" · ") ||
-                          hospital.city ||
-                          hospital.country}
-                      </p>
-                      {hospital.phone ? (
-                        <p className="mt-1 flex items-center gap-1.5 text-xs text-gray-500">
-                          <Phone className="h-3.5 w-3.5 shrink-0 text-gray-400" />
-                          {hospital.phone}
-                        </p>
-                      ) : null}
-                      <div className="mt-3 flex items-center gap-2 rounded-lg bg-[#f6fbf8] px-3 py-2 text-sm text-gray-700">
-                        <Clock className="h-4 w-4 shrink-0 text-[#2E7D5B]" />
-                        <span>
-                          {waitDays != null
-                            ? `Est. wait ~${waitDays} days`
-                            : "Est. wait not available"}
-                        </span>
-                      </div>
-                      {hospital.services.length > 0 ? (
-                        <div className="mt-2 flex flex-wrap gap-1">
-                          {hospital.services.slice(0, 4).map((service) => (
-                            <span
-                              key={service.id}
-                              className="inline-flex max-w-full truncate rounded-full bg-[#e8f5ee] px-2 py-0.5 text-xs text-[#2E7D5B]"
-                            >
-                              {service.specialty || service.procedureName || "General"}
-                            </span>
-                          ))}
-                          {hospital.services.length > 4 ? (
-                            <span className="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
-                              +{hospital.services.length - 4}
-                            </span>
+              <div
+                className={cn(
+                  "flex flex-col gap-5",
+                  searchResult.referralVision ? "xl:flex-row xl:items-start xl:gap-6" : "",
+                )}
+              >
+                <div className="min-w-0 flex-1">
+                  <div
+                    className={cn(
+                      "grid gap-3",
+                      searchResult.referralVision
+                        ? "sm:grid-cols-2"
+                        : "sm:grid-cols-2 xl:grid-cols-3",
+                    )}
+                  >
+                    {filteredHospitals.map((hospital) => {
+                      const waitDays = hospitalEstimatedWaitDays(hospital);
+                      const isSelected = selectedHospitalId === hospital.id;
+                      return (
+                        <button
+                          key={hospital.id}
+                          type="button"
+                          onClick={() => setSelectedHospitalId(hospital.id)}
+                          className={cn(
+                            "rounded-xl border bg-white p-4 text-left shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E7D5B]/40",
+                            isSelected
+                              ? "border-[#2E7D5B] ring-2 ring-[#2E7D5B]/20"
+                              : "border-gray-200 hover:border-[#2E7D5B]/35",
+                          )}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="min-w-0 font-semibold leading-snug text-gray-900">
+                              {hospital.name}
+                            </p>
+                            {isSelected ? (
+                              <CheckCircle2
+                                className="h-5 w-5 shrink-0 text-[#2E7D5B]"
+                                aria-hidden
+                              />
+                            ) : null}
+                          </div>
+                          <p className="mt-1.5 text-sm text-gray-500">
+                            {[hospital.address, hospital.city].filter(Boolean).join(" · ") ||
+                              hospital.city ||
+                              hospital.country}
+                          </p>
+                          {hospital.phone ? (
+                            <p className="mt-1 flex items-center gap-1.5 text-xs text-gray-500">
+                              <Phone className="h-3.5 w-3.5 shrink-0 text-gray-400" />
+                              {hospital.phone}
+                            </p>
                           ) : null}
-                        </div>
-                      ) : null}
-                    </button>
-                  );
-                })}
+                          <div className="mt-3 flex items-center gap-2 rounded-lg bg-[#f6fbf8] px-3 py-2 text-sm text-gray-700">
+                            <Clock className="h-4 w-4 shrink-0 text-[#2E7D5B]" />
+                            <span>
+                              {waitDays != null
+                                ? `Est. wait ~${waitDays} days`
+                                : "Est. wait not available"}
+                            </span>
+                          </div>
+                          {hospital.services.length > 0 ? (
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {hospital.services.slice(0, 4).map((service) => (
+                                <span
+                                  key={service.id}
+                                  className="inline-flex max-w-full truncate rounded-full bg-[#e8f5ee] px-2 py-0.5 text-xs text-[#2E7D5B]"
+                                >
+                                  {service.specialty || service.procedureName || "General"}
+                                </span>
+                              ))}
+                              {hospital.services.length > 4 ? (
+                                <span className="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
+                                  +{hospital.services.length - 4}
+                                </span>
+                              ) : null}
+                            </div>
+                          ) : null}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                {searchResult.referralVision ? (
+                  <ReferralVisionPanel
+                    data={searchResult.referralVision}
+                    copy={{
+                      dashboardReferralAiPanelTitle: t.dashboardReferralAiPanelTitle,
+                      dashboardReferralAiPanelHint: t.dashboardReferralAiPanelHint,
+                      dashboardReferralAiError: t.dashboardReferralAiError,
+                    }}
+                  />
+                ) : null}
               </div>
             </div>
           ) : null}

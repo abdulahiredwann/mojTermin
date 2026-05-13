@@ -56,6 +56,17 @@ type SlovenianLocation = {
   region: string;
 };
 
+type ReferralVisionPayload = {
+  headline?: string;
+  detailsMarkdown?: string;
+  specialtyHints?: string[];
+  procedureHints?: string[];
+  rawEntities?: string[];
+  model?: string;
+  imageCount?: number;
+  error?: string;
+};
+
 type SearchResult = {
   intent: string;
   explanation: string;
@@ -81,6 +92,7 @@ type SearchResult = {
       estimatedWaitDays: number | null;
     }>;
   }>;
+  referralVision?: ReferralVisionPayload | null;
 };
 
 type ConfirmRequestSummary = {
