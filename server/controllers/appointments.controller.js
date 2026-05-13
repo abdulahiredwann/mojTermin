@@ -66,6 +66,11 @@ async function createAppointmentRequest(req, res, next) {
       }
     }
 
+    const files = Array.isArray(req.files) ? req.files : [];
+    const referralImagePaths = files
+      .filter((f) => f && typeof f.filename === "string")
+      .map((f) => `referrals/${f.filename}`);
+
     const saved = await prisma.appointmentRequest.create({
       data: {
         userId,
@@ -77,12 +82,14 @@ async function createAppointmentRequest(req, res, next) {
         hospitalName,
         preferredDate,
         notifyWhenAvailable,
+        referralImagePaths,
         status: "pending",
       },
       select: {
         id: true,
         createdAt: true,
         status: true,
+        referralImagePaths: true,
       },
     });
 
@@ -125,6 +132,7 @@ async function listAppointmentRequests(req, res, next) {
         hospitalName: r.hospitalName ?? r.hospital?.name ?? null,
         preferredDate: r.preferredDate,
         notifyWhenAvailable: r.notifyWhenAvailable,
+        referralImagePaths: r.referralImagePaths,
         status: r.status,
         createdAt: r.createdAt,
       })),

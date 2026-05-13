@@ -1,17 +1,20 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, Loader2, MapPin, Building2, Calendar, Search, Clock } from "lucide-react";
+import {
+  ChevronDown,
+  Loader2,
+  MapPin,
+  Building2,
+  Calendar,
+  Search,
+  Clock,
+  Phone,
+  CheckCircle2,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Command,
   CommandEmpty,
@@ -34,6 +37,7 @@ import { FloatingChatDemo } from "@/components/FloatingChatDemo";
 import { SiteHeader } from "@/components/SiteHeader";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { api } from "@/lib/api";
+import { cn } from "@/lib/utils";
 
 function HeroIllustration() {
   return (
@@ -85,6 +89,12 @@ type ConfirmRequestSummary = {
   preferredDateLabel: string;
   notifyWhenAvailable: boolean;
 };
+
+function hospitalEstimatedWaitDays(hospital: SearchResult["hospitals"][number]): number | null {
+  if (hospital.averageWaitDays != null) return hospital.averageWaitDays;
+  const fromService = hospital.services.find((s) => s.estimatedWaitDays != null)?.estimatedWaitDays;
+  return fromService ?? null;
+}
 
 export default function LandingPage() {
   const { t, locale } = useLanguage();
@@ -360,179 +370,208 @@ export default function LandingPage() {
                   )}
                 </Button>
               </form>
-
-              {searchResult ? (
-                <div className="max-w-lg space-y-5 rounded-2xl border border-[#2E7D5B]/15 bg-[#f6fbf8] p-6">
-                  {/* AI Understanding */}
-                  <div className="space-y-2">
-                    <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                      <Search className="h-5 w-5 text-[#2E7D5B]" />
-                      {searchResult.intent}
-                    </h2>
-                    <p className="text-sm text-gray-600">{searchResult.explanation}</p>
-                    <p className="text-xs text-gray-500">
-                      {searchResult.filterCity
-                        ? `Found ${searchResult.totalHospitals} hospital${searchResult.totalHospitals === 1 ? "" : "s"} in ${searchResult.filterCity}.`
-                        : `Found ${searchResult.totalHospitals} hospital${searchResult.totalHospitals === 1 ? "" : "s"} in ${searchResult.cities.length} cities.`}
-                    </p>
-                  </div>
-
-                  {/* Hospital Selection */}
-                  {filteredHospitals.length > 0 && (
-                    <div className="space-y-2">
-                      <Label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                        <Building2 className="h-4 w-4 text-[#2E7D5B]" />
-                        Select Hospital
-                      </Label>
-                      <Select
-                        value={selectedHospitalId}
-                        onValueChange={setSelectedHospitalId}
-                      >
-                        <SelectTrigger className="h-11 rounded-xl border-gray-200 bg-white">
-                          <SelectValue placeholder="Choose a hospital..." />
-                        </SelectTrigger>
-                        <SelectContent className="z-[100] max-h-72" position="popper" sideOffset={8}>
-                          {filteredHospitals.map((hospital) => (
-                            <SelectItem
-                              key={hospital.id}
-                              value={hospital.id}
-                              className="mojtermin-green-option cursor-pointer rounded-lg text-gray-900"
-                            >
-                              <div className="flex flex-col items-start">
-                                <span className="font-medium text-gray-900">{hospital.name}</span>
-                                <span className="hospital-meta text-xs text-gray-500">
-                                  {hospital.city} • {hospital.services[0]?.specialty || "General"}
-                                </span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-
-                  {/* Selected Hospital Details */}
-                  {selectedHospital && (
-                    <div className="rounded-xl border border-white bg-white p-4 shadow-sm space-y-3">
-                      <div>
-                        <p className="font-semibold text-gray-900">{selectedHospital.name}</p>
-                        <p className="text-sm text-gray-500">
-                          {selectedHospital.address || selectedHospital.city}
-                        </p>
-                        {selectedHospital.phone && (
-                          <p className="text-sm text-gray-500">{selectedHospital.phone}</p>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-2 text-sm">
-                        <Clock className="h-4 w-4 text-[#2E7D5B]" />
-                        <span className="text-gray-600">
-                          Average wait: {selectedHospital.averageWaitDays || "14"} days
-                        </span>
-                      </div>
-
-                      {selectedHospital.services.length > 0 && (
-                        <div className="space-y-1">
-                          <p className="text-xs font-medium text-gray-700">Available services:</p>
-                          <div className="flex flex-wrap gap-1">
-                            {selectedHospital.services.map((service) => (
-                              <span
-                                key={service.id}
-                                className="inline-flex rounded-full bg-[#e8f5ee] px-2 py-0.5 text-xs text-[#2E7D5B]"
-                              >
-                                {service.specialty || service.procedureName || "General"}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Date Selection */}
-                      <div className="space-y-2 border-t border-gray-100 pt-2">
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-4">
-                          <div className="min-w-0 flex-1 space-y-2">
-                            <Label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                              <Calendar className="h-4 w-4 text-[#2E7D5B]" />
-                              Preferred Appointment Date
-                            </Label>
-                            <input
-                              type="date"
-                              value={selectedDate}
-                              onChange={(e) => setSelectedDate(e.target.value)}
-                              min={new Date().toISOString().split("T")[0]}
-                              className="h-11 w-full rounded-xl border border-gray-200 bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-[#2E7D5B]/30"
-                            />
-                            {selectedHospital.averageWaitDays ? (
-                              <p className="text-xs text-gray-500">
-                                Earliest available:{" "}
-                                {formatDate(getEarliestDate(selectedHospital.averageWaitDays))}
-                              </p>
-                            ) : null}
-                          </div>
-                          <div className="flex-1 rounded-xl border border-gray-100 bg-gray-50/90 p-3 sm:max-w-[min(100%,20rem)]">
-                            <div className="flex gap-3">
-                              <Checkbox
-                                id="landing-notify"
-                                checked={notifyWhenAvailable}
-                                onCheckedChange={(v) => setNotifyWhenAvailable(v === true)}
-                                className="mt-0.5 border-[#2E7D5B] data-[state=checked]:border-[#2E7D5B] data-[state=checked]:bg-[#2E7D5B]"
-                              />
-                              <div className="min-w-0">
-                                <label
-                                  htmlFor="landing-notify"
-                                  className="cursor-pointer text-sm font-medium leading-snug text-gray-800"
-                                >
-                                  {t.dashboardNotifyCheckbox}
-                                </label>
-                                <p className="mt-1 text-xs text-gray-500">{t.dashboardNotifyHint}</p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="space-y-2 pt-2">
-                          <Label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                            Email
-                          </Label>
-                          <Input
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="you@example.com"
-                            inputMode="email"
-                            autoComplete="email"
-                            className="h-11 rounded-xl border-gray-200 bg-white text-[15px] shadow-none focus-visible:ring-[#2E7D5B]/30"
-                          />
-                          <p className="text-xs text-gray-500">
-                            We’ll contact you later with confirmation and next steps.
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Confirm Button */}
-                      <Button
-                        type="button"
-                        onClick={handleConfirmRequest}
-                        disabled={!selectedDate || !email.trim() || submittingRequest}
-                        className="w-full rounded-full bg-[#2E7D5B] py-5 text-sm font-semibold text-white hover:bg-[#256B4D] disabled:opacity-50"
-                      >
-                        {submittingRequest
-                          ? "Submitting…"
-                          : !selectedDate
-                            ? "Select a date to continue"
-                            : !email.trim()
-                              ? "Enter your email to continue"
-                              : "Confirm Appointment Request"}
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              ) : null}
             </div>
 
             <div className="relative z-10 hidden md:block md:sticky md:top-24">
               <HeroIllustration />
             </div>
           </div>
+
+          {searchResult ? (
+            <div className="mt-12 w-full space-y-5 rounded-2xl border border-[#2E7D5B]/15 bg-[#f6fbf8] p-6 md:mt-14 md:p-8">
+              <div className="space-y-2">
+                <h2 className="flex items-center gap-2 text-lg font-bold text-gray-900 md:text-xl">
+                  <Search className="h-5 w-5 shrink-0 text-[#2E7D5B]" />
+                  {searchResult.intent}
+                </h2>
+                <p className="text-sm text-gray-600 md:text-base">{searchResult.explanation}</p>
+                <p className="text-xs text-gray-500">
+                  {searchResult.filterCity
+                    ? `Found ${searchResult.totalHospitals} hospital${searchResult.totalHospitals === 1 ? "" : "s"} in ${searchResult.filterCity}.`
+                    : `Found ${searchResult.totalHospitals} hospital${searchResult.totalHospitals === 1 ? "" : "s"} in ${searchResult.cities.length} cities.`}
+                </p>
+              </div>
+
+              {filteredHospitals.length > 0 ? (
+                <div className="space-y-3">
+                  <Label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                    <Building2 className="h-4 w-4 text-[#2E7D5B]" />
+                    Select Hospital
+                  </Label>
+                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                    {filteredHospitals.map((hospital) => {
+                      const waitDays = hospitalEstimatedWaitDays(hospital);
+                      const isSelected = selectedHospitalId === hospital.id;
+                      return (
+                        <button
+                          key={hospital.id}
+                          type="button"
+                          onClick={() => setSelectedHospitalId(hospital.id)}
+                          className={cn(
+                            "rounded-xl border bg-white p-4 text-left shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E7D5B]/40",
+                            isSelected
+                              ? "border-[#2E7D5B] ring-2 ring-[#2E7D5B]/20"
+                              : "border-gray-200 hover:border-[#2E7D5B]/35",
+                          )}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="min-w-0 font-semibold leading-snug text-gray-900">
+                              {hospital.name}
+                            </p>
+                            {isSelected ? (
+                              <CheckCircle2
+                                className="h-5 w-5 shrink-0 text-[#2E7D5B]"
+                                aria-hidden
+                              />
+                            ) : null}
+                          </div>
+                          <p className="mt-1.5 text-sm text-gray-500">
+                            {[hospital.address, hospital.city].filter(Boolean).join(" · ") ||
+                              hospital.city ||
+                              hospital.country}
+                          </p>
+                          {hospital.phone ? (
+                            <p className="mt-1 flex items-center gap-1.5 text-xs text-gray-500">
+                              <Phone className="h-3.5 w-3.5 shrink-0 text-gray-400" />
+                              {hospital.phone}
+                            </p>
+                          ) : null}
+                          <div className="mt-3 flex items-center gap-2 rounded-lg bg-[#f6fbf8] px-3 py-2 text-sm text-gray-700">
+                            <Clock className="h-4 w-4 shrink-0 text-[#2E7D5B]" />
+                            <span>
+                              {waitDays != null
+                                ? `Est. wait ~${waitDays} days`
+                                : "Est. wait not available"}
+                            </span>
+                          </div>
+                          {hospital.services.length > 0 ? (
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {hospital.services.slice(0, 4).map((service) => (
+                                <span
+                                  key={service.id}
+                                  className="inline-flex max-w-full truncate rounded-full bg-[#e8f5ee] px-2 py-0.5 text-xs text-[#2E7D5B]"
+                                >
+                                  {service.specialty || service.procedureName || "General"}
+                                </span>
+                              ))}
+                              {hospital.services.length > 4 ? (
+                                <span className="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
+                                  +{hospital.services.length - 4}
+                                </span>
+                              ) : null}
+                            </div>
+                          ) : null}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
+
+              {selectedHospital ? (
+                <div className="rounded-xl border border-white bg-white p-4 shadow-sm sm:p-5">
+                  <div className="flex w-full max-w-md flex-col space-y-5">
+                    <div className="border-b border-gray-100 pb-4">
+                      <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                        Request
+                      </p>
+                      <p className="mt-1 text-sm leading-snug text-gray-600">
+                        <span className="text-gray-500">at </span>
+                        <span className="font-semibold text-gray-900">{selectedHospital.name}</span>
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-start sm:gap-x-6 sm:gap-y-4">
+                      <div className="w-full max-w-[12rem] space-y-1.5">
+                        <Label className="flex items-center gap-2 text-xs font-medium text-gray-600 sm:text-sm sm:text-gray-700">
+                          <Calendar className="h-3.5 w-3.5 shrink-0 text-[#2E7D5B] sm:h-4 sm:w-4" />
+                          Preferred Appointment Date
+                        </Label>
+                        <input
+                          type="date"
+                          value={selectedDate}
+                          onChange={(e) => setSelectedDate(e.target.value)}
+                          min={new Date().toISOString().split("T")[0]}
+                          className="h-9 w-full rounded-lg border border-gray-200 bg-white px-2.5 text-sm outline-none focus:ring-2 focus:ring-[#2E7D5B]/25"
+                        />
+                        {hospitalEstimatedWaitDays(selectedHospital) != null ? (
+                          <p className="text-[11px] leading-relaxed text-gray-500">
+                            Earliest available:{" "}
+                            {formatDate(
+                              getEarliestDate(hospitalEstimatedWaitDays(selectedHospital)),
+                            )}
+                          </p>
+                        ) : null}
+                      </div>
+                      <div className="rounded-lg border border-gray-100 bg-gray-50 p-3 sm:min-w-0">
+                        <div className="flex gap-2.5">
+                          <Checkbox
+                            id="landing-notify"
+                            checked={notifyWhenAvailable}
+                            onCheckedChange={(v) => setNotifyWhenAvailable(v === true)}
+                            className="mt-0.5 shrink-0 border-[#2E7D5B] data-[state=checked]:border-[#2E7D5B] data-[state=checked]:bg-[#2E7D5B]"
+                          />
+                          <div className="min-w-0 space-y-1">
+                            <label
+                              htmlFor="landing-notify"
+                              className="cursor-pointer text-xs font-medium leading-snug text-gray-800 sm:text-sm"
+                            >
+                              {t.dashboardNotifyCheckbox}
+                            </label>
+                            <p className="text-[11px] leading-relaxed text-gray-500 sm:text-xs">
+                              {t.dashboardNotifyHint}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5 border-t border-gray-100 pt-4">
+                      <Label
+                        htmlFor="landing-request-email"
+                        className="text-xs font-medium text-gray-700 sm:text-sm"
+                      >
+                        Email
+                      </Label>
+                      <Input
+                        id="landing-request-email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="you@example.com"
+                        inputMode="email"
+                        autoComplete="email"
+                        className="h-9 w-full max-w-sm rounded-lg border border-gray-200 bg-white text-sm shadow-none focus-visible:ring-[#2E7D5B]/25"
+                      />
+                      <p className="text-[11px] leading-relaxed text-gray-500 sm:text-xs">
+                        We’ll contact you later with confirmation and next steps.
+                      </p>
+                    </div>
+
+                    <Button
+                      type="button"
+                      onClick={handleConfirmRequest}
+                      disabled={!selectedDate || !email.trim() || submittingRequest}
+                      className="h-10 w-full rounded-full bg-[#2E7D5B] px-5 text-sm font-semibold text-white hover:bg-[#256B4D] disabled:opacity-50 sm:h-9 sm:max-w-xs sm:self-start"
+                    >
+                      {submittingRequest
+                        ? "Submitting…"
+                        : !selectedDate
+                          ? "Select a date to continue"
+                          : !email.trim()
+                            ? "Enter your email to continue"
+                            : "Confirm Appointment Request"}
+                    </Button>
+                  </div>
+                </div>
+              ) : filteredHospitals.length > 0 ? (
+                <p className="text-sm text-gray-500">
+                  {locale === "sl"
+                    ? "Izberite zdravstveni zavod za nadaljevanje."
+                    : "Choose a hospital to continue."}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
         </div>
       </section>
 

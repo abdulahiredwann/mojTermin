@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { ReferralImagesLightbox } from "@/components/ReferralImagesLightbox";
 
 type AppointmentRequestRow = {
   id: string;
@@ -13,6 +14,7 @@ type AppointmentRequestRow = {
   preferredDate: string;
   status: string;
   createdAt: string;
+  referralImagePaths?: string[] | null;
 };
 
 function fmtDateTime(value: string) {
@@ -72,6 +74,7 @@ export function AdminAppointmentsPage() {
                   <th className="px-4 py-3">Hospital</th>
                   <th className="px-4 py-3">Preferred date</th>
                   <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Referral</th>
                   <th className="px-4 py-3">User query</th>
                 </tr>
               </thead>
@@ -91,12 +94,15 @@ export function AdminAppointmentsPage() {
                         {r.status}
                       </span>
                     </td>
+                    <td className="px-4 py-4">
+                      <ReferralImagesLightbox paths={r.referralImagePaths ?? []} size="md" />
+                    </td>
                     <td className="px-4 py-4 text-sm text-gray-700">{r.query}</td>
                   </tr>
                 ))}
                 {rows.length === 0 ? (
                   <tr>
-                    <td className="px-4 py-8 text-sm text-gray-500" colSpan={7}>
+                    <td className="px-4 py-8 text-sm text-gray-500" colSpan={8}>
                       No appointment requests yet.
                     </td>
                   </tr>

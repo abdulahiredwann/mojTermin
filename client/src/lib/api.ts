@@ -26,3 +26,20 @@ export const api = axios.create({
   baseURL: getApiBaseUrl(),
   withCredentials: true,
 });
+
+/** API origin without trailing slash, e.g. http://localhost:4000 — for static uploads under /api/uploads */
+export function getApiOrigin(): string {
+  const baseURL = api.defaults.baseURL ?? "";
+  return baseURL.replace(/\/?api\/?$/i, "").replace(/\/+$/, "") || "";
+}
+
+/** Built from DB-relative path such as referrals/<file> */
+export function publicUploadUrl(storedRelativePath: string): string {
+  const trimmed = storedRelativePath.replace(/^\/+/u, "").replace(/^api\/uploads\/?/iu, "");
+  const encoded = trimmed
+    .split("/")
+    .filter(Boolean)
+    .map((seg) => encodeURIComponent(seg))
+    .join("/");
+  return `${getApiOrigin()}/api/uploads/${encoded}`;
+}

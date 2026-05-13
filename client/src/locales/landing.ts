@@ -102,6 +102,8 @@ export type LandingStrings = {
   dashboardAccountEmail: string;
   dashboardReferralPhoto: string;
   dashboardReferralPhotoHint: string;
+  dashboardReferralAttachedLabel: string;
+  dashboardReferralRemoveFromListAria: string;
   dashboardSelectHospital: string;
   dashboardPreferredAppointmentDate: string;
   dashboardEmailNote: string;
@@ -245,7 +247,9 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     dashboardAccountEmail: "Contact email",
     dashboardReferralPhoto: "Referral image (optional)",
     dashboardReferralPhotoHint:
-      "Upload coming soon — selecting a file is only stored in your browser for now.",
+      "JPEG, PNG, GIF, or WebP — up to 15 images, 10 MB each. Attached when you confirm. Use Ctrl/Cmd to pick several.",
+    dashboardReferralAttachedLabel: "Referral photos",
+    dashboardReferralRemoveFromListAria: "Remove file from upload list",
     dashboardSelectHospital: "Select hospital",
     dashboardPreferredAppointmentDate: "Preferred appointment date",
     dashboardEmailNote: "We use your account email for this request.",
@@ -391,7 +395,9 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     dashboardAccountEmail: "Kontakt e-pošta",
     dashboardReferralPhoto: "Slika napotnice (neobvezno)",
     dashboardReferralPhotoHint:
-      "Nalaganje pride kmalu — izbira datoteka je za zdaj le v brskalniku.",
+      "JPEG, PNG, GIF ali WebP — do 15 slik po 10 MB. Priloži ob potrditvi. Z Ctrl/Ukaz izberite več datotek.",
+    dashboardReferralAttachedLabel: "Fotografije napotnice",
+    dashboardReferralRemoveFromListAria: "Odstrani datoteko s seznama",
     dashboardSelectHospital: "Izberi zdravstveni zavod",
     dashboardPreferredAppointmentDate: "Želeni datum termina",
     dashboardEmailNote: "Za to zahtevo uporabimo e-pošto vašega računa.",

@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Pencil, Trash2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { api } from "@/lib/api";
+import { ReferralImagesLightbox } from "@/components/ReferralImagesLightbox";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -25,6 +26,7 @@ type AppointmentRow = {
   preferredDate: string;
   status: string;
   createdAt: string;
+  referralImagePaths?: string[] | null;
 };
 
 type UserAppointmentsResponse = {
@@ -159,12 +161,13 @@ export function UserAppointmentsPage() {
           <p className="p-8 text-center text-sm text-gray-500">{t.dashboardEmptyHistory}</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] text-left text-sm">
+            <table className="w-full min-w-[720px] text-left text-sm">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/80">
                   <th className="px-4 py-3 font-semibold text-gray-700">{t.dashboardTableSubmitted}</th>
                   <th className="px-4 py-3 font-semibold text-gray-700">{t.dashboardTableStatus}</th>
                   <th className="px-4 py-3 font-semibold text-gray-700">{t.dashboardTableHospital}</th>
+                  <th className="px-4 py-3 font-semibold text-gray-700">{t.dashboardReferralAttachedLabel}</th>
                   <th className="px-4 py-3 font-semibold text-gray-700">{t.dashboardTableNeed}</th>
                   <th className="px-4 py-3 font-semibold text-gray-700">{t.dashboardTableWhen}</th>
                   <th className="px-4 py-3 text-right font-semibold text-gray-700">{t.dashboardTableActions}</th>
@@ -189,6 +192,12 @@ export function UserAppointmentsPage() {
                         title={r.hospitalName ?? ""}
                       >
                         {r.hospitalName ?? "—"}
+                      </td>
+                      <td className="px-4 py-3">
+                        <ReferralImagesLightbox
+                          paths={r.referralImagePaths ?? []}
+                          size="md"
+                        />
                       </td>
                       <td className="max-w-[12rem] truncate px-4 py-3 text-gray-600" title={r.query}>
                         {r.intent || r.query}

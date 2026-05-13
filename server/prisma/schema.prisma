@@ -116,6 +116,8 @@ model AppointmentRequest {
   preferredDate DateTime
   /** User opted in to SMS + email when a slot opens (no worker yet) */
   notifyWhenAvailable Boolean @default(false)
+  /** Relative paths under /api/uploads, e.g. referrals/<filename> — multiple allowed */
+  referralImagePaths String[] @default([])
   status        String   @default("pending")
   createdAt     DateTime @default(now())
 

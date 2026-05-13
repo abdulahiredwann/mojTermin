@@ -3,4 +3,5 @@
 .env
 node_modules
 generated
-# upload
+uploads/**/*
+!uploads/.gitkeep

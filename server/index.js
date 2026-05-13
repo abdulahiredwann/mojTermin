@@ -1,3 +1,4 @@
+const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
@@ -10,8 +11,11 @@ const patientSearchRoutes = require("./routes/patientSearch.routes");
 const appointmentsRoutes = require("./routes/appointments.routes");
 const userAuthRoutes = require("./routes/userAuth.routes");
 const userRoutes = require("./routes/user.routes");
+const { uploadsRoot, ensureReferralsDir } = require("./middleware/referralUpload.middleware");
 
 dotenv.config();
+
+ensureReferralsDir();
 
 const app = express();
 const port = Number(process.env.PORT || 4000);
@@ -63,6 +67,8 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
+
+app.use("/api/uploads", express.static(path.resolve(uploadsRoot)));
 app.use("/api/admin/auth", adminAuthRoutes);
 app.use("/api/admin/hospitals", adminHospitalsRoutes);
 app.use("/api/search", patientSearchRoutes);
