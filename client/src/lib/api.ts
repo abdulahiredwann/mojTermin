@@ -15,7 +15,7 @@ function getApiBaseUrl(): string {
 
   // Local dev: assume backend runs on :4000
   if (import.meta.env.DEV && typeof window !== "undefined") {
-    return `${window.location.protocol}//${window.location.hostname}:4000/api`;
+    return `${window.location.protocol}//${window.location.hostname}:5000/api`;
   }
 
   // Production default
@@ -35,7 +35,9 @@ export function getApiOrigin(): string {
 
 /** Built from DB-relative path such as referrals/<file> */
 export function publicUploadUrl(storedRelativePath: string): string {
-  const trimmed = storedRelativePath.replace(/^\/+/u, "").replace(/^api\/uploads\/?/iu, "");
+  const trimmed = storedRelativePath
+    .replace(/^\/+/u, "")
+    .replace(/^api\/uploads\/?/iu, "");
   const encoded = trimmed
     .split("/")
     .filter(Boolean)

@@ -12,6 +12,10 @@ export type LandingStrings = {
   attachImageAria: string;
   analyzeButton: string;
   analyzing: string;
+  analyzeStatusReadingImages: string;
+  analyzeStatusFindingHospitals: string;
+  analyzeStatusExploring: string;
+  analyzeStatusAlmostThere: string;
   heroValidationNeedInput: string;
   resultsTitle: string;
   resultsMockNote: string;
@@ -98,15 +102,21 @@ export type LandingStrings = {
   dashboardDelete: string;
   dashboardDeleteRequestTitle: string;
   dashboardDeleteRequestBody: string;
+  dashboardRemoveReferralImageTitle: string;
+  dashboardRemoveReferralImageBody: string;
+  dashboardConfirmRemoveReferralImage: string;
   dashboardConfirmDelete: string;
   dashboardAccountEmail: string;
   dashboardReferralPhoto: string;
   dashboardReferralPhotoHint: string;
   dashboardReferralAttachedLabel: string;
   dashboardReferralRemoveFromListAria: string;
+  dashboardReferralRemoveImageAria: string;
   dashboardReferralAiPanelTitle: string;
   dashboardReferralAiPanelHint: string;
   dashboardReferralAiError: string;
+  dashboardReferralAiDetail: string;
+  dashboardReferralRawMentions: string;
   dashboardReferralSearchLimitNote: string;
   dashboardSelectHospital: string;
   dashboardPreferredAppointmentDate: string;
@@ -138,6 +148,10 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     attachImageAria: "Attach a photo (referral)",
     analyzeButton: "Check availability",
     analyzing: "Checking…",
+    analyzeStatusReadingImages: "Reading your referral images…",
+    analyzeStatusFindingHospitals: "Finding matching hospitals…",
+    analyzeStatusExploring: "Exploring services and waits…",
+    analyzeStatusAlmostThere: "Almost there…",
     heroValidationNeedInput: "Describe what you need.",
     resultsTitle: "Example matches (preview)",
     resultsMockNote:
@@ -223,7 +237,8 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     authPasswordMismatch: "Passwords do not match.",
     heroValidationPickCity: "Please choose your city.",
     dashboardPageTitle: "Your dashboard",
-    dashboardIntro: "Check availability, add an optional referral photo, and track your requests.",
+    dashboardIntro:
+      "Check availability, add an optional referral photo, and track your requests.",
     dashboardYourCity: "Your city",
     dashboardCardTotal: "Total requests",
     dashboardCardPending: "Pending",
@@ -233,7 +248,8 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     dashboardMarketingCta: "About MojTermin",
     dashboardNewRequestTitle: "Check availability",
     dashboardHistoryTitle: "Your appointment requests",
-    dashboardEmptyHistory: "You don’t have any requests yet. Submit one using the form above.",
+    dashboardEmptyHistory:
+      "You don’t have any requests yet. Submit one using the form above.",
     dashboardTableSubmitted: "Submitted",
     dashboardTableStatus: "Status",
     dashboardTableHospital: "Hospital",
@@ -247,6 +263,10 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     dashboardDeleteRequestTitle: "Delete this request?",
     dashboardDeleteRequestBody:
       "It will be removed from your list. You can submit a new request from the dashboard anytime.",
+    dashboardRemoveReferralImageTitle: "Remove this image?",
+    dashboardRemoveReferralImageBody:
+      "Only this file will be deleted. Your appointment request stays on the list.",
+    dashboardConfirmRemoveReferralImage: "Remove image",
     dashboardConfirmDelete: "Delete request",
     dashboardAccountEmail: "Contact email",
     dashboardReferralPhoto: "Referral image (optional)",
@@ -254,10 +274,14 @@ export const landingCopy: Record<Locale, LandingStrings> = {
       "JPEG, PNG, GIF, or WebP — up to 15 images, 10 MB each. On “Check availability” we run AI vision on them and show findings beside hospitals. Use Ctrl/Cmd to pick several.",
     dashboardReferralAttachedLabel: "Referral photos",
     dashboardReferralRemoveFromListAria: "Remove file from upload list",
+    dashboardReferralRemoveImageAria: "Remove this image from the appointment",
     dashboardReferralAiPanelTitle: "From your referral images (AI)",
     dashboardReferralAiPanelHint:
       "Extracted for testing — confirm against your documents. Not a medical diagnosis.",
-    dashboardReferralAiError: "Image analysis failed; results use your text only.",
+    dashboardReferralAiError:
+      "Image analysis failed; results use your text only.",
+    dashboardReferralAiDetail: "Referral AI details",
+    dashboardReferralRawMentions: "Raw mentions",
     dashboardReferralSearchLimitNote:
       "Only the first 8 images are used for AI analysis when checking availability. All selected images (up to 15) are still sent when you confirm the request.",
     dashboardSelectHospital: "Select hospital",
@@ -290,6 +314,10 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     attachImageAria: "Priloži fotografijo (napotnica)",
     analyzeButton: "Preveri razpoložljivost",
     analyzing: "Preverjam…",
+    analyzeStatusReadingImages: "Berem napotnice z vaših slik…",
+    analyzeStatusFindingHospitals: "Iščem zdravstvene zavode…",
+    analyzeStatusExploring: "Pregledujem storitve in čakalne čase…",
+    analyzeStatusAlmostThere: "Še malo…",
     heroValidationNeedInput: "Opišite, kaj potrebujete.",
     resultsTitle: "Primer ujemanj (predogled)",
     resultsMockNote:
@@ -386,8 +414,7 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     dashboardMarketingCta: "O MojTermin",
     dashboardNewRequestTitle: "Preveri razpoložljivost",
     dashboardHistoryTitle: "Vaše zahteve za termin",
-    dashboardEmptyHistory:
-      "Še nimate zahtev. Oddajte jo z obrazcom zgoraj.",
+    dashboardEmptyHistory: "Še nimate zahtev. Oddajte jo z obrazcom zgoraj.",
     dashboardTableSubmitted: "Oddano",
     dashboardTableStatus: "Stanje",
     dashboardTableHospital: "Zdravstveni zavod",
@@ -401,6 +428,10 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     dashboardDeleteRequestTitle: "Želite izbrisati to zahtevo?",
     dashboardDeleteRequestBody:
       "Odstranjena bo s seznama. Novo zahtevo lahko oddate kadar koli z nadzorne plošče.",
+    dashboardRemoveReferralImageTitle: "Želite odstraniti to sliko?",
+    dashboardRemoveReferralImageBody:
+      "Izbriše se samo ta datoteka. Zahteva za termin ostane na seznamu.",
+    dashboardConfirmRemoveReferralImage: "Odstrani sliko",
     dashboardConfirmDelete: "Izbriši zahtevo",
     dashboardAccountEmail: "Kontakt e-pošta",
     dashboardReferralPhoto: "Slika napotnice (neobvezno)",
@@ -408,10 +439,14 @@ export const landingCopy: Record<Locale, LandingStrings> = {
       "JPEG, PNG, GIF ali WebP — do 15 slik po 10 MB. Ob »Preveri razpoložljivost« zaženemo AI-pogled na slike in prikažemo izluščeno vsebino. Z Ctrl/Ukaz izberite več datotek.",
     dashboardReferralAttachedLabel: "Fotografije napotnice",
     dashboardReferralRemoveFromListAria: "Odstrani datoteko s seznama",
+    dashboardReferralRemoveImageAria: "Odstrani to sliko iz zahteve",
     dashboardReferralAiPanelTitle: "Iz slik napotnice (AI)",
     dashboardReferralAiPanelHint:
       "Izluščeno za preizkus — preverite z dokumenti. Ni zdravniške diagnoze.",
-    dashboardReferralAiError: "Analiza slike ni uspela; uporabljen je le vaš opis.",
+    dashboardReferralAiError:
+      "Analiza slike ni uspela; uporabljen je le vaš opis.",
+    dashboardReferralAiDetail: "Podrobnosti (AI)",
+    dashboardReferralRawMentions: "Omembe iz dokumenta",
     dashboardReferralSearchLimitNote:
       "Za AI analizo ob preverjanju razpoložljivosti se uporabi prvih 8 slik. Vse izbrane (do 15) se pošljejo ob potrditvi zahteve.",
     dashboardSelectHospital: "Izberi zdravstveni zavod",
@@ -427,7 +462,8 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     confirmRequestModalPreferredDate: "Želeni datum",
     confirmRequestModalNotifyOn:
       "Ko bo na tem zavodu prost termin, vas bomo obvestili po SMS in e-pošti.",
-    confirmRequestModalNotifyOff: "Za to zahtevo brez obvestil o prostem mestu.",
+    confirmRequestModalNotifyOff:
+      "Za to zahtevo brez obvestil o prostem mestu.",
     confirmRequestModalOk: "V redu",
     userAreaTagline: "Moja skrb",
     userNavMyAppointments: "Moji termini",

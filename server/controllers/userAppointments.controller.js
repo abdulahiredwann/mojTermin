@@ -45,6 +45,7 @@ async function listMyAppointmentRequests(req, res, next) {
         hospital: {
           select: { id: true, name: true, city: true, country: true },
         },
+        referralAnalysis: true,
       },
     });
 
@@ -61,6 +62,16 @@ async function listMyAppointmentRequests(req, res, next) {
       referralImagePaths: r.referralImagePaths ?? [],
       status: r.status,
       createdAt: r.createdAt,
+      referralAnalysis: r.referralAnalysis
+        ? {
+            headline: r.referralAnalysis.headline,
+            detailsMarkdown: r.referralAnalysis.detailsMarkdown,
+            specialtyHints: r.referralAnalysis.specialtyHints ?? [],
+            procedureHints: r.referralAnalysis.procedureHints ?? [],
+            rawEntities: r.referralAnalysis.rawEntities ?? [],
+            extractionError: r.referralAnalysis.extractionError,
+          }
+        : null,
     }));
 
     const byStatus = requests.reduce((acc, r) => {
@@ -147,8 +158,58 @@ async function deleteMyAppointmentRequest(req, res, next) {
   }
 }
 
+async function deleteMyAppointmentReferralImage(req, res, next) {
+  try {
+    const id = typeof req.params?.id === "string" ? req.params.id.trim() : "";
+    const storedPath =
+      typeof req.body?.path === "string" ? req.body.path.trim().replace(/\\/g, "/") : "";
+    if (!id) {
+      return res.status(400).json({ error: "Invalid request id." });
+    }
+    if (!storedPath) {
+      return res.status(400).json({ error: "path is required." });
+    }
+
+    const existing = await prisma.appointmentRequest.findFirst({
+      where: { id, userId: req.user.id },
+      select: { id: true, status: true, referralImagePaths: true },
+    });
+    if (!existing) {
+      return res.status(404).json({ error: "Request not found." });
+    }
+    if (existing.status !== "pending") {
+      return res.status(400).json({ error: "Only pending requests can be updated." });
+    }
+
+    const paths = existing.referralImagePaths ?? [];
+    if (!paths.includes(storedPath)) {
+      return res.status(400).json({ error: "That image is not attached to this request." });
+    }
+
+    const nextPaths = paths.filter((p) => p !== storedPath);
+
+    await prisma.appointmentRequest.update({
+      where: { id: existing.id },
+      data: { referralImagePaths: nextPaths },
+      select: { id: true, referralImagePaths: true },
+    });
+
+    await unlinkReferralIfPresent(storedPath);
+
+    return res.json({
+      request: {
+        id: existing.id,
+        referralImagePaths: nextPaths,
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
 module.exports = {
   listMyAppointmentRequests,
   updateMyAppointmentRequest,
   deleteMyAppointmentRequest,
+  deleteMyAppointmentReferralImage,
 };

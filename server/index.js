@@ -11,14 +11,17 @@ const patientSearchRoutes = require("./routes/patientSearch.routes");
 const appointmentsRoutes = require("./routes/appointments.routes");
 const userAuthRoutes = require("./routes/userAuth.routes");
 const userRoutes = require("./routes/user.routes");
-const { uploadsRoot, ensureReferralsDir } = require("./middleware/referralUpload.middleware");
+const {
+  uploadsRoot,
+  ensureReferralsDir,
+} = require("./middleware/referralUpload.middleware");
 
 dotenv.config();
 
 ensureReferralsDir();
 
 const app = express();
-const port = Number(process.env.PORT || 4000);
+const port = Number(process.env.PORT || 5000);
 const SEARCH_COOKIE_NAME = "mojtermin_search_id";
 
 function normalizeOrigin(value) {
@@ -149,7 +152,9 @@ async function ensureBootstrapAdmin() {
   const name = process.env.ADMIN_NAME?.trim() || "Admin";
 
   if (!email || !password) {
-    console.log("[SERVER] ADMIN_EMAIL/ADMIN_PASSWORD not set; bootstrap skipped.");
+    console.log(
+      "[SERVER] ADMIN_EMAIL/ADMIN_PASSWORD not set; bootstrap skipped.",
+    );
     return;
   }
 

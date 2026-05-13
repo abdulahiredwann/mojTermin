@@ -122,9 +122,26 @@ model AppointmentRequest {
   createdAt     DateTime @default(now())
 
   hospital Hospital? @relation(fields: [hospitalId], references: [id], onDelete: SetNull)
+  referralAnalysis AppointmentReferralAnalysis?
 
   @@index([userId])
   @@index([hospitalId])
   @@index([createdAt])
   @@index([status])
+}
+
+model AppointmentReferralAnalysis {
+  id                   String             @id @default(uuid())
+  appointmentRequestId String             @unique
+  appointmentRequest   AppointmentRequest @relation(fields: [appointmentRequestId], references: [id], onDelete: Cascade)
+  headline             String?
+  detailsMarkdown      String?            @db.Text
+  specialtyHints       String[]           @default([])
+  procedureHints       String[]           @default([])
+  rawEntities          String[]           @default([])
+  /** Set when OpenAI extraction failed after appointment submission */
+  extractionError      String?            @db.Text
+  createdAt            DateTime           @default(now())
+
+  @@index([appointmentRequestId])
 }

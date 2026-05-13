@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { X } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { publicUploadUrl } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -8,10 +9,19 @@ export function ReferralImagesLightbox({
   paths,
   emptySlot,
   size = "sm",
+  removable,
+  onRemovePath,
+  removingPath,
+  removeImageAriaLabel,
 }: {
   paths: string[];
   emptySlot?: React.ReactNode;
   size?: "sm" | "md";
+  /** When set with onRemovePath, each thumb shows a delete control (e.g. pending appointment). */
+  removable?: boolean;
+  onRemovePath?: (storedRelativePath: string) => void;
+  removingPath?: string | null;
+  removeImageAriaLabel?: string;
 }) {
   const [preview, setPreview] = useState<string | null>(null);
 
@@ -30,18 +40,30 @@ export function ReferralImagesLightbox({
     <>
       <div className="flex flex-wrap gap-1.5">
         {paths.map((p) => (
-          <button
-            key={p}
-            type="button"
-            onClick={() => openPreview(p)}
-            className={cn(
-              "overflow-hidden border border-gray-200 bg-white transition-opacity",
-              thumb,
-            )}
-            aria-label="View referral image larger"
-          >
-            <img src={publicUploadUrl(p)} alt="" className="h-full w-full object-cover" />
-          </button>
+          <div key={p} className="relative inline-flex">
+            <button
+              type="button"
+              onClick={() => openPreview(p)}
+              className={cn(
+                "overflow-hidden border border-gray-200 bg-white transition-opacity",
+                thumb,
+              )}
+              aria-label="View referral image larger"
+            >
+              <img src={publicUploadUrl(p)} alt="" className="h-full w-full object-cover" />
+            </button>
+            {removable && onRemovePath ? (
+              <button
+                type="button"
+                onClick={() => onRemovePath(p)}
+                disabled={removingPath === p}
+                className="absolute -right-1.5 -top-1.5 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-white bg-red-600 text-white shadow-sm hover:bg-red-700 disabled:opacity-50"
+                aria-label={removeImageAriaLabel ?? "Remove image"}
+              >
+                <X className="h-3.5 w-3.5 shrink-0" aria-hidden />
+              </button>
+            ) : null}
+          </div>
         ))}
       </div>
 

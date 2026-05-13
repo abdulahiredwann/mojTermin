@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Calendar,
@@ -132,6 +132,7 @@ function ReferralVisionPanel({
     dashboardReferralAiPanelTitle: string;
     dashboardReferralAiPanelHint: string;
     dashboardReferralAiError: string;
+    dashboardReferralRawMentions: string;
   };
 }) {
   return (
@@ -156,14 +157,6 @@ function ReferralVisionPanel({
       {!data.error && data.headline ? (
         <p className="mt-3 text-sm font-semibold leading-snug text-[#2E7D5B]">{data.headline}</p>
       ) : null}
-      {data.imageCount != null && data.imageCount > 0 ? (
-        <p className="mt-1 text-[10px] text-gray-400">
-          {data.imageCount} {data.imageCount === 1 ? "image" : "images"}
-          {data.model ? ` · ${data.model}` : ""}
-        </p>
-      ) : data.model && !data.error ? (
-        <p className="mt-2 text-[10px] text-gray-400">Model: {data.model}</p>
-      ) : null}
       {!data.error && data.detailsMarkdown ? (
         <ScrollArea className="mt-3 max-h-[min(50vh,24rem)] pr-3">
           <div>{renderMarkdownishParagraphs(data.detailsMarkdown)}</div>
@@ -187,7 +180,7 @@ function ReferralVisionPanel({
       {!data.error && (data.rawEntities?.length ?? 0) > 0 ? (
         <details className="mt-3 border-t border-gray-100 pt-2">
           <summary className="cursor-pointer text-[11px] font-medium text-gray-600 hover:text-gray-900">
-            Raw mentions
+            {copy.dashboardReferralRawMentions}
           </summary>
           <ul className="mt-2 list-inside list-disc space-y-0.5 text-[11px] text-gray-600">
             {(data.rawEntities ?? []).slice(0, 20).map((e, i) => (
@@ -225,6 +218,35 @@ export function UserDashboardPage() {
 
   const [selectedLocation, setSelectedLocation] = useState<SlovenianLocation | null>(null);
   const [cityPopoverOpen, setCityPopoverOpen] = useState(false);
+
+  const analyzeStatusMessages = useMemo(
+    () =>
+      [
+        t.analyzeStatusReadingImages,
+        t.analyzeStatusFindingHospitals,
+        t.analyzeStatusExploring,
+        t.analyzeStatusAlmostThere,
+      ] as const,
+    [
+      t.analyzeStatusReadingImages,
+      t.analyzeStatusFindingHospitals,
+      t.analyzeStatusExploring,
+      t.analyzeStatusAlmostThere,
+    ],
+  );
+
+  const [loadingHintIdx, setLoadingHintIdx] = useState(0);
+
+  useEffect(() => {
+    if (!loading) {
+      setLoadingHintIdx(0);
+      return;
+    }
+    const id = window.setInterval(() => {
+      setLoadingHintIdx((i) => (i + 1) % analyzeStatusMessages.length);
+    }, 1750);
+    return () => window.clearInterval(id);
+  }, [loading, analyzeStatusMessages.length]);
 
   const { data: locations = [] } = useQuery({
     queryKey: ["slovenian-locations"],
@@ -583,12 +605,17 @@ export function UserDashboardPage() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full rounded-full bg-[#2E7D5B] py-5 text-sm font-semibold text-white shadow-md shadow-[#2E7D5B]/15 hover:bg-[#256B4D] md:text-base"
+              className="flex h-auto min-h-[3.25rem] w-full flex-col gap-1 rounded-full bg-[#2E7D5B] py-4 text-sm font-semibold text-white shadow-md shadow-[#2E7D5B]/15 hover:bg-[#256B4D] md:text-base"
             >
               {loading ? (
                 <>
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  {t.analyzing}
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 className="h-5 w-5 animate-spin shrink-0" />
+                    <span>{t.analyzing}</span>
+                  </span>
+                  <span className="text-center text-[11px] font-normal leading-tight text-white/90 md:text-xs">
+                    {analyzeStatusMessages[loadingHintIdx % analyzeStatusMessages.length]}
+                  </span>
                 </>
               ) : (
                 t.analyzeButton
@@ -616,6 +643,7 @@ export function UserDashboardPage() {
                 dashboardReferralAiPanelTitle: t.dashboardReferralAiPanelTitle,
                 dashboardReferralAiPanelHint: t.dashboardReferralAiPanelHint,
                 dashboardReferralAiError: t.dashboardReferralAiError,
+                dashboardReferralRawMentions: t.dashboardReferralRawMentions,
               }}
             />
           ) : null}
@@ -715,6 +743,7 @@ export function UserDashboardPage() {
                       dashboardReferralAiPanelTitle: t.dashboardReferralAiPanelTitle,
                       dashboardReferralAiPanelHint: t.dashboardReferralAiPanelHint,
                       dashboardReferralAiError: t.dashboardReferralAiError,
+                      dashboardReferralRawMentions: t.dashboardReferralRawMentions,
                     }}
                   />
                 ) : null}

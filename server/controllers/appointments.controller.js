@@ -1,4 +1,5 @@
 const prisma = require("../prisma/prisma");
+const { analyzeReferralImagesFromFiles } = require("../services/referralVisionOpenAI");
 
 function toNullableString(value) {
   if (typeof value !== "string") return null;
@@ -92,6 +93,39 @@ async function createAppointmentRequest(req, res, next) {
         referralImagePaths: true,
       },
     });
+
+    if (files.length > 0) {
+      try {
+        const vision = await analyzeReferralImagesFromFiles(files);
+        await prisma.appointmentReferralAnalysis.create({
+          data: {
+            appointmentRequestId: saved.id,
+            headline: vision.headline,
+            detailsMarkdown: vision.detailsMarkdown,
+            specialtyHints: vision.specialtyHints,
+            procedureHints: vision.procedureHints,
+            rawEntities: vision.rawEntities,
+          },
+        });
+      } catch (e) {
+        const msg =
+          e?.code === "OPENAI_NOT_CONFIGURED"
+            ? "AI service is not configured."
+            : typeof e?.message === "string"
+              ? e.message
+              : "Extraction failed.";
+        try {
+          await prisma.appointmentReferralAnalysis.create({
+            data: {
+              appointmentRequestId: saved.id,
+              extractionError: msg,
+            },
+          });
+        } catch {
+          // ignore duplicate / race
+        }
+      }
+    }
 
     return res.status(201).json({ request: saved });
   } catch (error) {
