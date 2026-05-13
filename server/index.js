@@ -11,14 +11,9 @@ const patientSearchRoutes = require("./routes/patientSearch.routes");
 const appointmentsRoutes = require("./routes/appointments.routes");
 const userAuthRoutes = require("./routes/userAuth.routes");
 const userRoutes = require("./routes/user.routes");
-const {
-  uploadsRoot,
-  ensureReferralsDir,
-} = require("./middleware/referralUpload.middleware");
+const { uploadsRoot } = require("./middleware/referralUpload.middleware");
 
 dotenv.config();
-
-ensureReferralsDir();
 
 const app = express();
 const port = Number(process.env.PORT || 5000);

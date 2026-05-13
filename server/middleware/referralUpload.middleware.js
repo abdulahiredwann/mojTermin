@@ -1,9 +1,21 @@
 const path = require("path");
+const os = require("os");
 const crypto = require("crypto");
 const multer = require("multer");
 const fs = require("fs");
 
-const uploadsRoot = path.join(__dirname, "..", "uploads");
+function getUploadsRoot() {
+  if (process.env.UPLOAD_ROOT) {
+    return path.resolve(process.env.UPLOAD_ROOT);
+  }
+  // Vercel (and similar) deploy a read-only bundle; only /tmp is writable.
+  if (process.env.VERCEL === "1") {
+    return path.join(os.tmpdir(), "mojtermin-uploads");
+  }
+  return path.join(__dirname, "..", "uploads");
+}
+
+const uploadsRoot = getUploadsRoot();
 const referralsDir = path.join(uploadsRoot, "referrals");
 
 function ensureReferralsDir() {
