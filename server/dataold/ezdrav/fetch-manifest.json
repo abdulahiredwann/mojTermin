@@ -1,0 +1,32 @@
+{
+  "startedAt": "2026-05-15T06:22:10.414Z",
+  "baseUrl": "https://cakalnedobe.ezdrav.si/zdravstvena-storitev",
+  "urgencies": [
+    "zelohitro"
+  ],
+  "options": {
+    "delayMs": 400,
+    "timeoutMs": 60000,
+    "retries": 1,
+    "resume": false
+  },
+  "totalRequests": 1,
+  "results": [
+    {
+      "routeId": 668,
+      "label": "1702 - CT of the cervical spine with KS",
+      "urgency": "zelohitro",
+      "url": "https://cakalnedobe.ezdrav.si/zdravstvena-storitev/668/zelohitro",
+      "status": 200,
+      "ok": true,
+      "file": "668_zelohitro.html"
+    }
+  ],
+  "stats": {
+    "ok": 1,
+    "skipped": 0,
+    "httpError": 0,
+    "failed": 0
+  },
+  "finishedAt": "2026-05-15T06:22:13.502Z"
+}
