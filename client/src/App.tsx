@@ -6,6 +6,7 @@ import PrivacyPage from "./components/PrivacyPage";
 import { SignupPage } from "./components/SignupPage";
 import { AdminComingSoonPage } from "./components/admin/AdminComingSoonPage";
 import { AdminAppointmentsPage } from "./components/admin/AdminAppointmentsPage";
+import { AdminHospitalScrapePage } from "./components/admin/AdminHospitalScrapePage";
 import { AdminHospitalsPage } from "./components/admin/AdminHospitalsPage";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { AdminLoginPage } from "./components/admin/AdminLoginPage";
@@ -52,6 +53,7 @@ function App() {
                 <Route path="users" element={<AdminComingSoonPage title="User list" />} />
                 <Route path="appointments" element={<AdminAppointmentsPage />} />
                 <Route path="hospitals" element={<AdminHospitalsPage />} />
+                <Route path="hospital-scrape" element={<AdminHospitalScrapePage />} />
                 <Route path="settings" element={<AdminComingSoonPage title="Setting" />} />
               </Route>
             </Route>

@@ -1,4 +1,12 @@
-import { Building2, CalendarDays, ChevronLeft, ChevronRight, Settings, Users } from "lucide-react";
+import {
+  Building2,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  Settings,
+  TableProperties,
+  Users,
+} from "lucide-react";
 import { useState } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -8,6 +16,7 @@ const menuItems = [
   { to: "/admin/users", label: "User list", icon: Users },
   { to: "/admin/appointments", label: "Appointment lists", icon: CalendarDays },
   { to: "/admin/hospitals", label: "Hospitals", icon: Building2 },
+  { to: "/admin/hospital-scrape", label: "Hospital scrape", icon: TableProperties },
   { to: "/admin/settings", label: "Setting", icon: Settings },
 ];
 

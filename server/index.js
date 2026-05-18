@@ -7,6 +7,7 @@ const bcrypt = require("bcrypt");
 const prisma = require("./prisma/prisma");
 const adminAuthRoutes = require("./routes/adminAuth.routes");
 const adminHospitalsRoutes = require("./routes/adminHospitals.routes");
+const adminHospitalScrapeRoutes = require("./routes/adminHospitalScrape.routes");
 const patientSearchRoutes = require("./routes/patientSearch.routes");
 const appointmentsRoutes = require("./routes/appointments.routes");
 const userAuthRoutes = require("./routes/userAuth.routes");
@@ -69,6 +70,7 @@ app.get("/api/health", (req, res) => {
 app.use("/api/uploads", express.static(path.resolve(uploadsRoot)));
 app.use("/api/admin/auth", adminAuthRoutes);
 app.use("/api/admin/hospitals", adminHospitalsRoutes);
+app.use("/api/admin/hospital-scrape", adminHospitalScrapeRoutes);
 app.use("/api/search", patientSearchRoutes);
 app.use("/api/appointments", appointmentsRoutes);
 app.use("/api/auth", userAuthRoutes);
