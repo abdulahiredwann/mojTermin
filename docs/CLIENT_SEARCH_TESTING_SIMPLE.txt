@@ -1,0 +1,54 @@
+MOJTERMIN — SEARCH TESTING (simple guide)
+============================================
+
+How to test:
+1. Open the website
+2. Type what you need (see examples below)
+3. Choose a city
+4. Press Search
+
+What you should see:
+• A short message explaining what we understood
+• A list of hospitals/clinics — OR nothing, if nothing matches that city
+
+
+TEST LIST — copy these exactly
+------------------------------
+
+Type this                          | Choose city      | You should get
+-----------------------------------|------------------|----------------------------------
+paliativna obravnava prvi pregled  | Ptuj             | At least 1 hospital (palliative care)
+MRI                                | Ljubljana        | At least 1 hospital (MRI services)
+RTG rentgen                        | Ptuj             | At least 1 hospital (X-ray / RTG)
+dermatology skin                   | Celje            | Several hospitals (skin / dermatology)
+kardiološki pregled                | Novo mesto       | At least 1 hospital (heart / cardiology)
+CT scan                            | Ljubljana        | Several hospitals (CT / scans)
+ginekološki                        | Murska Sobota    | At least 1 hospital (gynecology)
+fizioterapija                      | Celje            | At least 1 hospital (physiotherapy)
+nevrologija                        | Ljubljana        | Several hospitals (neurology)
+okulist                            | Nova Gorica      | At least 1 hospital (eye / ophthalmology)
+psihiatrija                        | Maribor          | Several hospitals (psychiatry)
+dental zobozdravnik                | Celje            | At least 1 hospital (dentist / dental)
+ultrazvok                          | Maribor          | Maybe nothing — OK if empty in that city
+ortopedski pregled                 | Koper            | Maybe nothing — OK if empty in that city
+urologija                          | Kranj            | Maybe nothing — OK if empty in that city
+laboratorij analiza                | Maribor          | Maybe nothing — OK if empty in that city
+hearing test sluh                  | Ljubljana        | Maybe nothing — OK if empty in that city
+covid vaccination                  | Ptuj             | Maybe nothing — OK if empty in that city
+
+
+IMPORTANT — these two must show NO hospitals:
+---------------------------------------------
+totally nonsense xyz123            | Ptuj             | NO results (empty list)
+pregled                            | Ptuj             | NO results (too vague — ask user to be more specific)
+
+
+When checking results, look at the service names under each hospital:
+• They should match what you searched (e.g. MRI → names containing "MRI")
+• You should see address and phone for each hospital
+
+
+English and Slovenian both work — you can mix (e.g. "dermatology skin" in Celje).
+
+
+If something looks wrong, note: what you typed, which city, and send a screenshot.

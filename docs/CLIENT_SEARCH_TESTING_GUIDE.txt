@@ -1,0 +1,176 @@
+================================================================================
+  MojTermin — Patient search testing guide (for client / QA)
+  Date: May 2026
+================================================================================
+
+This document explains how you can test the appointment search feature, what
+you should see, and what is considered correct behaviour. You can share this
+file with your team or testers as-is.
+
+
+--------------------------------------------------------------------------------
+1. WHAT IS LIVE NOW
+--------------------------------------------------------------------------------
+
+• The public search (home page / user dashboard) uses real eZdrav waitlist
+  data stored in our database (not CSV files anymore).
+
+• The user types what they need in plain language (Slovenian or English),
+  picks a city, and the system:
+  1) Uses AI to understand the request and pick relevant medical keywords
+  2) Finds matching clinics/hospitals in that city
+  3) Shows providers grouped by institution, with services and waiting info
+
+
+  # | What to type (query)              | City            | Expected
+----+-----------------------------------+-----------------+----------------------------
+  1 | paliativna obravnava prvi pregled | Ptuj            | Has results (paliativna…)
+  2 | MRI                               | Ljubljana       | Has results (MRI in name)
+  3 | ultrazvok                         | Maribor         | May be empty (no data there)
+  4 | RTG rentgen                       | Ptuj            | Has results (RTG…)
+  5 | dermatology skin                  | Celje           | Has results (dermatološki…)
+  6 | kardiološki pregled               | Novo mesto      | Has results (kardiološki…)
+  7 | CT scan                           | Ljubljana       | Has results (CT / imaging)
+  8 | ortopedski pregled                | Koper           | May be empty (no data there)
+  9 | ginekološki                       | Murska Sobota   | Has results (ginekolo…)
+ 10 | fizioterapija                     | Celje           | Has results (fizioter…)
+ 11 | laboratorij analiza               | Maribor         | Likely empty (no lab rows)
+ 12 | nevrologija                       | Ljubljana       | Has results (nevrolo…)
+ 13 | okulist                           | Nova Gorica     | Has results (okulist / eye)
+ 14 | urologija                         | Kranj           | May be empty (no data there)
+ 15 | psihiatrija                       | Maribor         | Has results (psihiatr…)
+ 16 | hearing test sluh                 | Ljubljana       | May be empty (limited data)
+ 17 | covid vaccination                 | Ptuj            | May be empty (limited data)
+ 18 | dental zobozdravnik               | Celje           | Has results (zobozdrav / dental)
+ 19 | totally nonsense xyz123           | Ptuj            | NO results + helpful message
+ 20 | pregled                           | Ptuj            | NO results (too vague)
+
+Notes for testers:
+
+• English and Slovenian both work (e.g. “dermatology skin” → dermatology services).
+
+• Empty result is OK when that service does not exist in the chosen city in eZdrav.
+
+• Tests 19–20 are important: the system should NOT return random hospitals for
+  gibberish or a single word “pregled” alone. User should see empty results and
+  an explanation asking them to describe their need more specifically.
+
+• We validated 20 automated scenarios: 20 PASS, 0 warnings (May 2026).
+
+
+--------------------------------------------------------------------------------
+5. HOW TO TEST — ADMIN “HOSPITAL SCRAPE” PAGE
+--------------------------------------------------------------------------------
+
+For your team reviewing raw data:
+
+1. Log in as admin.
+
+2. Open: Admin → Hospital scrape (eZdrav).
+
+3. Use filters: service, urgency, region, city, search box.
+
+4. Table shows: appointment/waiting summary, city, hospital, address, phone, etc.
+
+5. Click any row/cell → modal with full details.
+
+6. Pagination and sorting should work on large datasets.
+
+This confirms the database import; it does not replace testing the public AI search.
+
+
+--------------------------------------------------------------------------------
+6. WHAT GOOD RESULTS LOOK LIKE (USER PERSPECTIVE)
+--------------------------------------------------------------------------------
+
+Good:
+
+• Query “MRI” + Ljubljana → several providers; service names mention MRI.
+
+• Query “psihiatrija” + Maribor → multiple psychiatric services listed.
+
+• Query “fizioterapija” + Celje → physiotherapy-related service names.
+
+• Nonsense query → zero hospitals, message that we could not understand.
+
+Not a bug (usually):
+
+• Zero results in a city where eZdrav has no listing for that specialty.
+
+• Fewer providers than on the national eZdrav site (we only show imported,
+  non-unavailable rows; max 50 service rows per search for performance).
+
+• Same provider appearing once with several services (grouped by institution).
+
+
+--------------------------------------------------------------------------------
+7. TECHNICAL TESTING (FOR DEVELOPERS / STAGING)
+--------------------------------------------------------------------------------
+
+API endpoint:
+
+  POST /api/search
+  Content-Type: application/json
+  Body: { "query": "MRI", "city": "Ljubljana" }
+
+Example (replace host if needed):
+
+  curl -X POST http://localhost:5000/api/search \
+    -H "Content-Type: application/json" \
+    -d '{"query":"MRI","city":"Ljubljana"}'
+
+Response should include:
+
+  intent, explanation, hospitals[], totalHospitals, filterCity
+
+Automated regression (on server machine, from server folder):
+
+  node scripts/test-search-validation.js
+
+Expect summary line: 20 PASS, 0 WARN, 0 FAIL
+
+Cities list:
+
+  GET /api/search/locations
+
+
+--------------------------------------------------------------------------------
+8. KNOWN LIMITATIONS (SET EXPECTATIONS)
+--------------------------------------------------------------------------------
+
+• Search depends on OpenAI — brief outages or missing API key block search.
+
+• Data is a snapshot from eZdrav CSV import; not live-synced every minute.
+
+• Very generic words alone (“pregled”, “doctor”) are intentionally rejected
+  to avoid showing the entire city catalogue.
+
+• Some English terms map to Slovenian service names; rare terms may return empty.
+
+• Appointment dates in results come from scraped “appointment summary” text,
+  not a live booking API from hospitals.
+
+
+--------------------------------------------------------------------------------
+9. QUICK SIGN-OFF CHECKLIST FOR CLIENT
+--------------------------------------------------------------------------------
+
+[ ] Search works on staging/production with a real city selected
+[ ] At least 3 specialty searches return relevant service names (MRI, derm, cardio)
+[ ] Slovenian query works (e.g. kardiološki pregled)
+[ ] English query works (e.g. dermatology skin)
+[ ] Nonsense query returns no hospitals
+[ ] Admin Hospital scrape page loads and filters work
+[ ] Click row opens detail modal with phone, address, waiting text
+
+If all checked, patient search with eZdrav data is ready for user acceptance testing.
+
+
+--------------------------------------------------------------------------------
+Questions or issues during testing?
+Contact your MojTermin development team with: query text, city chosen,
+screenshot, and time of test — we can trace AI keywords and DB matches.
+
+================================================================================
+End of document
+================================================================================
