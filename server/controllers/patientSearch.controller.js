@@ -1,6 +1,6 @@
 const fs = require("fs/promises");
 const prisma = require("../prisma/prisma");
-const { analyzePatientSearch } = require("../services/patientSearchOpenAI");
+const { analyzePatientSearch, serviceMatchesKeywords } = require("../services/patientSearchOpenAI");
 const {
   analyzeReferralImagesFromFiles,
   buildAugmentedSearchQuery,
@@ -95,12 +95,24 @@ async function searchAppointments(req, res, next) {
       ...analysis.specialties,
     ].filter(Boolean);
 
-    const serviceFilters =
-      allKeywords.length > 0
-        ? allKeywords.map((kw) => ({
-            serviceName: { contains: kw, mode: "insensitive" },
-          }))
-        : [];
+    // If AI couldn't understand the query (no keywords), return empty results
+    if (allKeywords.length === 0) {
+      await unlinkUploadPaths(uploaded);
+      return res.json({
+        intent: analysis.intent,
+        explanation: analysis.explanation,
+        query,
+        filterCity: officialCity,
+        cities: [],
+        hospitals: [],
+        totalHospitals: 0,
+        referralVision: visionPayload,
+      });
+    }
+
+    const serviceFilters = allKeywords.map((kw) => ({
+      serviceName: { contains: kw, mode: "insensitive" },
+    }));
 
     const cityClause = officialCity
       ? { city: { equals: officialCity, mode: "insensitive" } }
@@ -114,15 +126,28 @@ async function searchAppointments(req, res, next) {
 
     const where = {
       serviceUnavailable: false,
-      ...(serviceFilters.length > 0 ? { OR: serviceFilters } : {}),
+      OR: serviceFilters,
       ...cityClause,
     };
 
-    const listings = await prisma.ezdravListing.findMany({
+    const rawListings = await prisma.ezdravListing.findMany({
       where,
       orderBy: [{ city: "asc" }, { provider: "asc" }],
-      take: 50,
+      take: 100, // fetch more initially, will filter down
     });
+
+    // Post-filter: ensure each listing's serviceName matches at least one of the AI keywords
+    // This prevents broad DB matches from polluting results
+    const filterKeywords = analysis.primaryKeyword
+      ? [analysis.primaryKeyword, ...analysis.serviceKeywords.slice(0, 3)]
+      : analysis.serviceKeywords.slice(0, 5);
+
+    const listings =
+      filterKeywords.length > 0
+        ? rawListings
+            .filter((l) => serviceMatchesKeywords(l.serviceName, filterKeywords))
+            .slice(0, 50)
+        : rawListings.slice(0, 50);
 
     const citiesMap = new Map();
     const hospitalsMap = new Map();
