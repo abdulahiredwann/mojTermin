@@ -89,28 +89,18 @@ async function searchAppointments(req, res, next) {
       throw err;
     }
 
-    const specialtyFilters =
-      analysis.specialties.length > 0
-        ? analysis.specialties.map((s) => ({
-            specialty: { contains: s, mode: "insensitive" },
+    const allKeywords = [
+      ...analysis.serviceKeywords,
+      ...analysis.procedures,
+      ...analysis.specialties,
+    ].filter(Boolean);
+
+    const serviceFilters =
+      allKeywords.length > 0
+        ? allKeywords.map((kw) => ({
+            serviceName: { contains: kw, mode: "insensitive" },
           }))
         : [];
-
-    const procedureFilters =
-      analysis.procedures.length > 0
-        ? analysis.procedures.map((p) => ({
-            procedureName: { contains: p, mode: "insensitive" },
-          }))
-        : [];
-
-    const serviceWhere = {
-      isActive: true,
-      ...(specialtyFilters.length > 0 || procedureFilters.length > 0
-        ? {
-            OR: [...specialtyFilters, ...procedureFilters],
-          }
-        : {}),
-    };
 
     const cityClause = officialCity
       ? { city: { equals: officialCity, mode: "insensitive" } }
@@ -122,58 +112,62 @@ async function searchAppointments(req, res, next) {
           }
         : {};
 
-    const hospitals = await prisma.hospital.findMany({
-      where: {
-        isActive: true,
-        services: {
-          some: serviceWhere,
-        },
-        ...cityClause,
-      },
-      include: {
-        services: {
-          where: serviceWhere,
-          orderBy: [{ specialty: "asc" }, { procedureName: "asc" }],
-          take: 5,
-        },
-      },
-      orderBy: [{ city: "asc" }, { name: "asc" }],
+    const where = {
+      serviceUnavailable: false,
+      ...(serviceFilters.length > 0 ? { OR: serviceFilters } : {}),
+      ...cityClause,
+    };
+
+    const listings = await prisma.ezdravListing.findMany({
+      where,
+      orderBy: [{ city: "asc" }, { provider: "asc" }],
       take: 50,
     });
 
     const citiesMap = new Map();
-    hospitals.forEach((h) => {
-      if (h.city && !citiesMap.has(h.city)) {
-        citiesMap.set(h.city, {
-          name: h.city,
-          country: h.country || "Slovenia",
-          hospitalCount: 0,
+    const hospitalsMap = new Map();
+
+    for (const l of listings) {
+      if (l.city && !citiesMap.has(l.city)) {
+        citiesMap.set(l.city, { name: l.city, country: "Slovenia", hospitalCount: 0 });
+      }
+
+      const providerKey = `${l.provider || ""}::${l.city || ""}`;
+      if (!hospitalsMap.has(providerKey)) {
+        hospitalsMap.set(providerKey, {
+          id: l.id,
+          name: l.provider || "Unknown provider",
+          city: l.city,
+          country: "Slovenia",
+          address: l.address,
+          phone: l.phone,
+          email: l.email,
+          website: l.website,
+          averageWaitDays: null,
+          services: [],
         });
+        if (l.city && citiesMap.has(l.city)) {
+          citiesMap.get(l.city).hospitalCount++;
+        }
       }
-      if (h.city && citiesMap.has(h.city)) {
-        citiesMap.get(h.city).hospitalCount++;
-      }
-    });
+
+      const h = hospitalsMap.get(providerKey);
+      h.services.push({
+        id: l.id,
+        specialty: l.urgency || null,
+        procedureName: l.serviceName,
+        estimatedWaitDays: null,
+        appointmentSummary: l.appointmentSummary || null,
+        region: l.region || null,
+        urgency: l.urgency || null,
+      });
+    }
 
     const cities = Array.from(citiesMap.values()).sort((a, b) =>
       a.name.localeCompare(b.name),
     );
 
-    const hospitalsList = hospitals.map((h) => ({
-      id: h.id,
-      name: h.name,
-      city: h.city,
-      country: h.country || "Slovenia",
-      address: h.address,
-      phone: h.phone,
-      averageWaitDays: h.averageWaitDays,
-      services: h.services.map((s) => ({
-        id: s.id,
-        specialty: s.specialty,
-        procedureName: s.procedureName,
-        estimatedWaitDays: s.estimatedWaitDays,
-      })),
-    }));
+    const hospitalsList = Array.from(hospitalsMap.values());
 
     await unlinkUploadPaths(uploaded);
 
@@ -195,11 +189,11 @@ async function searchAppointments(req, res, next) {
 
 async function getCities(req, res, next) {
   try {
-    const cities = await prisma.hospital.groupBy({
+    const cities = await prisma.ezdravListing.groupBy({
       by: ["city"],
       where: {
-        isActive: true,
         city: { not: null },
+        serviceUnavailable: false,
       },
       _count: { city: true },
       orderBy: { city: "asc" },

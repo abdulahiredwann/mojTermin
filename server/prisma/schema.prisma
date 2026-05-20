@@ -145,3 +145,36 @@ model AppointmentReferralAnalysis {
 
   @@index([appointmentRequestId])
 }
+
+model EzdravListing {
+  id                   String   @id @default(uuid())
+  routeId              String?
+  serviceName          String?
+  urgency              String?
+  urgencyPage          String?
+  region               String?
+  provider             String?
+  city                 String?
+  postalCode           String?
+  address              String?
+  phone                String?
+  fax                  String?
+  email                String?
+  website              String?
+  websiteDisabled      Boolean  @default(false)
+  serviceUnavailable   Boolean  @default(false)
+  eOrderNotPossible    Boolean  @default(false)
+  appointmentSummary   String?  @db.Text
+  remarks              String?  @db.Text
+  ambulances           String?  @db.Text
+  lastUpdated          String?
+  sourceFile           String?
+  importedAt           DateTime @default(now())
+
+  @@index([city])
+  @@index([provider])
+  @@index([serviceName])
+  @@index([urgency])
+  @@index([region])
+  @@index([routeId])
+}

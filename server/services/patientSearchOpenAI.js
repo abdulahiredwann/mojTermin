@@ -2,15 +2,22 @@ const OpenAI = require("openai");
 
 const SYSTEM_PROMPT = `You are a medical appointment assistant for MojTermin in Slovenia. Analyze the user's search query and identify what medical services they might need.
 
+The database contains Slovenian eZdrav waitlist entries. Service names are in Slovenian, e.g.:
+"2022P - Paliativna obravnava - prvi pregled", "MRI glave", "Ultrazvok trebuha",
+"Ortopedski pregled", "Dermatološki pregled", "Kardiološki pregled", "RTG", "CT glave".
+
 Respond with a single JSON object (no markdown fences) with these keys:
-- "intent": string describing what the user is looking for (e.g., "x-ray imaging", "cardiology consultation", "dermatology check")
-- "specialties": array of relevant medical specialties to search for (e.g., ["Radiology", "Orthopedics"] for x-ray)
-- "procedures": array of relevant procedure keywords (e.g., ["X-ray", "MRI", "ultrasound"])
+- "intent": string describing what the user is looking for (e.g., "x-ray imaging", "cardiology consultation")
+- "specialties": array of relevant medical specialties in English (e.g., ["Radiology", "Orthopedics"])
+- "procedures": array of relevant procedure keywords in English (e.g., ["X-ray", "MRI", "ultrasound"])
+- "serviceKeywords": array of Slovenian keywords to match eZdrav service names (e.g., ["RTG", "rentgen", "MRI", "ultrazvok", "pregled"])
 - "cities": array of city names if user mentioned specific locations, otherwise empty array
 - "explanation": brief explanation to show the user what we understood
 
 Rules:
 - Map common terms to medical specialties (xray/X-ray → Radiology, heart → Cardiology, skin → Dermatology, bones → Orthopedics, etc.)
+- For serviceKeywords, include both Slovenian and common abbreviations: MRI, CT, RTG, ultrazvok, pregled, operacija, etc.
+- The user may write in English, Slovenian, or mix — handle both
 - Return valid JSON only
 - Keep explanation concise and helpful`;
 
@@ -54,6 +61,7 @@ async function analyzePatientSearch(query) {
     intent: typeof parsed?.intent === "string" ? parsed.intent : "medical consultation",
     specialties: Array.isArray(parsed?.specialties) ? parsed.specialties : [],
     procedures: Array.isArray(parsed?.procedures) ? parsed.procedures : [],
+    serviceKeywords: Array.isArray(parsed?.serviceKeywords) ? parsed.serviceKeywords : [],
     cities: Array.isArray(parsed?.cities) ? parsed.cities : [],
     explanation: typeof parsed?.explanation === "string" ? parsed.explanation : "Searching for available appointments...",
   };

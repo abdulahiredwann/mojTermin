@@ -1,123 +1,103 @@
-const path = require("path");
-const {
-  loadAllRows,
-  getFacetsAndSummary,
-} = require("../services/ezdravHospitalScrapeCsv");
+const prisma = require("../prisma/prisma");
 
 function toTrimmedString(value) {
   if (value == null || typeof value !== "string") return "";
   return value.trim();
 }
 
-const SORT_FIELDS = {
-  rowNum: (r) => Number.parseInt(String(r.rowNum), 10) || 0,
-  routeId: (r) => String(r.routeId || "").toLowerCase(),
-  provider: (r) => String(r.provider || "").toLowerCase(),
-  city: (r) => String(r.city || "").toLowerCase(),
-  service: (r) => String(r.serviceName || "").toLowerCase(),
-  urgency: (r) => String(r.urgencyFile || "").toLowerCase(),
-  region: (r) => String(r.region || "").toLowerCase(),
-  appointment: (r) => String(r.appointmentSummary || "").toLowerCase(),
-  phone: (r) => String(r.phone || "").toLowerCase(),
-  address: (r) => String(r.address || "").toLowerCase(),
+const SORT_MAP = {
+  rowNum: { importedAt: "asc" },
+  routeId: { routeId: undefined },
+  provider: { provider: undefined },
+  city: { city: undefined },
+  service: { serviceName: undefined },
+  urgency: { urgency: undefined },
+  region: { region: undefined },
+  appointment: { appointmentSummary: undefined },
+  phone: { phone: undefined },
+  address: { address: undefined },
 };
-
-function applyFilters(rows, { q, service, urgency, region, city }) {
-  let out = rows;
-
-  if (service) {
-    out = out.filter((r) => r.serviceName === service);
-  }
-  if (urgency) {
-    out = out.filter((r) => r.urgencyFile === urgency);
-  }
-  if (region) {
-    out = out.filter((r) => r.region === region);
-  }
-  if (city) {
-    out = out.filter((r) => r.city === city);
-  }
-
-  const needle = toTrimmedString(q).toLowerCase();
-  if (needle) {
-    out = out.filter((r) =>
-      [
-        r.provider,
-        r.city,
-        r.address,
-        r.postalCode,
-        r.phone,
-        r.serviceName,
-        r.appointmentSummary,
-        r.website,
-        r.routeId,
-        r.email,
-        r.urgencyFile,
-        r.region,
-      ].some((field) => field && String(field).toLowerCase().includes(needle)),
-    );
-  }
-
-  return out;
-}
-
-function sortRows(rows, sortRaw, orderRaw) {
-  const sort = SORT_FIELDS[sortRaw] ? sortRaw : "rowNum";
-  const order = orderRaw === "desc" ? "desc" : "asc";
-  const getter = SORT_FIELDS[sort];
-  const mult = order === "desc" ? -1 : 1;
-
-  return [...rows].sort((a, b) => {
-    const va = getter(a);
-    const vb = getter(b);
-    if (va < vb) return -1 * mult;
-    if (va > vb) return 1 * mult;
-    const tieA = Number.parseInt(String(a.rowNum), 10) || 0;
-    const tieB = Number.parseInt(String(b.rowNum), 10) || 0;
-    return tieA - tieB;
-  });
-}
-
-function publicRow(r) {
-  return {
-    rowNum: r.rowNum,
-    routeId: r.routeId,
-    urgencyFile: r.urgencyFile,
-    serviceName: r.serviceName,
-    urgencyPage: r.urgencyPage,
-    region: r.region,
-    serviceUnavailable: r.serviceUnavailable,
-    eOrderNotPossible: r.eOrderNotPossible,
-    provider: r.provider,
-    website: r.website,
-    websiteDisabled: r.websiteDisabled,
-    appointmentSummary: r.appointmentSummary,
-    address: r.address,
-    postalCode: r.postalCode,
-    city: r.city,
-    email: r.email,
-    phone: r.phone,
-    fax: r.fax,
-    lastUpdated: r.lastUpdated,
-    remarks: r.remarks,
-    ambulances: r.ambulances,
-    sourceFile: r.sourceFile,
-  };
-}
 
 async function getHospitalScrapeMeta(req, res, next) {
   try {
-    const { dir, files, rows } = loadAllRows();
-    const { facets, summary } = getFacetsAndSummary(rows);
+    const rowCount = await prisma.ezdravListing.count();
+
+    const [services, urgencies, regions, cities] = await Promise.all([
+      prisma.ezdravListing.groupBy({
+        by: ["serviceName"],
+        where: { serviceName: { not: null } },
+        _count: { serviceName: true },
+        orderBy: { _count: { serviceName: "desc" } },
+        take: 20,
+      }),
+      prisma.ezdravListing.groupBy({
+        by: ["urgency"],
+        where: { urgency: { not: null } },
+        _count: { urgency: true },
+        orderBy: { _count: { urgency: "desc" } },
+        take: 10,
+      }),
+      prisma.ezdravListing.groupBy({
+        by: ["region"],
+        where: { region: { not: null } },
+        _count: { region: true },
+        orderBy: { _count: { region: "desc" } },
+        take: 20,
+      }),
+      prisma.ezdravListing.groupBy({
+        by: ["city"],
+        where: { city: { not: null } },
+        _count: { city: true },
+        orderBy: { _count: { city: "desc" } },
+        take: 20,
+      }),
+    ]);
+
+    const [allServices, allUrgencies, allRegions, allCities] = await Promise.all([
+      prisma.ezdravListing.findMany({
+        where: { serviceName: { not: null } },
+        distinct: ["serviceName"],
+        select: { serviceName: true },
+        orderBy: { serviceName: "asc" },
+      }),
+      prisma.ezdravListing.findMany({
+        where: { urgency: { not: null } },
+        distinct: ["urgency"],
+        select: { urgency: true },
+        orderBy: { urgency: "asc" },
+      }),
+      prisma.ezdravListing.findMany({
+        where: { region: { not: null } },
+        distinct: ["region"],
+        select: { region: true },
+        orderBy: { region: "asc" },
+      }),
+      prisma.ezdravListing.findMany({
+        where: { city: { not: null } },
+        distinct: ["city"],
+        select: { city: true },
+        orderBy: { city: "asc" },
+      }),
+    ]);
 
     return res.json({
-      csvDir: dir,
-      sourceFiles: files.map((f) => path.basename(f)),
-      fileCount: files.length,
-      rowCount: rows.length,
-      facets,
-      summary,
-      sortFields: Object.keys(SORT_FIELDS),
+      csvDir: "(database)",
+      sourceFiles: [],
+      fileCount: 0,
+      rowCount,
+      facets: {
+        services: allServices.map((r) => r.serviceName).filter(Boolean),
+        urgencies: allUrgencies.map((r) => r.urgency).filter(Boolean),
+        regions: allRegions.map((r) => r.region).filter(Boolean),
+        cities: allCities.map((r) => r.city).filter(Boolean),
+      },
+      summary: {
+        byService: services.map((r) => ({ name: r.serviceName, count: r._count.serviceName })),
+        byUrgency: urgencies.map((r) => ({ name: r.urgency, count: r._count.urgency })),
+        byRegion: regions.map((r) => ({ name: r.region, count: r._count.region })),
+        byCity: cities.map((r) => ({ name: r.city, count: r._count.city })),
+      },
+      sortFields: Object.keys(SORT_MAP),
     });
   } catch (error) {
     return next(error);
@@ -132,25 +112,83 @@ async function listHospitalScrapeRows(req, res, next) {
 
     const q = toTrimmedString(req.query.q);
     const service = toTrimmedString(req.query.service) || "";
-    const urgency = toTrimmedString(req.query.urgency) || "";
+    const urgencyFilter = toTrimmedString(req.query.urgency) || "";
     const region = toTrimmedString(req.query.region) || "";
     const city = toTrimmedString(req.query.city) || "";
 
-    const sort = toTrimmedString(req.query.sort) || "rowNum";
-    const order = toTrimmedString(req.query.order) || "asc";
+    const sortKey = toTrimmedString(req.query.sort) || "rowNum";
+    const orderDir = toTrimmedString(req.query.order) === "desc" ? "desc" : "asc";
 
-    const { rows: all } = loadAllRows();
-    const filtered = applyFilters(all, { q, service, urgency, region, city });
-    const sorted = sortRows(filtered, sort, order);
+    const where = {};
+    const andClauses = [];
 
-    const total = sorted.length;
+    if (service) andClauses.push({ serviceName: service });
+    if (urgencyFilter) andClauses.push({ urgency: urgencyFilter });
+    if (region) andClauses.push({ region });
+    if (city) andClauses.push({ city });
+
+    if (q) {
+      andClauses.push({
+        OR: [
+          { provider: { contains: q, mode: "insensitive" } },
+          { city: { contains: q, mode: "insensitive" } },
+          { address: { contains: q, mode: "insensitive" } },
+          { postalCode: { contains: q, mode: "insensitive" } },
+          { phone: { contains: q, mode: "insensitive" } },
+          { serviceName: { contains: q, mode: "insensitive" } },
+          { appointmentSummary: { contains: q, mode: "insensitive" } },
+          { website: { contains: q, mode: "insensitive" } },
+          { routeId: { contains: q, mode: "insensitive" } },
+          { email: { contains: q, mode: "insensitive" } },
+          { urgency: { contains: q, mode: "insensitive" } },
+          { region: { contains: q, mode: "insensitive" } },
+        ],
+      });
+    }
+
+    if (andClauses.length > 0) where.AND = andClauses;
+
+    const sortEntry = SORT_MAP[sortKey] || SORT_MAP.rowNum;
+    const sortField = Object.keys(sortEntry)[0];
+    const orderBy = [{ [sortField]: orderDir }];
+
+    const total = await prisma.ezdravListing.count({ where });
     const totalPages = Math.max(Math.ceil(total / limit), 1);
     const safePage = Math.min(page, totalPages);
     const offset = (safePage - 1) * limit;
-    const slice = sorted.slice(offset, offset + limit);
+
+    const rows = await prisma.ezdravListing.findMany({
+      where,
+      orderBy,
+      skip: offset,
+      take: limit,
+    });
 
     return res.json({
-      rows: slice.map(publicRow),
+      rows: rows.map((r, idx) => ({
+        rowNum: String(offset + idx + 1),
+        routeId: r.routeId || "",
+        urgencyFile: r.urgency || "",
+        serviceName: r.serviceName || "",
+        urgencyPage: r.urgencyPage || "",
+        region: r.region || "",
+        serviceUnavailable: r.serviceUnavailable ? "da" : "ne",
+        eOrderNotPossible: r.eOrderNotPossible ? "da" : "ne",
+        provider: r.provider || "",
+        website: r.website || "",
+        websiteDisabled: r.websiteDisabled ? "da" : "ne",
+        appointmentSummary: r.appointmentSummary || "",
+        address: r.address || "",
+        postalCode: r.postalCode || "",
+        city: r.city || "",
+        email: r.email || "",
+        phone: r.phone || "",
+        fax: r.fax || "",
+        lastUpdated: r.lastUpdated || "",
+        remarks: r.remarks || "",
+        ambulances: r.ambulances || "",
+        sourceFile: r.sourceFile || "",
+      })),
       pagination: {
         page: safePage,
         limit,
@@ -160,12 +198,12 @@ async function listHospitalScrapeRows(req, res, next) {
       filters: {
         q: q || undefined,
         service: service || undefined,
-        urgency: urgency || undefined,
+        urgency: urgencyFilter || undefined,
         region: region || undefined,
         city: city || undefined,
       },
-      sort: SORT_FIELDS[sort] ? sort : "rowNum",
-      order: order === "desc" ? "desc" : "asc",
+      sort: SORT_MAP[sortKey] ? sortKey : "rowNum",
+      order: orderDir,
     });
   } catch (error) {
     return next(error);
