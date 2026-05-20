@@ -53,7 +53,7 @@ const corsMiddleware = cors({
 
 app.use(corsMiddleware);
 
-// Handle preflight requests for all routes (Express 5 + path-to-regexp doesn't like "*")
+// Handle preflight requests for all routes (Express 5 +s path-to-regexp doesn't like "*")
 app.options(/.*/, corsMiddleware);
 
 // Cookie parser
