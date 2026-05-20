@@ -2,6 +2,7 @@ import { MessageSquare } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { cn } from "@/lib/utils";
 import {
   AdminHospitalsChatPanel,
   type HospitalChatMessageVm,
@@ -24,6 +25,18 @@ type HospitalService = {
   earliestDate: string | null;
   isActive: boolean;
   notes: string | null;
+  region?: string | null;
+  urgency?: string | null;
+  routeId?: string | null;
+  appointmentSummary?: string | null;
+  remarks?: string | null;
+  ambulances?: string | null;
+  lastUpdated?: string | null;
+  serviceUnavailable?: boolean;
+  eOrderNotPossible?: boolean;
+  websiteDisabled?: boolean;
+  postalCode?: string | null;
+  fax?: string | null;
 };
 
 type HospitalRow = {
@@ -51,8 +64,19 @@ function formatDate(value: string | null) {
   return date.toLocaleDateString();
 }
 
+function normalizeUrl(href: string) {
+  const t = href.trim();
+  if (!t) return "";
+  if (/^https?:\/\//i.test(t)) return t;
+  return `https://${t}`;
+}
+
 function isDraftHospitalId(id: string) {
   return id.startsWith("pending-");
+}
+
+function isEzdravHospitalId(id: string) {
+  return id.startsWith("ezdrav:");
 }
 
 type ChatProposedHospital = {
@@ -134,6 +158,7 @@ export function AdminHospitalsPage() {
     }
   });
   const [isCreatingChatSession, setIsCreatingChatSession] = useState(false);
+  const [detailHospital, setDetailHospital] = useState<HospitalRow | null>(null);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["admin-hospitals", page, limit, search],
@@ -141,12 +166,16 @@ export function AdminHospitalsPage() {
       const response = await api.get<{
         hospitals: HospitalRow[];
         pagination: { page: number; limit: number; total: number; totalPages: number };
+        dataSource?: string;
+        listingCount?: number;
       }>("/admin/hospitals", {
         params: { page, limit, q: search || undefined },
       });
       return response.data;
     },
   });
+
+  const isEzdravData = data?.dataSource === "ezdrav";
 
   const rows = useMemo(() => data?.hospitals ?? [], [data]);
   const displayRows = useMemo(
@@ -411,7 +440,16 @@ export function AdminHospitalsPage() {
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Hospitals</h1>
               <p className="text-sm text-gray-600">
-                Emulator dataset for service coverage and estimated availability.
+                {isEzdravData && data?.listingCount != null ? (
+                  <>
+                    eZdrav waitlist data from database —{" "}
+                    {data.listingCount.toLocaleString()} service rows,{" "}
+                    {pagination?.total.toLocaleString() ?? "—"} providers (grouped by
+                    institution + city).
+                  </>
+                ) : (
+                  "Hospital listings with services and estimated availability."
+                )}
               </p>
             </div>
             <div className="flex min-w-[260px] flex-1 max-w-xl items-center gap-2">
@@ -421,31 +459,35 @@ export function AdminHospitalsPage() {
                   setPage(1);
                   setSearch(e.target.value);
                 }}
-                placeholder="Search hospital, city, specialty..."
+                placeholder="Search provider, city, service, phone..."
                 className="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none ring-[#2E7D5B]/30 focus:ring-4"
               />
-              <button
-                type="button"
-                onClick={() => setIsAddHospitalOpen(true)}
-                className="h-10 shrink-0 rounded-lg bg-[#2E7D5B] px-3 text-sm font-medium text-white hover:bg-[#256B4D]"
-              >
-                Add hospital
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsChatbotPanelOpen(true)}
-                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
-                title="Open chatbot panel"
-                aria-label="Open chatbot panel"
-              >
-                <MessageSquare className="h-4 w-4" />
-              </button>
+              {!isEzdravData ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setIsAddHospitalOpen(true)}
+                    className="h-10 shrink-0 rounded-lg bg-[#2E7D5B] px-3 text-sm font-medium text-white hover:bg-[#256B4D]"
+                  >
+                    Add hospital
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsChatbotPanelOpen(true)}
+                    className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+                    title="Open chatbot panel"
+                    aria-label="Open chatbot panel"
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                  </button>
+                </>
+              ) : null}
             </div>
           </div>
         </div>
       ) : null}
 
-      {selectedHospitalIds.length > 0 ? (
+      {selectedHospitalIds.length > 0 && !isEzdravData ? (
         <div className="rounded-2xl border border-[#2E7D5B]/30 bg-[#f3faf6] p-4">
           <div className="flex flex-wrap items-center gap-3">
             <p className="text-sm font-medium text-gray-800">
@@ -547,7 +589,7 @@ export function AdminHospitalsPage() {
                   <th className="px-4 py-3">Location</th>
                   <th className="px-4 py-3">Contact</th>
                   <th className="px-4 py-3">Services</th>
-                  <th className="px-4 py-3">Avg wait</th>
+                  <th className="px-4 py-3">{isEzdravData ? "Listings" : "Avg wait"}</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3">Actions</th>
                 </tr>
@@ -555,14 +597,28 @@ export function AdminHospitalsPage() {
               <tbody className="divide-y divide-gray-100">
                 {displayRows.map((hospital) => {
                   const isDraft = isDraftHospitalId(hospital.id);
+                  const isEzdrav = isEzdravHospitalId(hospital.id);
+                  const readOnly = isEzdrav || isEzdravData;
                   return (
                   <tr
                     key={hospital.id}
-                    className={`align-top ${isDraft ? "bg-emerald-50/90" : ""}`}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setDetailHospital(hospital)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setDetailHospital(hospital);
+                      }
+                    }}
+                    className={cn(
+                      "align-top cursor-pointer transition-colors hover:bg-[#f3faf6]/80",
+                      isDraft && "bg-emerald-50/90",
+                    )}
                   >
-                    <td className="px-4 py-4">
-                      {isDraft ? (
-                        <input type="checkbox" disabled className="opacity-40" title="Save draft rows from the banner" />
+                    <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
+                      {isDraft || readOnly ? (
+                        <input type="checkbox" disabled className="opacity-40" title={readOnly ? "eZdrav import is read-only" : "Save draft rows from the banner"} />
                       ) : (
                         <input
                           type="checkbox"
@@ -591,12 +647,15 @@ export function AdminHospitalsPage() {
                         </div>
                       )}
                       <p className="mt-1 text-xs text-gray-500">
-                        Beds: {hospital.bedCount ?? "-"} | Emergency 24h:{" "}
-                        {hospital.emergency24h === null
-                          ? "-"
-                          : hospital.emergency24h
-                            ? "Yes"
-                            : "No"}
+                        {isEzdrav
+                          ? `${hospital.serviceCount} eZdrav service${hospital.serviceCount === 1 ? "" : "s"}`
+                          : `Beds: ${hospital.bedCount ?? "-"} | Emergency 24h: ${
+                              hospital.emergency24h === null
+                                ? "-"
+                                : hospital.emergency24h
+                                  ? "Yes"
+                                  : "No"
+                            }`}
                       </p>
                     </td>
                     <td className="px-4 py-4 text-sm text-gray-700">
@@ -622,6 +681,7 @@ export function AdminHospitalsPage() {
                           href={hospital.website}
                           target="_blank"
                           rel="noreferrer"
+                          onClick={(e) => e.stopPropagation()}
                           className="text-xs text-[#2E7D5B] hover:underline"
                         >
                           Open website
@@ -652,6 +712,31 @@ export function AdminHospitalsPage() {
                                 </div>
                               ))
                             )}
+                          </>
+                        ) : readOnly ? (
+                          <>
+                            {hospital.services.length === 0 ? (
+                              <p className="text-sm text-gray-500">No services</p>
+                            ) : (
+                              hospital.services.slice(0, 8).map((service) => (
+                                <div key={service.id} className="rounded-md bg-gray-50 px-2 py-1.5">
+                                  <p className="text-xs font-semibold text-gray-800">
+                                    {service.specialty ?? "—"}
+                                    {service.procedureName ? ` · ${service.procedureName}` : ""}
+                                  </p>
+                                  {service.notes ? (
+                                    <p className="mt-0.5 line-clamp-2 text-xs text-gray-600">
+                                      {service.notes}
+                                    </p>
+                                  ) : null}
+                                </div>
+                              ))
+                            )}
+                            {hospital.services.length > 8 ? (
+                              <p className="text-xs text-gray-500">
+                                +{hospital.services.length - 8} more services
+                              </p>
+                            ) : null}
                           </>
                         ) : (
                           <>
@@ -834,7 +919,13 @@ export function AdminHospitalsPage() {
                       </div>
                     </td>
                     <td className="px-4 py-4 text-sm text-gray-700">
-                      {hospital.averageWaitDays ?? "-"} days
+                      {isEzdrav ? (
+                        <span className="text-xs text-gray-600">
+                          {hospital.serviceCount} row{hospital.serviceCount === 1 ? "" : "s"}
+                        </span>
+                      ) : (
+                        <>{hospital.averageWaitDays ?? "-"} days</>
+                      )}
                     </td>
                     <td className="px-4 py-4">
                       <span
@@ -847,11 +938,13 @@ export function AdminHospitalsPage() {
                         {hospital.isActive ? "Active" : "Inactive"}
                       </span>
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
                       {isDraft ? (
                         <p className="max-w-[140px] text-xs font-medium leading-snug text-emerald-800">
                           Pending — use Save drafts above
                         </p>
+                      ) : readOnly ? (
+                        <span className="text-xs text-gray-500">eZdrav import</span>
                       ) : editingHospitalId === hospital.id ? (
                         <div className="flex gap-1">
                           <button
@@ -911,7 +1004,7 @@ export function AdminHospitalsPage() {
                 {displayRows.length === 0 ? (
                   <tr>
                     <td className="px-4 py-8 text-sm text-gray-500" colSpan={8}>
-                      No hospitals found for this filter.
+                      No providers match this search. Try another city, hospital name, or service.
                     </td>
                   </tr>
                 ) : null}
@@ -987,6 +1080,172 @@ export function AdminHospitalsPage() {
           />
       </div>
 
+      <Dialog
+        open={detailHospital !== null}
+        onOpenChange={(open) => !open && setDetailHospital(null)}
+      >
+        {detailHospital ? (
+          <DialogContent className="max-h-[calc(100vh-2rem)] w-[calc(100vw-1.5rem)] max-w-3xl overflow-y-auto p-0 sm:max-h-[90vh]">
+            <DialogHeader className="border-b border-gray-100 bg-gray-50/90 px-6 py-4 text-left">
+              <DialogTitle className="pr-8 text-xl text-gray-900">
+                {detailHospital.name}
+              </DialogTitle>
+              <DialogDescription className="text-left text-sm text-gray-600">
+                {[detailHospital.city, detailHospital.country].filter(Boolean).join(", ") ||
+                  "Location not set"}
+                {detailHospital.serviceCount > 0 ? (
+                  <span className="mt-1 block">
+                    {detailHospital.serviceCount} eZdrav service listing
+                    {detailHospital.serviceCount === 1 ? "" : "s"}
+                  </span>
+                ) : null}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-6 px-6 py-4">
+              <dl className="grid gap-4 sm:grid-cols-2">
+                <HospitalDetailItem label="City" value={detailHospital.city} />
+                <HospitalDetailItem label="Country" value={detailHospital.country} />
+                <HospitalDetailItem
+                  label="Street address"
+                  value={detailHospital.address}
+                  className="sm:col-span-2"
+                />
+                <HospitalDetailItem label="Phone" value={detailHospital.phone} mono />
+                <HospitalDetailItem label="Email" value={detailHospital.email} />
+                <HospitalDetailItem
+                  label="Website"
+                  value={detailHospital.website}
+                  href={
+                    detailHospital.website ? normalizeUrl(detailHospital.website) : undefined
+                  }
+                />
+                {!isEzdravHospitalId(detailHospital.id) ? (
+                  <>
+                    <HospitalDetailItem
+                      label="Average wait"
+                      value={
+                        detailHospital.averageWaitDays != null
+                          ? `${detailHospital.averageWaitDays} days`
+                          : ""
+                      }
+                    />
+                    <HospitalDetailItem
+                      label="Beds"
+                      value={
+                        detailHospital.bedCount != null ? String(detailHospital.bedCount) : ""
+                      }
+                    />
+                    <HospitalDetailItem
+                      label="Emergency 24h"
+                      value={
+                        detailHospital.emergency24h === null
+                          ? ""
+                          : detailHospital.emergency24h
+                            ? "Yes"
+                            : "No"
+                      }
+                    />
+                    <HospitalDetailItem label="Notes" value={detailHospital.notes} multiline />
+                  </>
+                ) : null}
+                <HospitalDetailItem
+                  label="Status"
+                  value={detailHospital.isActive ? "Active" : "Inactive"}
+                />
+              </dl>
+
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900">
+                  Services ({detailHospital.services.length})
+                </h3>
+                <div className="mt-3 max-h-[min(50vh,420px)] space-y-4 overflow-y-auto pr-1">
+                  {detailHospital.services.length === 0 ? (
+                    <p className="text-sm text-gray-500">No services listed.</p>
+                  ) : (
+                    detailHospital.services.map((service, idx) => (
+                      <div
+                        key={service.id}
+                        className="rounded-lg border border-gray-200 bg-gray-50/80 p-4"
+                      >
+                        <p className="text-sm font-semibold text-gray-900">
+                          {idx + 1}. {service.procedureName || "Unnamed service"}
+                        </p>
+                        <dl className="mt-3 grid gap-3 sm:grid-cols-2">
+                          <HospitalDetailItem label="Urgency" value={service.urgency ?? service.specialty} />
+                          <HospitalDetailItem label="Region" value={service.region} />
+                          {service.routeId ? (
+                            <HospitalDetailItem label="Route ID" value={service.routeId} mono />
+                          ) : null}
+                          {service.lastUpdated ? (
+                            <HospitalDetailItem
+                              label="Last updated"
+                              value={service.lastUpdated}
+                            />
+                          ) : null}
+                          {isEzdravHospitalId(detailHospital.id) ? (
+                            <>
+                              <HospitalDetailItem
+                                label="Available"
+                                value={service.isActive ? "Yes" : "No"}
+                              />
+                              <HospitalDetailItem
+                                label="E-order possible"
+                                value={
+                                  service.eOrderNotPossible === true ? "No" : "Yes"
+                                }
+                              />
+                            </>
+                          ) : (
+                            <>
+                              <HospitalDetailItem
+                                label="Est. wait"
+                                value={
+                                  service.estimatedWaitDays != null
+                                    ? `${service.estimatedWaitDays} days`
+                                    : ""
+                                }
+                              />
+                              <HospitalDetailItem
+                                label="Earliest date"
+                                value={formatDate(service.earliestDate)}
+                              />
+                            </>
+                          )}
+                          <HospitalDetailItem
+                            label="Appointment / waiting"
+                            value={
+                              service.appointmentSummary ?? service.notes ?? ""
+                            }
+                            multiline
+                            className="sm:col-span-2"
+                          />
+                          {service.remarks ? (
+                            <HospitalDetailItem
+                              label="Remarks"
+                              value={service.remarks}
+                              multiline
+                              className="sm:col-span-2"
+                            />
+                          ) : null}
+                          {service.ambulances ? (
+                            <HospitalDetailItem
+                              label="Per-clinic availability"
+                              value={service.ambulances}
+                              multiline
+                              className="sm:col-span-2"
+                            />
+                          ) : null}
+                        </dl>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        ) : null}
+      </Dialog>
+
       <Dialog open={isAddHospitalOpen} onOpenChange={setIsAddHospitalOpen}>
         <DialogContent>
           <DialogHeader>
@@ -1041,5 +1300,51 @@ export function AdminHospitalsPage() {
       </Dialog>
 
     </section>
+  );
+}
+
+function HospitalDetailItem({
+  label,
+  value,
+  multiline,
+  mono,
+  href,
+  className,
+}: {
+  label: string;
+  value: string | null | undefined;
+  multiline?: boolean;
+  mono?: boolean;
+  href?: string;
+  className?: string;
+}) {
+  const display = (value ?? "").trim() || "—";
+  return (
+    <div className={cn("min-w-0", className)}>
+      <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">{label}</dt>
+      <dd className="mt-1 break-words text-sm text-gray-900">
+        {href ? (
+          <a
+            href={href}
+            target="_blank"
+            rel="noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="text-[#2E7D5B] underline-offset-2 hover:underline"
+          >
+            {display}
+          </a>
+        ) : (
+          <span
+            className={cn(
+              multiline &&
+                "block max-h-40 overflow-y-auto whitespace-pre-wrap rounded-md bg-white p-2 text-gray-800",
+              mono && "font-mono text-xs",
+            )}
+          >
+            {display}
+          </span>
+        )}
+      </dd>
+    </div>
   );
 }
