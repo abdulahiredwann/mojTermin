@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { AxiosError } from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,9 +54,10 @@ export function UserSettingsPage() {
   const [profileBusy, setProfileBusy] = useState(false);
   const [passwordBusy, setPasswordBusy] = useState(false);
   const [cancelBusy, setCancelBusy] = useState(false);
+  const [upgradeBusy, setUpgradeBusy] = useState(false);
   const [profileMsg, setProfileMsg] = useState<string | null>(null);
   const [passwordMsg, setPasswordMsg] = useState<string | null>(null);
-  const [cancelMsg, setCancelMsg] = useState<string | null>(null);
+  const [subscriptionMsg, setSubscriptionMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const isPro = user?.effectivePlan === "pro";
@@ -111,14 +111,29 @@ export function UserSettingsPage() {
     }
   }
 
+  async function handleUpgradeSubscription() {
+    setError(null);
+    setSubscriptionMsg(null);
+    setUpgradeBusy(true);
+    try {
+      await api.post("/user/subscription/upgrade");
+      await refreshMe();
+      setSubscriptionMsg(t.settingsSubscriptionUpgraded);
+    } catch (err) {
+      setError(apiError(err, "Could not upgrade subscription."));
+    } finally {
+      setUpgradeBusy(false);
+    }
+  }
+
   async function handleCancelSubscription() {
     setError(null);
-    setCancelMsg(null);
+    setSubscriptionMsg(null);
     setCancelBusy(true);
     try {
       await api.post("/user/subscription/cancel");
       await refreshMe();
-      setCancelMsg(t.settingsSubscriptionCancelled);
+      setSubscriptionMsg(t.settingsSubscriptionCancelled);
     } catch (err) {
       setError(apiError(err, "Could not cancel subscription."));
     } finally {
@@ -159,8 +174,10 @@ export function UserSettingsPage() {
           {passwordMsg ? (
             <p className="rounded-xl bg-[#e8f5ee] px-3 py-2 text-sm text-[#256B4D]">{passwordMsg}</p>
           ) : null}
-          {cancelMsg ? (
-            <p className="rounded-xl bg-[#e8f5ee] px-3 py-2 text-sm text-[#256B4D]">{cancelMsg}</p>
+          {subscriptionMsg ? (
+            <p className="rounded-xl bg-[#e8f5ee] px-3 py-2 text-sm text-[#256B4D]">
+              {subscriptionMsg}
+            </p>
           ) : null}
 
           <SettingsCard title={t.settingsProfileSection}>
@@ -284,10 +301,12 @@ export function UserSettingsPage() {
                 </AlertDialog>
               ) : (
                 <Button
-                  asChild
+                  type="button"
+                  disabled={upgradeBusy}
                   className="rounded-full bg-[#2E7D5B] hover:bg-[#256B4D]"
+                  onClick={() => void handleUpgradeSubscription()}
                 >
-                  <Link to="/#pricing">{t.settingsUpgradePlan}</Link>
+                  {upgradeBusy ? t.trackingButtonSubmitting : t.settingsUpgradePlan}
                 </Button>
               )}
             </div>

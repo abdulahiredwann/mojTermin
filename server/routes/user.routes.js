@@ -9,6 +9,7 @@ const {
 const {
   updateMyProfile,
   updateMyPassword,
+  upgradeMySubscription,
   cancelMySubscription,
 } = require("../controllers/userSettings.controller");
 
@@ -16,6 +17,7 @@ const router = express.Router();
 
 router.patch("/profile", requireUserAuth, updateMyProfile);
 router.patch("/password", requireUserAuth, updateMyPassword);
+router.post("/subscription/upgrade", requireUserAuth, upgradeMySubscription);
 router.post("/subscription/cancel", requireUserAuth, cancelMySubscription);
 
 router.get("/appointments", requireUserAuth, listMyAppointmentRequests);

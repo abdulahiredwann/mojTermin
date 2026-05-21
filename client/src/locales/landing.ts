@@ -203,6 +203,7 @@ export type LandingStrings = {
   settingsCancelPlanBody: string;
   settingsCancelPlanConfirm: string;
   settingsSubscriptionCancelled: string;
+  settingsSubscriptionUpgraded: string;
   settingsPaymentsSection: string;
   settingsPaymentsComingSoon: string;
 };
@@ -471,6 +472,7 @@ export const landingCopy: Record<Locale, LandingStrings> = {
       "You will move to the FREE plan. PRO benefits end immediately; billing integration is coming later.",
     settingsCancelPlanConfirm: "Yes, cancel PRO",
     settingsSubscriptionCancelled: "Your subscription was cancelled. You are on FREE.",
+    settingsSubscriptionUpgraded: "You are now on PRO. Enjoy faster tracking and SMS alerts.",
     settingsPaymentsSection: "Payment history",
     settingsPaymentsComingSoon:
       "Your past payments will appear here once billing is connected. Coming soon.",
@@ -742,6 +744,8 @@ export const landingCopy: Record<Locale, LandingStrings> = {
       "Prešli boste na FREE paket. PRO ugodnosti se končajo takoj; plačila dodamo kmalu.",
     settingsCancelPlanConfirm: "Da, prekliči PRO",
     settingsSubscriptionCancelled: "Naročnina je preklicana. Zdaj ste na FREE.",
+    settingsSubscriptionUpgraded:
+      "Zdaj ste na PRO. Uživajte hitrejše spremljanje in SMS obvestila.",
     settingsPaymentsSection: "Zgodovina plačil",
     settingsPaymentsComingSoon:
       "Pretekla plačila bodo prikazana, ko bo povezano plačevanje. Kmalu na voljo.",

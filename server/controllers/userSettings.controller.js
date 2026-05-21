@@ -71,6 +71,37 @@ async function updateMyPassword(req, res, next) {
   }
 }
 
+async function upgradeMySubscription(req, res, next) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: userSelect,
+    });
+    if (!user) {
+      return res.status(401).json({ error: "Unauthorized." });
+    }
+
+    const plan = user.subscriptionPlan?.toLowerCase();
+    if (plan === "pro") {
+      return res.status(400).json({ error: "You are already on PRO." });
+    }
+
+    const updated = await prisma.user.update({
+      where: { id: req.user.id },
+      data: {
+        subscriptionPlan: "pro",
+        subscriptionStartedAt: new Date(),
+        subscriptionEndsAt: null,
+      },
+      select: userSelect,
+    });
+
+    return res.json({ user: sanitizePublicUser(updated) });
+  } catch (error) {
+    return next(error);
+  }
+}
+
 async function cancelMySubscription(req, res, next) {
   try {
     const user = await prisma.user.findUnique({
@@ -104,5 +135,6 @@ async function cancelMySubscription(req, res, next) {
 module.exports = {
   updateMyProfile,
   updateMyPassword,
+  upgradeMySubscription,
   cancelMySubscription,
 };
