@@ -84,7 +84,9 @@ type ConfirmRequestSummary = {
   hospitalName: string;
   email: string;
   preferredDateLabel: string;
-  notifyWhenAvailable: boolean;
+  notifyEmail: boolean;
+  notifyFasterRefresh: boolean;
+  notifySms: boolean;
 };
 
 function hospitalEstimatedWaitDays(hospital: SearchResult["hospitals"][number]): number | null {
@@ -376,7 +378,11 @@ export function UserDashboardPage() {
     setError(null);
     setSubmittingRequest(true);
     const preferredDateLabel = formatDay(new Date(`${selectedDate}T12:00:00`));
-    const notifyWhenAvailable = isPro && notifySms;
+    const trackingOpts = {
+      notifyEmail,
+      notifyFasterRefresh: isPro && notifyFasterRefresh,
+      notifySms: isPro && notifySms,
+    };
     try {
       if (referralFiles.length > 0) {
         const fd = new FormData();
@@ -386,7 +392,12 @@ export function UserDashboardPage() {
         fd.append("hospitalId", selectedHospital.id);
         fd.append("hospitalName", selectedHospital.name);
         fd.append("preferredDate", selectedDate);
-        fd.append("notifyWhenAvailable", notifyWhenAvailable ? "true" : "false");
+        fd.append("notifyEmail", trackingOpts.notifyEmail ? "true" : "false");
+        fd.append(
+          "notifyFasterRefresh",
+          trackingOpts.notifyFasterRefresh ? "true" : "false",
+        );
+        fd.append("notifySms", trackingOpts.notifySms ? "true" : "false");
         for (const file of referralFiles) {
           fd.append("referralImages", file);
         }
@@ -399,14 +410,14 @@ export function UserDashboardPage() {
           hospitalId: selectedHospital.id,
           hospitalName: selectedHospital.name,
           preferredDate: selectedDate,
-          notifyWhenAvailable,
+          ...trackingOpts,
         });
       }
       setConfirmRequestSummary({
         hospitalName: selectedHospital.name,
         email: user.email.trim(),
         preferredDateLabel,
-        notifyWhenAvailable,
+        ...trackingOpts,
       });
       setReferralFiles([]);
       setConfirmRequestOpen(true);
@@ -888,11 +899,20 @@ export function UserDashboardPage() {
                   {confirmRequestSummary.preferredDateLabel}
                 </p>
               </div>
-              <p className="rounded-lg bg-[#f6fbf8] px-3 py-2 text-gray-700">
-                {confirmRequestSummary.notifyWhenAvailable
-                  ? t.confirmRequestModalNotifyOn
-                  : t.confirmRequestModalNotifyOff}
-              </p>
+              <div className="space-y-1 rounded-lg bg-[#f6fbf8] px-3 py-2 text-sm text-gray-700">
+                <p>
+                  {t.trackingEmailCheckbox}:{" "}
+                  {confirmRequestSummary.notifyEmail ? "✓" : "—"}
+                </p>
+                <p>
+                  {t.trackingFasterRefreshCheckbox}:{" "}
+                  {confirmRequestSummary.notifyFasterRefresh ? "✓" : "—"}
+                </p>
+                <p>
+                  {t.trackingSmsCheckbox}:{" "}
+                  {confirmRequestSummary.notifySms ? "✓" : "—"}
+                </p>
+              </div>
             </div>
           ) : null}
           <DialogFooter>

@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { ReferralImagesLightbox } from "@/components/ReferralImagesLightbox";
+import { cn } from "@/lib/utils";
 
 type AppointmentRequestRow = {
   id: string;
@@ -14,6 +16,9 @@ type AppointmentRequestRow = {
   preferredDate: string;
   status: string;
   createdAt: string;
+  notifyEmail: boolean;
+  notifyFasterRefresh: boolean;
+  notifySms: boolean;
   referralImagePaths?: string[] | null;
 };
 
@@ -27,6 +32,20 @@ function fmtDate(value: string) {
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return value;
   return d.toLocaleDateString();
+}
+
+function TrackingBadge({ label, on }: { label: string; on: boolean }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium",
+        on ? "bg-[#e8f5ee] text-[#256B4D]" : "bg-gray-100 text-gray-400",
+      )}
+      title={label}
+    >
+      {on ? "✓" : "—"} {label}
+    </span>
+  );
 }
 
 export function AdminAppointmentsPage() {
@@ -65,7 +84,7 @@ export function AdminAppointmentsPage() {
           <div className="p-8 text-sm text-red-600">Failed to load appointment requests.</div>
         ) : (
           <div className="h-full overflow-auto">
-            <table className="min-w-[1100px] w-full text-left">
+            <table className="min-w-[1280px] w-full text-left">
               <thead className="bg-gray-50">
                 <tr className="text-xs uppercase tracking-wide text-gray-600">
                   <th className="px-4 py-3">Created</th>
@@ -73,8 +92,10 @@ export function AdminAppointmentsPage() {
                   <th className="px-4 py-3">Intent</th>
                   <th className="px-4 py-3">Hospital</th>
                   <th className="px-4 py-3">Preferred date</th>
+                  <th className="px-4 py-3">Notifications</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3">Referral</th>
+                  <th className="px-4 py-3">Actions</th>
                   <th className="px-4 py-3">User query</th>
                 </tr>
               </thead>
@@ -90,6 +111,13 @@ export function AdminAppointmentsPage() {
                     </td>
                     <td className="px-4 py-4 text-sm text-gray-700">{fmtDate(r.preferredDate)}</td>
                     <td className="px-4 py-4">
+                      <div className="flex max-w-[11rem] flex-wrap gap-1">
+                        <TrackingBadge label="Email" on={r.notifyEmail} />
+                        <TrackingBadge label="Refresh" on={r.notifyFasterRefresh} />
+                        <TrackingBadge label="SMS" on={r.notifySms} />
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">
                       <span className="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800">
                         {r.status}
                       </span>
@@ -97,12 +125,40 @@ export function AdminAppointmentsPage() {
                     <td className="px-4 py-4">
                       <ReferralImagesLightbox paths={r.referralImagePaths ?? []} size="md" />
                     </td>
+                    <td className="px-4 py-4">
+                      <div className="flex flex-col gap-1.5">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-8 rounded-lg border-gray-200 text-xs"
+                        >
+                          Send SMS
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-8 rounded-lg border-gray-200 text-xs"
+                        >
+                          Send email
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-8 rounded-lg border-[#2E7D5B]/30 text-xs text-[#256B4D]"
+                        >
+                          Refresh
+                        </Button>
+                      </div>
+                    </td>
                     <td className="px-4 py-4 text-sm text-gray-700">{r.query}</td>
                   </tr>
                 ))}
                 {rows.length === 0 ? (
                   <tr>
-                    <td className="px-4 py-8 text-sm text-gray-500" colSpan={8}>
+                    <td className="px-4 py-8 text-sm text-gray-500" colSpan={10}>
                       No appointment requests yet.
                     </td>
                   </tr>
@@ -158,4 +214,3 @@ export function AdminAppointmentsPage() {
     </section>
   );
 }
-

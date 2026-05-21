@@ -40,7 +40,15 @@ async function createAppointmentRequest(req, res, next) {
     const hospitalName = toNullableString(req.body?.hospitalName);
     const city = toNullableString(req.body?.city);
     const intent = toNullableString(req.body?.intent);
-    const notifyWhenAvailable = parseBooleanFlag(req.body?.notifyWhenAvailable);
+    const notifyEmail = parseBooleanFlag(
+      req.body?.notifyEmail !== undefined ? req.body.notifyEmail : true,
+    );
+    const notifyFasterRefresh = parseBooleanFlag(req.body?.notifyFasterRefresh);
+    const notifySms =
+      req.body?.notifySms !== undefined
+        ? parseBooleanFlag(req.body.notifySms)
+        : parseBooleanFlag(req.body?.notifyWhenAvailable);
+    const notifyWhenAvailable = notifySms;
     const userId = req.user?.id ?? null;
     if (userId && req.user?.email) {
       email = req.user.email.trim();
@@ -83,6 +91,9 @@ async function createAppointmentRequest(req, res, next) {
         hospitalName,
         preferredDate,
         notifyWhenAvailable,
+        notifyEmail,
+        notifyFasterRefresh,
+        notifySms,
         referralImagePaths,
         status: "pending",
       },
@@ -166,6 +177,9 @@ async function listAppointmentRequests(req, res, next) {
         hospitalName: r.hospitalName ?? r.hospital?.name ?? null,
         preferredDate: r.preferredDate,
         notifyWhenAvailable: r.notifyWhenAvailable,
+        notifyEmail: r.notifyEmail,
+        notifyFasterRefresh: r.notifyFasterRefresh,
+        notifySms: r.notifySms,
         referralImagePaths: r.referralImagePaths,
         status: r.status,
         createdAt: r.createdAt,

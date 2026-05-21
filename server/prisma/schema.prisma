@@ -118,8 +118,11 @@ model AppointmentRequest {
   hospitalId    String?
   hospitalName  String?
   preferredDate DateTime
-  /** User opted in to SMS + email when a slot opens (no worker yet) */
+  /** Legacy alias; kept in sync with notifySms on create */
   notifyWhenAvailable Boolean @default(false)
+  notifyEmail           Boolean @default(true)
+  notifyFasterRefresh   Boolean @default(false)
+  notifySms             Boolean @default(false)
   /** Relative paths under /api/uploads, e.g. referrals/<filename> — multiple allowed */
   referralImagePaths String[] @default([])
   status        String   @default("pending")

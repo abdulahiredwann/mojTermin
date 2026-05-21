@@ -100,7 +100,9 @@ type ConfirmRequestSummary = {
   hospitalName: string;
   email: string;
   preferredDateLabel: string;
-  notifyWhenAvailable: boolean;
+  notifyEmail: boolean;
+  notifyFasterRefresh: boolean;
+  notifySms: boolean;
 };
 
 function hospitalEstimatedWaitDays(hospital: SearchResult["hospitals"][number]): number | null {
@@ -246,13 +248,17 @@ export default function LandingPage() {
         hospitalId: selectedHospital.id,
         hospitalName: selectedHospital.name,
         preferredDate: selectedDate,
-        notifyWhenAvailable: false,
+        notifyEmail,
+        notifyFasterRefresh: false,
+        notifySms: false,
       });
       setConfirmRequestSummary({
         hospitalName: selectedHospital.name,
         email: email.trim(),
         preferredDateLabel,
-        notifyWhenAvailable: false,
+        notifyEmail,
+        notifyFasterRefresh: false,
+        notifySms: false,
       });
       setConfirmRequestOpen(true);
     } catch (err: unknown) {
@@ -740,11 +746,20 @@ export default function LandingPage() {
                   {confirmRequestSummary.preferredDateLabel}
                 </p>
               </div>
-              <p className="rounded-lg bg-[#f6fbf8] px-3 py-2 text-gray-700">
-                {confirmRequestSummary.notifyWhenAvailable
-                  ? t.confirmRequestModalNotifyOn
-                  : t.confirmRequestModalNotifyOff}
-              </p>
+              <div className="rounded-lg bg-[#f6fbf8] px-3 py-2 text-sm text-gray-700 space-y-1">
+                <p>
+                  {t.trackingEmailCheckbox}:{" "}
+                  {confirmRequestSummary.notifyEmail ? "✓" : "—"}
+                </p>
+                <p>
+                  {t.trackingFasterRefreshCheckbox}:{" "}
+                  {confirmRequestSummary.notifyFasterRefresh ? "✓" : "—"}
+                </p>
+                <p>
+                  {t.trackingSmsCheckbox}:{" "}
+                  {confirmRequestSummary.notifySms ? "✓" : "—"}
+                </p>
+              </div>
             </div>
           ) : null}
           <DialogFooter>
