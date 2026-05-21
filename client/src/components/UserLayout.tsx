@@ -48,12 +48,7 @@ export function UserLayout() {
     () => [
       { to: "/user/dashboard", label: t.authDashboard, Icon: LayoutDashboard },
       { to: "/user/appointments", label: t.userNavMyAppointments, Icon: CalendarCheck },
-      {
-        to: "/user/settings",
-        label: t.authSettings,
-        Icon: Settings,
-        subtitle: t.comingSoon,
-      },
+      { to: "/user/settings", label: t.authSettings, Icon: Settings },
     ],
     [t],
   );
@@ -222,12 +217,9 @@ export function UserLayout() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/user/settings" className="cursor-pointer flex-col items-stretch gap-0.5 py-2">
-                    <span className="flex items-center gap-2">
-                      <Settings className="h-4 w-4 shrink-0 text-[#2E7D5B]" />
-                      <span>{t.authSettings}</span>
-                    </span>
-                    <span className="pl-6 text-xs font-normal text-gray-500">{t.comingSoon}</span>
+                  <Link to="/user/settings" className="cursor-pointer">
+                    <Settings className="h-4 w-4 shrink-0 text-[#2E7D5B]" />
+                    {t.authSettings}
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

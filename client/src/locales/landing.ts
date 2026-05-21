@@ -174,6 +174,27 @@ export type LandingStrings = {
   userSidebarUpgradeBody: string;
   userSidebarUpgradeBullets: string[];
   userSidebarUpgradeCta: string;
+  settingsIntro: string;
+  settingsTabProfile: string;
+  settingsTabPayments: string;
+  settingsProfileSection: string;
+  settingsEmailReadOnlyHint: string;
+  settingsSaveProfile: string;
+  settingsProfileSaved: string;
+  settingsPasswordSection: string;
+  settingsCurrentPassword: string;
+  settingsNewPassword: string;
+  settingsSavePassword: string;
+  settingsPasswordSaved: string;
+  settingsSubscriptionSection: string;
+  settingsUpgradePlan: string;
+  settingsCancelPlan: string;
+  settingsCancelPlanTitle: string;
+  settingsCancelPlanBody: string;
+  settingsCancelPlanConfirm: string;
+  settingsSubscriptionCancelled: string;
+  settingsPaymentsSection: string;
+  settingsPaymentsComingSoon: string;
 };
 
 export const landingCopy: Record<Locale, LandingStrings> = {
@@ -410,6 +431,29 @@ export const landingCopy: Record<Locale, LandingStrings> = {
       "SMS + email notifications",
     ],
     userSidebarUpgradeCta: "See PRO plans",
+    settingsIntro: "Manage your profile, password, and subscription.",
+    settingsTabProfile: "Profile",
+    settingsTabPayments: "Payment history",
+    settingsProfileSection: "Profile",
+    settingsEmailReadOnlyHint: "Email cannot be changed here.",
+    settingsSaveProfile: "Save profile",
+    settingsProfileSaved: "Profile updated.",
+    settingsPasswordSection: "Password",
+    settingsCurrentPassword: "Current password",
+    settingsNewPassword: "New password",
+    settingsSavePassword: "Update password",
+    settingsPasswordSaved: "Password updated.",
+    settingsSubscriptionSection: "Subscription",
+    settingsUpgradePlan: "Upgrade to PRO",
+    settingsCancelPlan: "Cancel subscription",
+    settingsCancelPlanTitle: "Cancel PRO subscription?",
+    settingsCancelPlanBody:
+      "You will move to the FREE plan. PRO benefits end immediately; billing integration is coming later.",
+    settingsCancelPlanConfirm: "Yes, cancel PRO",
+    settingsSubscriptionCancelled: "Your subscription was cancelled. You are on FREE.",
+    settingsPaymentsSection: "Payment history",
+    settingsPaymentsComingSoon:
+      "Your past payments will appear here once billing is connected. Coming soon.",
   },
   sl: {
     langEnglish: "Angleščina",
@@ -647,5 +691,28 @@ export const landingCopy: Record<Locale, LandingStrings> = {
       "SMS + email obvestila",
     ],
     userSidebarUpgradeCta: "Oglej si PRO paket",
+    settingsIntro: "Upravljajte profil, geslo in naročnino.",
+    settingsTabProfile: "Profil",
+    settingsTabPayments: "Zgodovina plačil",
+    settingsProfileSection: "Profil",
+    settingsEmailReadOnlyHint: "E-pošte tukaj ni mogoče spremeniti.",
+    settingsSaveProfile: "Shrani profil",
+    settingsProfileSaved: "Profil je posodobljen.",
+    settingsPasswordSection: "Geslo",
+    settingsCurrentPassword: "Trenutno geslo",
+    settingsNewPassword: "Novo geslo",
+    settingsSavePassword: "Posodobi geslo",
+    settingsPasswordSaved: "Geslo je posodobljeno.",
+    settingsSubscriptionSection: "Naročnina",
+    settingsUpgradePlan: "Nadgradi na PRO",
+    settingsCancelPlan: "Prekliči naročnino",
+    settingsCancelPlanTitle: "Preklicati PRO naročnino?",
+    settingsCancelPlanBody:
+      "Prešli boste na FREE paket. PRO ugodnosti se končajo takoj; plačila dodamo kmalu.",
+    settingsCancelPlanConfirm: "Da, prekliči PRO",
+    settingsSubscriptionCancelled: "Naročnina je preklicana. Zdaj ste na FREE.",
+    settingsPaymentsSection: "Zgodovina plačil",
+    settingsPaymentsComingSoon:
+      "Pretekla plačila bodo prikazana, ko bo povezano plačevanje. Kmalu na voljo.",
   },
 };
