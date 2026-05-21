@@ -42,9 +42,43 @@ export type LandingStrings = {
   benefit3Title: string;
   benefit3Body: string;
   navHome: string;
+  navPricing: string;
   navPrivacy: string;
   navAbout: string;
   navContact: string;
+  pricingTitle: string;
+  pricingSubtitle: string;
+  pricingRecommended: string;
+  pricingFreeName: string;
+  pricingFreeTagline: string;
+  pricingFreePrice: string;
+  pricingFreeFeatures: string[];
+  pricingFreeExcluded: string[];
+  pricingFreeCta: string;
+  pricingProName: string;
+  pricingProTagline: string;
+  pricingProPrice: string;
+  pricingProPriceNote: string;
+  pricingProFeatures: string[];
+  pricingProCta: string;
+  pricingCompareTitle: string;
+  pricingCompareFeature: string;
+  pricingCompareRows: Array<{
+    feature: string;
+    free: boolean | "text";
+    pro: boolean | "text";
+    freeText?: string;
+    proText?: string;
+  }>;
+  signupPlanPanelEyebrow: string;
+  signupPlanPanelTitle: string;
+  signupPlanPanelSubtitle: string;
+  signupPlanFromPricing: string;
+  signupPlanChooseLabel: string;
+  signupPlanFreeOption: string;
+  signupPlanProOption: string;
+  signupPlanFreePaymentNote: string;
+  signupPlanProPaymentNote: string;
   /** Floating AI chat (frontend demo) */
   chatFabOpenAria: string;
   chatFabCloseAria: string;
@@ -196,9 +230,68 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     benefit3Title: "Stress-free",
     benefit3Body: "The process is simple and clear for the user.",
     navHome: "Home",
+    navPricing: "Pricing",
     navPrivacy: "Privacy",
     navAbout: "About us",
     navContact: "Contact",
+    pricingTitle: "Plans",
+    pricingSubtitle: "Choose the option that works best for you.",
+    pricingRecommended: "Recommended",
+    pricingFreeName: "MojTermin FREE",
+    pricingFreeTagline: "To get started — free",
+    pricingFreePrice: "€0",
+    pricingFreeFeatures: [
+      "1 active tracking request",
+      "Basic appointment monitoring",
+      "Email notifications",
+      "Basic dashboard overview",
+      "Slower refresh rate",
+      "No SMS notifications",
+      "No priority processing",
+    ],
+    pricingFreeExcluded: ["No SMS notifications", "No priority processing"],
+    pricingFreeCta: "Start for free",
+    pricingProName: "MojTermin PRO",
+    pricingProTagline: "For faster results",
+    pricingProPrice: "€7",
+    pricingProPriceNote: "/ month · no commitment",
+    pricingProFeatures: [
+      "Unlimited tracking",
+      "Faster refresh (multiple times per day)",
+      "Instant alerts",
+      "Email + SMS notifications",
+      "Priority slot detection",
+      "Smarter suggestions (best slots)",
+      "Search history",
+    ],
+    pricingProCta: "Upgrade to Pro",
+    pricingCompareTitle: "Compare plans",
+    pricingCompareFeature: "Feature",
+    pricingCompareRows: [
+      { feature: "Appointment tracking", free: true, pro: true },
+      { feature: "Email notifications", free: true, pro: true },
+      { feature: "SMS notifications", free: false, pro: true },
+      { feature: "Fast refresh", free: false, pro: true },
+      { feature: "Multiple requests", free: false, pro: true },
+      { feature: "Priority processing", free: false, pro: true },
+      {
+        feature: "Price",
+        free: "text",
+        pro: "text",
+        freeText: "€0",
+        proText: "€7 / month",
+      },
+    ],
+    signupPlanPanelEyebrow: "Your plan",
+    signupPlanPanelTitle: "Plan configuration",
+    signupPlanPanelSubtitle: "Choose FREE to start or PRO for faster tracking and SMS alerts.",
+    signupPlanFromPricing: "You selected a plan on the pricing page — you can change it below.",
+    signupPlanChooseLabel: "Subscription plan",
+    signupPlanFreeOption: "MojTermin FREE — €0",
+    signupPlanProOption: "MojTermin PRO — €7 / month",
+    signupPlanFreePaymentNote: "No payment required. You can upgrade to PRO anytime from your account.",
+    signupPlanProPaymentNote:
+      "Billing is not active yet. Your account will be created on PRO; payment will be added in a later step.",
     chatFabOpenAria: "Open AI assistant (demo)",
     chatFabCloseAria: "Close assistant",
     chatTitle: "Assistant",
@@ -362,9 +455,70 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     benefit3Title: "Brez stresa",
     benefit3Body: "Postopek je enostaven in pregleden za uporabnika.",
     navHome: "Domov",
+    navPricing: "Paketi",
     navPrivacy: "Zasebnost",
     navAbout: "O nas",
     navContact: "Kontakt",
+    pricingTitle: "Paketi",
+    pricingSubtitle: "Izberite način, ki vam najbolj ustreza.",
+    pricingRecommended: "Priporočeno",
+    pricingFreeName: "MojTermin FREE",
+    pricingFreeTagline: "Za začetek – brezplačno",
+    pricingFreePrice: "0 €",
+    pricingFreeFeatures: [
+      "1 aktivno spremljanje",
+      "Osnovno spremljanje terminov",
+      "Email obvestila",
+      "Osnovni pregled (dashboard)",
+      "Počasnejše osveževanje",
+      "Brez SMS obvestil",
+      "Brez prioritete",
+    ],
+    pricingFreeExcluded: ["Brez SMS obvestil", "Brez prioritete"],
+    pricingFreeCta: "Začni brezplačno",
+    pricingProName: "MojTermin PRO",
+    pricingProTagline: "Za hitrejše rezultate",
+    pricingProPrice: "7 €",
+    pricingProPriceNote: "/ mesec · brez vezave",
+    pricingProFeatures: [
+      "Neomejeno spremljanje",
+      "Hitrejše osveževanje (večkrat dnevno)",
+      "Takojšnja obvestila",
+      "Email + SMS obvestila",
+      "Prednost pri zaznavanju terminov",
+      "Pametnejši predlogi (najboljši termini)",
+      "Zgodovina iskanj",
+    ],
+    pricingProCta: "Nadgradi na Pro",
+    pricingCompareTitle: "Primerjava paketov",
+    pricingCompareFeature: "Funkcija",
+    pricingCompareRows: [
+      { feature: "Spremljanje terminov", free: true, pro: true },
+      { feature: "Email obvestila", free: true, pro: true },
+      { feature: "SMS obvestila", free: false, pro: true },
+      { feature: "Hitro osveževanje", free: false, pro: true },
+      { feature: "Več zahtevkov", free: false, pro: true },
+      { feature: "Prioriteta", free: false, pro: true },
+      {
+        feature: "Plačilo",
+        free: "text",
+        pro: "text",
+        freeText: "0 €",
+        proText: "7 € / mesečno",
+      },
+    ],
+    signupPlanPanelEyebrow: "Vaš paket",
+    signupPlanPanelTitle: "Nastavitev paketa",
+    signupPlanPanelSubtitle:
+      "Izberite FREE za začetek ali PRO za hitrejše spremljanje in SMS obvestila.",
+    signupPlanFromPricing: "Paket ste izbrali na strani s cenami — spodaj ga lahko spremenite.",
+    signupPlanChooseLabel: "Naročniški paket",
+    signupPlanFreeOption: "MojTermin FREE — 0 €",
+    signupPlanProOption: "MojTermin PRO — 7 € / mesec",
+    signupPlanFreePaymentNote:
+      "Plačilo ni potrebno. Na PRO lahko nadgradite kadar koli iz računa.",
+    signupPlanProPaymentNote:
+      "Plačilo še ni aktivno. Račun bo ustvarjen za PRO; plačilo dodamo v naslednjem koraku.",
     chatFabOpenAria: "Odpri pomočnika AI (demo)",
     chatFabCloseAria: "Zapri pomočnika",
     chatTitle: "Pomočnik",

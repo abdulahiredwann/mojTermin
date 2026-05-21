@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   ChevronDown,
@@ -11,7 +11,7 @@ import {
   Phone,
   CheckCircle2,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/dialog";
 import { FloatingChatDemo } from "@/components/FloatingChatDemo";
 import { SiteHeader } from "@/components/SiteHeader";
+import { PricingSection } from "@/components/PricingSection";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -110,6 +111,17 @@ function hospitalEstimatedWaitDays(hospital: SearchResult["hospitals"][number]):
 
 export default function LandingPage() {
   const { t, locale } = useLanguage();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.hash !== "#pricing") return;
+    const el = document.getElementById("pricing");
+    if (!el) return;
+    const timer = window.setTimeout(() => {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
+    return () => window.clearTimeout(timer);
+  }, [location.pathname, location.hash]);
   const [problem, setProblem] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -691,6 +703,8 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      <PricingSection />
 
       <footer className="border-t border-gray-100 py-10">
         <div className="max-w-5xl mx-auto px-6 md:px-12 text-center">

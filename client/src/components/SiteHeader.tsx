@@ -102,6 +102,26 @@ export function SiteHeader({ borderBottom = true }: SiteHeaderProps) {
       pathname === path ? "text-[#2E7D5B]" : "text-gray-600 hover:text-[#2E7D5B]",
     );
 
+  const pricingNavClass =
+    "text-sm font-medium text-gray-600 transition-colors hover:text-[#2E7D5B]";
+
+  function scrollToPricing(e: React.MouseEvent) {
+    if (pathname !== "/") return;
+    e.preventDefault();
+    document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  const pricingNavLink =
+    pathname === "/" ? (
+      <a href="#pricing" onClick={scrollToPricing} className={pricingNavClass}>
+        {t.navPricing}
+      </a>
+    ) : (
+      <Link to="/#pricing" className={pricingNavClass}>
+        {t.navPricing}
+      </Link>
+    );
+
   return (
     <header className={cn("w-full px-6 py-5 md:px-12", borderBottom && "border-b border-gray-100")}>
       <div className="flex items-center justify-between gap-4">
@@ -114,6 +134,7 @@ export function SiteHeader({ borderBottom = true }: SiteHeaderProps) {
           <Link to="/" className={navClass("/")}>
             {t.navHome}
           </Link>
+          {pricingNavLink}
           <Link to="/privacy" className={navClass("/privacy")}>
             {t.navPrivacy}
           </Link>
@@ -257,6 +278,26 @@ export function SiteHeader({ borderBottom = true }: SiteHeaderProps) {
               <Link to="/" className={cn("rounded-lg px-3 py-3 text-base font-medium", navClass("/"))}>
                 {t.navHome}
               </Link>
+              {pathname === "/" ? (
+                <a
+                  href="#pricing"
+                  onClick={(e) => {
+                    scrollToPricing(e);
+                    setMobileMenuOpen(false);
+                  }}
+                  className={cn("rounded-lg px-3 py-3 text-base font-medium", pricingNavClass)}
+                >
+                  {t.navPricing}
+                </a>
+              ) : (
+                <Link
+                  to="/#pricing"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={cn("rounded-lg px-3 py-3 text-base font-medium", pricingNavClass)}
+                >
+                  {t.navPricing}
+                </Link>
+              )}
               <Link to="/privacy" className={cn("rounded-lg px-3 py-3 text-base font-medium", navClass("/privacy"))}>
                 {t.navPrivacy}
               </Link>
