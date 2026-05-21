@@ -13,8 +13,6 @@ import {
   type SubscriptionPlan,
 } from "@/lib/subscriptionPlan";
 
-const SIGNUP_PLAN_STORAGE_KEY = "mojtermin_signup_plan";
-
 function GoogleIcon() {
   return (
     <svg viewBox="0 0 24 24" className="h-5 w-5">
@@ -84,11 +82,11 @@ export function SignupPage() {
 
     setBusy(true);
     try {
-      sessionStorage.setItem(SIGNUP_PLAN_STORAGE_KEY, plan);
       await register({
         name,
         email,
         password,
+        plan,
         ...(phone.trim() ? { phone: phone.trim() } : {}),
       });
       navigate("/user/dashboard", { replace: true });

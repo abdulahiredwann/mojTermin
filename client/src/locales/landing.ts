@@ -167,6 +167,12 @@ export type LandingStrings = {
   userAreaTagline: string;
   userNavMyAppointments: string;
   userLayoutBackHome: string;
+  userSidebarPlanFree: string;
+  userSidebarPlanPro: string;
+  userSidebarUpgradeTitle: string;
+  userSidebarUpgradeBody: string;
+  userSidebarUpgradeBullets: string[];
+  userSidebarUpgradeCta: string;
 };
 
 export const landingCopy: Record<Locale, LandingStrings> = {
@@ -393,6 +399,16 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     userAreaTagline: "My care",
     userNavMyAppointments: "My appointments",
     userLayoutBackHome: "Back to site",
+    userSidebarPlanFree: "MojTermin FREE",
+    userSidebarPlanPro: "MojTermin PRO",
+    userSidebarUpgradeTitle: "Get faster results",
+    userSidebarUpgradeBody: "Upgrade to PRO for more tracking and instant SMS + email alerts.",
+    userSidebarUpgradeBullets: [
+      "Unlimited tracking",
+      "Faster refresh checks",
+      "SMS + email notifications",
+    ],
+    userSidebarUpgradeCta: "See PRO plans",
   },
   sl: {
     langEnglish: "Angleščina",
@@ -619,5 +635,16 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     userAreaTagline: "Moja skrb",
     userNavMyAppointments: "Moji termini",
     userLayoutBackHome: "Nazaj na stran",
+    userSidebarPlanFree: "MojTermin FREE",
+    userSidebarPlanPro: "MojTermin PRO",
+    userSidebarUpgradeTitle: "Hitrejši rezultati",
+    userSidebarUpgradeBody:
+      "Nadgradite na PRO za več spremljanj in takojšnja SMS + email obvestila.",
+    userSidebarUpgradeBullets: [
+      "Neomejeno spremljanje",
+      "Hitrejše osveževanje",
+      "SMS + email obvestila",
+    ],
+    userSidebarUpgradeCta: "Oglej si PRO paket",
   },
 };

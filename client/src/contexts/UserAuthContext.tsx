@@ -10,11 +10,19 @@ import {
 import { AxiosError } from "axios";
 import { api } from "@/lib/api";
 
+export type SubscriptionPlan = "free" | "pro";
+
 export type AppUser = {
   id: string;
   name: string;
   email: string;
   phone: string | null;
+  /** Stored value; null for legacy accounts. */
+  subscriptionPlan: SubscriptionPlan | null;
+  /** Resolved tier: null stored plan => free. */
+  effectivePlan: SubscriptionPlan;
+  subscriptionStartedAt: string | null;
+  subscriptionEndsAt: string | null;
 };
 
 type RegisterPayload = {
@@ -22,6 +30,7 @@ type RegisterPayload = {
   email: string;
   phone?: string;
   password: string;
+  plan?: SubscriptionPlan;
 };
 
 type UserAuthContextValue = {

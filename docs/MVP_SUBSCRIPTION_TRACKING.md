@@ -72,8 +72,18 @@ User → Search Provider → Start Tracking → Save Tracking Request
 ## Landing page (done first)
 
 - **Pricing section** on home (`#pricing`): FREE vs PRO cards + comparison table (Slovenian/English copy)
-- CTAs are UI-only until signup/subscription APIs exist
 - Nav link **Paketi / Pricing** scrolls to `#pricing`
+- Signup passes `?plan=free|pro` and sends `plan` on `POST /auth/register`
+
+## Database (User subscription fields)
+
+| Column | Type | Notes |
+|--------|------|--------|
+| `subscriptionPlan` | `String?` | `"free"` or `"pro"`. **Null** = legacy user → treated as **free** |
+| `subscriptionStartedAt` | `DateTime?` | Set on signup |
+| `subscriptionEndsAt` | `DateTime?` | Null until billing/cancel (PRO trial for now) |
+
+API user object includes `effectivePlan` (always `free` or `pro`) plus raw nullable fields.
 
 ---
 

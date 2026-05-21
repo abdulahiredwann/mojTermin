@@ -97,6 +97,10 @@ model User {
   phone        String?
   password     String
   sessionToken String?  @unique
+  /// "free" | "pro". Null = legacy account (treated as free).
+  subscriptionPlan        String?
+  subscriptionStartedAt DateTime?
+  subscriptionEndsAt    DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

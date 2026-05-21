@@ -14,6 +14,7 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserAuth } from "@/contexts/UserAuthContext";
+import { UserSidebarSubscriptionBlock } from "@/components/UserSidebarSubscription";
 import { cn } from "@/lib/utils";
 
 function userInitials(name: string) {
@@ -91,6 +92,9 @@ export function UserLayout() {
               <div className="min-w-0 flex-1">
                 <p className="truncate text-xs font-semibold text-gray-900">{user.name}</p>
                 <p className="truncate text-[11px] text-gray-500">{user.email}</p>
+                <p className="mt-1 truncate text-[10px] font-semibold text-[#2E7D5B]">
+                  {user.effectivePlan === "pro" ? t.userSidebarPlanPro : t.userSidebarPlanFree}
+                </p>
               </div>
             </div>
           ) : null}
@@ -110,7 +114,8 @@ export function UserLayout() {
           ))}
         </nav>
 
-        <div className="shrink-0 space-y-1 border-t border-gray-100 p-3">
+        <div className="shrink-0 space-y-2 p-3">
+          <UserSidebarSubscriptionBlock />
           <Link
             to="/"
             className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900"
@@ -169,7 +174,8 @@ export function UserLayout() {
                   </NavLink>
                 ))}
               </nav>
-              <div className="mt-auto space-y-1 border-t border-gray-100 p-3">
+              <div className="mt-auto space-y-2 p-3">
+                <UserSidebarSubscriptionBlock onNavigate={() => setDrawerOpen(false)} />
                 <Link
                   to="/"
                   onClick={() => setDrawerOpen(false)}

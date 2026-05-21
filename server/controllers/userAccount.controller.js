@@ -6,6 +6,7 @@ const {
   getCookieSameSiteOptions,
 } = require("../middleware/userAuth.middleware");
 const { sanitizePublicUser } = require("../utils/userPublic");
+const { parseSignupPlan } = require("../utils/userSubscription");
 
 function isValidEmail(email) {
   if (typeof email !== "string") return false;
@@ -47,6 +48,8 @@ async function createUserAccount(req, res, next) {
 
     const passwordHash = await bcrypt.hash(password, 10);
     const sessionToken = crypto.randomUUID();
+    const subscriptionPlan = parseSignupPlan(raw.plan);
+    const subscriptionStartedAt = new Date();
 
     const user = await prisma.user.create({
       data: {
@@ -55,12 +58,18 @@ async function createUserAccount(req, res, next) {
         phone,
         password: passwordHash,
         sessionToken,
+        subscriptionPlan,
+        subscriptionStartedAt,
+        subscriptionEndsAt: null,
       },
       select: {
         id: true,
         name: true,
         email: true,
         phone: true,
+        subscriptionPlan: true,
+        subscriptionStartedAt: true,
+        subscriptionEndsAt: true,
       },
     });
 

@@ -1,4 +1,5 @@
 const prisma = require("../prisma/prisma");
+const { sanitizePublicUser } = require("../utils/userPublic");
 
 /** Cookie name for the opaque session id (same pattern as admin — not JWT). */
 const USER_COOKIE_NAME = "mojtermin_user_token";
@@ -24,10 +25,18 @@ async function optionalUserAuth(req, _res, next) {
 
     const user = await prisma.user.findUnique({
       where: { sessionToken: token },
-      select: { id: true, name: true, email: true, phone: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        subscriptionPlan: true,
+        subscriptionStartedAt: true,
+        subscriptionEndsAt: true,
+      },
     });
 
-    req.user = user ?? null;
+    req.user = user ? sanitizePublicUser(user) : null;
     return next();
   } catch (error) {
     return next(error);
@@ -43,14 +52,22 @@ async function requireUserAuth(req, res, next) {
 
     const user = await prisma.user.findUnique({
       where: { sessionToken: token },
-      select: { id: true, name: true, email: true, phone: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        subscriptionPlan: true,
+        subscriptionStartedAt: true,
+        subscriptionEndsAt: true,
+      },
     });
 
     if (!user) {
       return res.status(401).json({ error: "Unauthorized." });
     }
 
-    req.user = user;
+    req.user = sanitizePublicUser(user);
     return next();
   } catch (error) {
     return next(error);
