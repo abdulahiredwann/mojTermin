@@ -268,6 +268,17 @@ export function UserDashboardPage() {
 
   const stats = appointmentData?.stats ?? { total: 0, byStatus: {} as Record<string, number> };
   const pendingCount = stats.byStatus["pending"] ?? 0;
+  const isPro = user?.effectivePlan === "pro";
+  const planHighlights = isPro
+    ? t.pricingProFeatures.slice(0, 3)
+    : t.pricingFreeFeatures.filter((line) => !t.pricingFreeExcluded.includes(line)).slice(0, 3);
+  const planStartedLabel = user?.subscriptionStartedAt
+    ? new Date(user.subscriptionStartedAt).toLocaleDateString(locale === "sl" ? "sl-SI" : "en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : null;
 
   const filteredHospitals = useMemo(() => {
     if (!searchResult) return [];
@@ -452,30 +463,54 @@ export function UserDashboardPage() {
             </p>
             <p className="mt-1 text-2xl font-bold text-amber-700">{pendingCount}</p>
           </div>
-          <div className="rounded-2xl border border-[#2E7D5B]/20 bg-gradient-to-br from-[#f6fbf8] to-white p-4 shadow-sm sm:col-span-1">
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#2E7D5B]">
-                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden>
-                  <path
-                    d="M12 2C8.5 2 3 5 3 12C3 17.5 8 22 12 22C16 22 21 17.5 21 12C21 5 15.5 2 12 2Z"
-                    fill="white"
-                    opacity="0.9"
-                  />
-                  <path d="M9 11H15M12 8V14" stroke="#2E7D5B" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-bold text-[#2E7D5B]">MojTermin</p>
-                <p className="mt-1 text-xs leading-snug text-gray-600">{t.dashboardMarketingBlurb}</p>
-                <Link
-                  to="/about"
-                  className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[#2E7D5B] hover:underline"
+          <div
+            className={cn(
+              "rounded-2xl border bg-gradient-to-br from-[#f6fbf8] to-white p-4 shadow-sm sm:col-span-1",
+              isPro ? "border-[#2E7D5B]/30" : "border-[#2E7D5B]/20",
+            )}
+          >
+            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+              {t.dashboardCardPlan}
+            </p>
+            <p className="mt-1 flex items-center gap-1.5 text-lg font-bold text-gray-900">
+              <span aria-hidden>{isPro ? "🟡" : "🟢"}</span>
+              {isPro ? t.userSidebarPlanPro : t.userSidebarPlanFree}
+            </p>
+            <p className="mt-0.5 text-sm font-semibold text-[#2E7D5B]">
+              {isPro ? (
+                <>
+                  {t.pricingProPrice}
+                  <span className="ml-1 text-xs font-normal text-gray-500">{t.pricingProPriceNote}</span>
+                </>
+              ) : (
+                t.pricingFreePrice
+              )}
+            </p>
+            {planStartedLabel ? (
+              <p className="mt-1 text-[11px] text-gray-500">
+                {t.dashboardCardPlanSince} {planStartedLabel}
+              </p>
+            ) : null}
+            <ul className="mt-3 space-y-1">
+              {planHighlights.map((line) => (
+                <li
+                  key={line}
+                  className="flex items-start gap-2 text-[11px] leading-snug text-gray-600"
                 >
-                  {t.dashboardMarketingCta}
-                  <ChevronRight className="h-3 w-3" aria-hidden />
-                </Link>
-              </div>
-            </div>
+                  <span className="mt-[0.35rem] h-1 w-1 shrink-0 rounded-full bg-[#2E7D5B]" aria-hidden />
+                  {line}
+                </li>
+              ))}
+            </ul>
+            {!isPro ? (
+              <Link
+                to="/#pricing"
+                className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[#2E7D5B] hover:underline"
+              >
+                {t.dashboardCardPlanUpgrade}
+                <ChevronRight className="h-3 w-3" aria-hidden />
+              </Link>
+            ) : null}
           </div>
         </div>
 
