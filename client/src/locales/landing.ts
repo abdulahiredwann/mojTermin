@@ -157,6 +157,16 @@ export type LandingStrings = {
   dashboardEmailNote: string;
   dashboardNotifyCheckbox: string;
   dashboardNotifyHint: string;
+  trackingButtonLabel: string;
+  trackingButtonSubmitting: string;
+  trackingEmailCheckbox: string;
+  trackingEmailHint: string;
+  trackingFasterRefreshCheckbox: string;
+  trackingFasterRefreshHint: string;
+  trackingSmsCheckbox: string;
+  trackingSmsHint: string;
+  trackingUpgradeToPro: string;
+  trackingGuestNote: string;
   confirmRequestModalTitle: string;
   confirmRequestModalDescription: string;
   confirmRequestModalHospital: string;
@@ -409,6 +419,16 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     dashboardNotifyCheckbox: "Notify me when a slot is available (SMS & email)",
     dashboardNotifyHint:
       "We’ll use your account email and phone on file. Automated alerts aren’t active yet — we’ll store your preference.",
+    trackingButtonLabel: "Track Appointment",
+    trackingButtonSubmitting: "Submitting…",
+    trackingEmailCheckbox: "Email notifications",
+    trackingEmailHint: "We’ll email you when availability improves.",
+    trackingFasterRefreshCheckbox: "Faster refresh checks",
+    trackingFasterRefreshHint: "Check for updates more often throughout the day.",
+    trackingSmsCheckbox: "SMS notifications",
+    trackingSmsHint: "We’ll send SMS to the phone number on your account.",
+    trackingUpgradeToPro: "Upgrade to PRO",
+    trackingGuestNote: "Email notifications included. Faster refresh and SMS available with PRO.",
     confirmRequestModalTitle: "Request submitted",
     confirmRequestModalDescription: "Here’s a summary of what we recorded.",
     confirmRequestModalHospital: "Hospital",
@@ -667,6 +687,17 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     dashboardNotifyCheckbox: "Obvesti me, ko je prost termin (SMS in e-pošta)",
     dashboardNotifyHint:
       "Uporabili bomo e-pošto in telefon iz računa. Samodejna obvestila še niso vključena — shranimo vašo željo.",
+    trackingButtonLabel: "Spremljaj termin",
+    trackingButtonSubmitting: "Oddajam…",
+    trackingEmailCheckbox: "Email obvestila",
+    trackingEmailHint: "Po e-pošti vas obvestimo, ko se razpoložljivost izboljša.",
+    trackingFasterRefreshCheckbox: "Hitrejše osveževanje",
+    trackingFasterRefreshHint: "Pogostejše preverjanje posodobitev čez dan.",
+    trackingSmsCheckbox: "SMS obvestila",
+    trackingSmsHint: "SMS pošljemo na telefonsko številko iz vašega računa.",
+    trackingUpgradeToPro: "Nadgradi na PRO",
+    trackingGuestNote:
+      "Email obvestila vključena. Hitrejše osveževanje in SMS na voljo s PRO.",
     confirmRequestModalTitle: "Zahteva je oddana",
     confirmRequestModalDescription: "Povzetek zapisa.",
     confirmRequestModalHospital: "Zdravstveni zavod",

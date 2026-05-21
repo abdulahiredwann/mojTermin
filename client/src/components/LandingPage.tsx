@@ -24,7 +24,6 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -36,6 +35,7 @@ import {
 import { FloatingChatDemo } from "@/components/FloatingChatDemo";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PricingSection } from "@/components/PricingSection";
+import { TrackingNotificationOptions } from "@/components/TrackingNotificationOptions";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -134,7 +134,9 @@ export default function LandingPage() {
   const [confirmRequestSummary, setConfirmRequestSummary] = useState<ConfirmRequestSummary | null>(
     null,
   );
-  const [notifyWhenAvailable, setNotifyWhenAvailable] = useState(false);
+  const [notifyEmail, setNotifyEmail] = useState(true);
+  const [notifyFasterRefresh, setNotifyFasterRefresh] = useState(false);
+  const [notifySms, setNotifySms] = useState(false);
 
   const [selectedLocation, setSelectedLocation] = useState<SlovenianLocation | null>(null);
   const [cityPopoverOpen, setCityPopoverOpen] = useState(false);
@@ -175,7 +177,9 @@ export default function LandingPage() {
     setSelectedHospitalId("");
     setSelectedDate("");
     setEmail("");
-    setNotifyWhenAvailable(false);
+    setNotifyEmail(true);
+    setNotifyFasterRefresh(false);
+    setNotifySms(false);
 
     try {
       const { data } = await api.post<SearchResult>("/search", {
@@ -215,7 +219,9 @@ export default function LandingPage() {
     setSelectedHospitalId("");
     setSelectedDate("");
     setEmail("");
-    setNotifyWhenAvailable(false);
+    setNotifyEmail(true);
+    setNotifyFasterRefresh(false);
+    setNotifySms(false);
   }
 
   function handleConfirmDialogOpenChange(open: boolean) {
@@ -240,13 +246,13 @@ export default function LandingPage() {
         hospitalId: selectedHospital.id,
         hospitalName: selectedHospital.name,
         preferredDate: selectedDate,
-        notifyWhenAvailable,
+        notifyWhenAvailable: false,
       });
       setConfirmRequestSummary({
         hospitalName: selectedHospital.name,
         email: email.trim(),
         preferredDateLabel,
-        notifyWhenAvailable,
+        notifyWhenAvailable: false,
       });
       setConfirmRequestOpen(true);
     } catch (err: unknown) {
@@ -494,8 +500,8 @@ export default function LandingPage() {
 
               {selectedHospital ? (
                 <div className="rounded-xl border border-white bg-white p-4 shadow-sm sm:p-5">
-                  <div className="flex w-full max-w-md flex-col space-y-5">
-                    <div className="border-b border-gray-100 pb-4">
+                  <div className="flex w-full max-w-md flex-col space-y-4">
+                    <div className="border-b border-gray-100 pb-3">
                       <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
                         Request
                       </p>
@@ -505,49 +511,26 @@ export default function LandingPage() {
                       </p>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-start sm:gap-x-6 sm:gap-y-4">
-                      <div className="w-full max-w-[12rem] space-y-1.5">
-                        <Label className="flex items-center gap-2 text-xs font-medium text-gray-600 sm:text-sm sm:text-gray-700">
-                          <Calendar className="h-3.5 w-3.5 shrink-0 text-[#2E7D5B] sm:h-4 sm:w-4" />
-                          Preferred Appointment Date
-                        </Label>
-                        <input
-                          type="date"
-                          value={selectedDate}
-                          onChange={(e) => setSelectedDate(e.target.value)}
-                          min={new Date().toISOString().split("T")[0]}
-                          className="h-9 w-full rounded-lg border border-gray-200 bg-white px-2.5 text-sm outline-none focus:ring-2 focus:ring-[#2E7D5B]/25"
-                        />
-                        {hospitalEstimatedWaitDays(selectedHospital) != null ? (
-                          <p className="text-[11px] leading-relaxed text-gray-500">
-                            Earliest available:{" "}
-                            {formatDate(
-                              getEarliestDate(hospitalEstimatedWaitDays(selectedHospital)),
-                            )}
-                          </p>
-                        ) : null}
-                      </div>
-                      <div className="rounded-lg border border-gray-100 bg-gray-50 p-3 sm:min-w-0">
-                        <div className="flex gap-2.5">
-                          <Checkbox
-                            id="landing-notify"
-                            checked={notifyWhenAvailable}
-                            onCheckedChange={(v) => setNotifyWhenAvailable(v === true)}
-                            className="mt-0.5 shrink-0 border-[#2E7D5B] data-[state=checked]:border-[#2E7D5B] data-[state=checked]:bg-[#2E7D5B]"
-                          />
-                          <div className="min-w-0 space-y-1">
-                            <label
-                              htmlFor="landing-notify"
-                              className="cursor-pointer text-xs font-medium leading-snug text-gray-800 sm:text-sm"
-                            >
-                              {t.dashboardNotifyCheckbox}
-                            </label>
-                            <p className="text-[11px] leading-relaxed text-gray-500 sm:text-xs">
-                              {t.dashboardNotifyHint}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
+                    <div className="w-full max-w-[14rem] space-y-1.5">
+                      <Label className="flex items-center gap-2 text-xs font-medium text-gray-600 sm:text-sm sm:text-gray-700">
+                        <Calendar className="h-3.5 w-3.5 shrink-0 text-[#2E7D5B] sm:h-4 sm:w-4" />
+                        {t.dashboardPreferredAppointmentDate}
+                      </Label>
+                      <input
+                        type="date"
+                        value={selectedDate}
+                        onChange={(e) => setSelectedDate(e.target.value)}
+                        min={new Date().toISOString().split("T")[0]}
+                        className="h-9 w-full rounded-lg border border-gray-200 bg-white px-2.5 text-sm outline-none focus:ring-2 focus:ring-[#2E7D5B]/25"
+                      />
+                      {hospitalEstimatedWaitDays(selectedHospital) != null ? (
+                        <p className="text-[11px] leading-relaxed text-gray-500">
+                          Earliest available:{" "}
+                          {formatDate(
+                            getEarliestDate(hospitalEstimatedWaitDays(selectedHospital)),
+                          )}
+                        </p>
+                      ) : null}
                     </div>
 
                     <div className="space-y-1.5 border-t border-gray-100 pt-4">
@@ -566,10 +549,17 @@ export default function LandingPage() {
                         autoComplete="email"
                         className="h-9 w-full max-w-sm rounded-lg border border-gray-200 bg-white text-sm shadow-none focus-visible:ring-[#2E7D5B]/25"
                       />
-                      <p className="text-[11px] leading-relaxed text-gray-500 sm:text-xs">
-                        We’ll contact you later with confirmation and next steps.
-                      </p>
                     </div>
+
+                    <TrackingNotificationOptions
+                      isPro={false}
+                      notifyEmail={notifyEmail}
+                      onNotifyEmailChange={setNotifyEmail}
+                      notifyFasterRefresh={notifyFasterRefresh}
+                      onNotifyFasterRefreshChange={setNotifyFasterRefresh}
+                      notifySms={notifySms}
+                      onNotifySmsChange={setNotifySms}
+                    />
 
                     <Button
                       type="button"
@@ -578,12 +568,8 @@ export default function LandingPage() {
                       className="h-10 w-full rounded-full bg-[#2E7D5B] px-5 text-sm font-semibold text-white hover:bg-[#256B4D] disabled:opacity-50 sm:h-9 sm:max-w-xs sm:self-start"
                     >
                       {submittingRequest
-                        ? "Submitting…"
-                        : !selectedDate
-                          ? "Select a date to continue"
-                          : !email.trim()
-                            ? "Enter your email to continue"
-                            : "Confirm Appointment Request"}
+                        ? t.trackingButtonSubmitting
+                        : t.trackingButtonLabel}
                     </Button>
                   </div>
                 </div>

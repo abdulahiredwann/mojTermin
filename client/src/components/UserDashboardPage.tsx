@@ -28,7 +28,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Checkbox } from "@/components/ui/checkbox";
+import { TrackingNotificationOptions } from "@/components/TrackingNotificationOptions";
 import {
   Dialog,
   DialogContent,
@@ -214,7 +214,9 @@ export function UserDashboardPage() {
   const [confirmRequestSummary, setConfirmRequestSummary] = useState<ConfirmRequestSummary | null>(
     null,
   );
-  const [notifyWhenAvailable, setNotifyWhenAvailable] = useState(false);
+  const [notifyEmail, setNotifyEmail] = useState(true);
+  const [notifyFasterRefresh, setNotifyFasterRefresh] = useState(false);
+  const [notifySms, setNotifySms] = useState(false);
 
   const [selectedLocation, setSelectedLocation] = useState<SlovenianLocation | null>(null);
   const [cityPopoverOpen, setCityPopoverOpen] = useState(false);
@@ -305,7 +307,9 @@ export function UserDashboardPage() {
     setSearchResult(null);
     setSelectedHospitalId("");
     setSelectedDate("");
-    setNotifyWhenAvailable(false);
+    setNotifyEmail(true);
+    setNotifyFasterRefresh(false);
+    setNotifySms(false);
 
     try {
       const searchFiles = referralFiles.slice(0, MAX_SEARCH_REFERRAL_IMAGES);
@@ -354,7 +358,9 @@ export function UserDashboardPage() {
     setSearchResult(null);
     setSelectedHospitalId("");
     setSelectedDate("");
-    setNotifyWhenAvailable(false);
+    setNotifyEmail(true);
+    setNotifyFasterRefresh(false);
+    setNotifySms(false);
   }
 
   function handleConfirmDialogOpenChange(open: boolean) {
@@ -370,6 +376,7 @@ export function UserDashboardPage() {
     setError(null);
     setSubmittingRequest(true);
     const preferredDateLabel = formatDay(new Date(`${selectedDate}T12:00:00`));
+    const notifyWhenAvailable = isPro && notifySms;
     try {
       if (referralFiles.length > 0) {
         const fd = new FormData();
@@ -820,32 +827,16 @@ export function UserDashboardPage() {
                       </p>
                     ) : null}
                   </div>
-                  <div className="rounded-lg border border-gray-100 bg-gray-50 p-3 sm:min-w-0">
-                    <div className="flex gap-2.5">
-                      <Checkbox
-                        id="dash-notify"
-                        checked={notifyWhenAvailable}
-                        onCheckedChange={(v) => setNotifyWhenAvailable(v === true)}
-                        className="mt-0.5 shrink-0 border-[#2E7D5B] data-[state=checked]:border-[#2E7D5B] data-[state=checked]:bg-[#2E7D5B]"
-                      />
-                      <div className="min-w-0 space-y-1">
-                        <label
-                          htmlFor="dash-notify"
-                          className="cursor-pointer text-xs font-medium leading-snug text-gray-800 sm:text-sm"
-                        >
-                          {t.dashboardNotifyCheckbox}
-                        </label>
-                        <p className="text-[11px] leading-relaxed text-gray-500 sm:text-xs">
-                          {t.dashboardNotifyHint}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                  <TrackingNotificationOptions
+                    isPro={isPro}
+                    notifyEmail={notifyEmail}
+                    onNotifyEmailChange={setNotifyEmail}
+                    notifyFasterRefresh={notifyFasterRefresh}
+                    onNotifyFasterRefreshChange={setNotifyFasterRefresh}
+                    notifySms={notifySms}
+                    onNotifySmsChange={setNotifySms}
+                  />
                 </div>
-
-                <p className="text-[11px] leading-relaxed text-gray-500 sm:text-xs">
-                  {t.dashboardEmailNote}
-                </p>
 
                 <Button
                   type="button"
@@ -853,7 +844,9 @@ export function UserDashboardPage() {
                   disabled={!selectedDate || submittingRequest}
                   className="h-10 w-full rounded-full bg-[#2E7D5B] px-5 text-sm font-semibold text-white hover:bg-[#256B4D] disabled:opacity-50 sm:h-9 sm:max-w-xs sm:self-start"
                 >
-                  {submittingRequest ? "Submitting…" : "Confirm Appointment Request"}
+                  {submittingRequest
+                    ? t.trackingButtonSubmitting
+                    : t.trackingButtonLabel}
                 </Button>
               </div>
             </div>
