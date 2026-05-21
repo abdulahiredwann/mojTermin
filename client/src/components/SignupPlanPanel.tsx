@@ -13,39 +13,32 @@ import { cn } from "@/lib/utils";
 type SignupPlanPanelProps = {
   plan: SubscriptionPlan;
   onPlanChange: (plan: SubscriptionPlan) => void;
-  fromPricing?: boolean;
 };
 
-export function SignupPlanPanel({ plan, onPlanChange, fromPricing }: SignupPlanPanelProps) {
+export function SignupPlanPanel({ plan, onPlanChange }: SignupPlanPanelProps) {
   const { t } = useLanguage();
   const isPro = plan === "pro";
 
-  const highlights = isPro ? t.pricingProFeatures.slice(0, 5) : t.pricingFreeFeatures.slice(0, 5);
+  const highlights = isPro ? t.pricingProFeatures.slice(0, 4) : t.pricingFreeFeatures.slice(0, 4);
 
   return (
     <div className="flex h-full flex-col">
-      <div className="mb-6">
-        <p className="text-xs font-semibold uppercase tracking-wide text-[#2E7D5B]">
+      <div className="mb-4">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-[#2E7D5B]">
           {t.signupPlanPanelEyebrow}
         </p>
-        <h2 className="mt-1 text-xl font-bold text-gray-900">{t.signupPlanPanelTitle}</h2>
-        <p className="mt-2 text-sm leading-relaxed text-gray-600">{t.signupPlanPanelSubtitle}</p>
+        <h2 className="mt-0.5 text-lg font-bold text-gray-900">{t.signupPlanPanelTitle}</h2>
+        <p className="mt-1 text-xs leading-snug text-gray-600">{t.signupPlanPanelSubtitle}</p>
       </div>
 
-      {fromPricing ? (
-        <p className="mb-4 rounded-xl border border-[#2E7D5B]/20 bg-white/80 px-3 py-2.5 text-xs text-gray-600">
-          {t.signupPlanFromPricing}
-        </p>
-      ) : null}
-
-      <div className="space-y-2">
-        <label htmlFor="signup-plan" className="text-sm font-medium text-gray-700">
+      <div className="space-y-1.5">
+        <label htmlFor="signup-plan" className="text-xs font-medium text-gray-700">
           {t.signupPlanChooseLabel}
         </label>
         <Select value={plan} onValueChange={(v) => onPlanChange(v as SubscriptionPlan)}>
           <SelectTrigger
             id="signup-plan"
-            className="h-12 rounded-xl border-gray-200 bg-white text-[15px] shadow-none focus:ring-[#2E7D5B]/30"
+            className="h-10 rounded-xl border-gray-200 bg-white text-sm shadow-none focus:ring-[#2E7D5B]/30"
           >
             <SelectValue />
           </SelectTrigger>
@@ -62,7 +55,7 @@ export function SignupPlanPanel({ plan, onPlanChange, fromPricing }: SignupPlanP
 
       <article
         className={cn(
-          "mt-6 flex flex-1 flex-col rounded-2xl border p-5 transition-colors",
+          "mt-4 flex flex-col rounded-xl border p-4 transition-colors",
           isPro
             ? "border-[#2E7D5B]/30 bg-white shadow-sm"
             : "border-[#d7ebdc] bg-white/90",
@@ -85,25 +78,25 @@ export function SignupPlanPanel({ plan, onPlanChange, fromPricing }: SignupPlanP
           ) : null}
         </div>
 
-        <p className="mt-4">
-          <span className="text-3xl font-extrabold text-gray-900">
+        <p className="mt-3">
+          <span className="text-2xl font-extrabold text-gray-900">
             {isPro ? t.pricingProPrice : t.pricingFreePrice}
           </span>
           {isPro ? (
-            <span className="ml-1 text-sm text-gray-500">{t.pricingProPriceNote}</span>
+            <span className="ml-1 text-xs text-gray-500">{t.pricingProPriceNote}</span>
           ) : null}
         </p>
 
-        <ul className="mt-4 space-y-2">
+        <ul className="mt-3 space-y-1.5">
           {highlights.map((line) => (
-            <li key={line} className="flex items-start gap-2 text-sm text-gray-600">
-              <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#2E7D5B]" aria-hidden />
+            <li key={line} className="flex items-start gap-2 text-xs text-gray-600">
+              <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#2E7D5B]" aria-hidden />
               <span>{line}</span>
             </li>
           ))}
         </ul>
 
-        <p className="mt-4 text-xs leading-relaxed text-gray-500">
+        <p className="mt-3 text-[11px] leading-snug text-gray-500">
           {isPro ? t.signupPlanProPaymentNote : t.signupPlanFreePaymentNote}
         </p>
       </article>

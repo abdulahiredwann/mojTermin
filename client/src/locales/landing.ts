@@ -73,7 +73,6 @@ export type LandingStrings = {
   signupPlanPanelEyebrow: string;
   signupPlanPanelTitle: string;
   signupPlanPanelSubtitle: string;
-  signupPlanFromPricing: string;
   signupPlanChooseLabel: string;
   signupPlanFreeOption: string;
   signupPlanProOption: string;
@@ -285,7 +284,6 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     signupPlanPanelEyebrow: "Your plan",
     signupPlanPanelTitle: "Plan configuration",
     signupPlanPanelSubtitle: "Choose FREE to start or PRO for faster tracking and SMS alerts.",
-    signupPlanFromPricing: "You selected a plan on the pricing page — you can change it below.",
     signupPlanChooseLabel: "Subscription plan",
     signupPlanFreeOption: "MojTermin FREE — €0",
     signupPlanProOption: "MojTermin PRO — €7 / month",
@@ -511,7 +509,6 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     signupPlanPanelTitle: "Nastavitev paketa",
     signupPlanPanelSubtitle:
       "Izberite FREE za začetek ali PRO za hitrejše spremljanje in SMS obvestila.",
-    signupPlanFromPricing: "Paket ste izbrali na strani s cenami — spodaj ga lahko spremenite.",
     signupPlanChooseLabel: "Naročniški paket",
     signupPlanFreeOption: "MojTermin FREE — 0 €",
     signupPlanProOption: "MojTermin PRO — 7 € / mesec",

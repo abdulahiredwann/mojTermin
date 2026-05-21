@@ -1,11 +1,19 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SiteHeader } from "@/components/SiteHeader";
+import { SignupPlanPanel } from "@/components/SignupPlanPanel";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserAuth } from "@/contexts/UserAuthContext";
+import {
+  PLAN_QUERY_KEY,
+  parsePlanParam,
+  type SubscriptionPlan,
+} from "@/lib/subscriptionPlan";
+
+const SIGNUP_PLAN_STORAGE_KEY = "mojtermin_signup_plan";
 
 function GoogleIcon() {
   return (
@@ -34,6 +42,14 @@ export function SignupPage() {
   const { t } = useLanguage();
   const { register, user, loading: authLoading } = useUserAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const planFromUrl = useMemo(
+    () => parsePlanParam(searchParams.get(PLAN_QUERY_KEY)),
+    [searchParams],
+  );
+
+  const [plan, setPlan] = useState<SubscriptionPlan>(planFromUrl);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -43,10 +59,19 @@ export function SignupPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
+    setPlan(planFromUrl);
+  }, [planFromUrl]);
+
+  useEffect(() => {
     if (!authLoading && user) {
       navigate("/user/dashboard", { replace: true });
     }
   }, [authLoading, user, navigate]);
+
+  function handlePlanChange(next: SubscriptionPlan) {
+    setPlan(next);
+    setSearchParams({ [PLAN_QUERY_KEY]: next }, { replace: true });
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -59,6 +84,7 @@ export function SignupPage() {
 
     setBusy(true);
     try {
+      sessionStorage.setItem(SIGNUP_PLAN_STORAGE_KEY, plan);
       await register({
         name,
         email,
@@ -74,15 +100,15 @@ export function SignupPage() {
   }
 
   function handleGoogleSignup() {
-    console.log("Google signup clicked");
+    console.log("Google signup clicked", { plan });
   }
 
   return (
     <div className="relative min-h-screen bg-white">
-      <div className="absolute top-0 right-0 w-1/2 h-[44rem] pointer-events-none z-0">
+      <div className="pointer-events-none absolute right-0 top-0 z-0 h-[44rem] w-1/2">
         <svg
           viewBox="0 0 600 700"
-          className="absolute top-0 right-0 h-full w-auto"
+          className="absolute right-0 top-0 h-full w-auto"
           fill="none"
           preserveAspectRatio="xMaxYMin slice"
         >
@@ -101,124 +127,141 @@ export function SignupPage() {
 
       <SiteHeader borderBottom={false} />
 
-      <main className="relative z-10 flex min-h-[calc(100vh-5rem)] items-center justify-center px-6 py-12">
-        <div className="w-full max-w-md">
-          <div className="rounded-2xl border border-gray-100 bg-white/95 p-8 shadow-lg backdrop-blur-sm">
-            <div className="mb-8 text-center">
-              <h1 className="text-2xl font-bold text-gray-900">{t.authSignupTitle}</h1>
-              <p className="mt-2 text-sm text-gray-500">
-                {t.authHaveAccount}{" "}
-                <Link to="/login" className="font-medium text-[#2E7D5B] hover:underline">
-                  {t.authLogin}
-                </Link>
-              </p>
+      <main className="relative z-10 flex justify-center px-6 py-5 md:py-6">
+        <div className="w-full max-w-4xl">
+          <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white/95 shadow-lg shadow-gray-200/30 backdrop-blur-sm">
+            <div className="grid md:grid-cols-2">
+              {/* Account */}
+              <div className="p-5 md:p-6">
+                <div className="mb-4">
+                  <h1 className="text-xl font-bold text-gray-900">{t.authSignupTitle}</h1>
+                  <p className="mt-1 text-xs text-gray-500">
+                    {t.authHaveAccount}{" "}
+                    <Link to="/login" className="font-medium text-[#2E7D5B] hover:underline">
+                      {t.authLogin}
+                    </Link>
+                  </p>
+                </div>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleGoogleSignup}
+                  className="mb-4 h-10 w-full rounded-full border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  <GoogleIcon />
+                  <span className="ml-2">{t.authContinueWithGoogle}</span>
+                </Button>
+
+                <div className="relative mb-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-200" />
+                  </div>
+                  <div className="relative flex justify-center text-xs">
+                    <span className="bg-white px-3 text-gray-500">{t.authOrContinueWith}</span>
+                  </div>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-3">
+                  <div className="space-y-1">
+                    <Label htmlFor="name" className="text-xs text-gray-700">
+                      {t.authName}
+                    </Label>
+                    <Input
+                      id="name"
+                      type="text"
+                      required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="John Doe"
+                      autoComplete="name"
+                      className="h-10 rounded-xl border-gray-200 text-sm shadow-none focus-visible:ring-[#2E7D5B]/30"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="email" className="text-xs text-gray-700">
+                      {t.authEmail}
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@example.com"
+                      autoComplete="email"
+                      className="h-10 rounded-xl border-gray-200 text-sm shadow-none focus-visible:ring-[#2E7D5B]/30"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="phone" className="text-xs text-gray-700">
+                      {t.authPhone}
+                    </Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="+386 40 123 456"
+                      autoComplete="tel"
+                      className="h-10 rounded-xl border-gray-200 text-sm shadow-none focus-visible:ring-[#2E7D5B]/30"
+                    />
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-1">
+                      <Label htmlFor="password" className="text-xs text-gray-700">
+                        {t.authPassword}
+                      </Label>
+                      <Input
+                        id="password"
+                        type="password"
+                        required
+                        minLength={8}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        autoComplete="new-password"
+                        className="h-10 rounded-xl border-gray-200 text-sm shadow-none focus-visible:ring-[#2E7D5B]/30"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="confirmPassword" className="text-xs text-gray-700">
+                        {t.authConfirmPassword}
+                      </Label>
+                      <Input
+                        id="confirmPassword"
+                        type="password"
+                        required
+                        minLength={8}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="••••••••"
+                        autoComplete="new-password"
+                        className="h-10 rounded-xl border-gray-200 text-sm shadow-none focus-visible:ring-[#2E7D5B]/30"
+                      />
+                    </div>
+                  </div>
+
+                  {error ? <p className="text-xs text-red-600">{error}</p> : null}
+
+                  <Button
+                    type="submit"
+                    disabled={busy}
+                    className="h-10 w-full rounded-full bg-[#2E7D5B] text-sm font-semibold text-white shadow-md shadow-[#2E7D5B]/15 hover:bg-[#256B4D] disabled:opacity-60"
+                  >
+                    {busy ? "…" : t.authSignupButton}
+                  </Button>
+                </form>
+              </div>
+
+              {/* Plan */}
+              <div className="border-t border-[#d7ebdc] bg-[#f6fbf8] p-5 md:border-l md:border-t-0 md:p-6">
+                <SignupPlanPanel plan={plan} onPlanChange={handlePlanChange} />
+              </div>
             </div>
-
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleGoogleSignup}
-              className="mb-6 h-11 w-full rounded-full border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50"
-            >
-              <GoogleIcon />
-              <span className="ml-2">{t.authContinueWithGoogle}</span>
-            </Button>
-
-            <div className="relative mb-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
-              </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="bg-white px-3 text-gray-500">{t.authOrContinueWith}</span>
-              </div>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="name" className="text-sm text-gray-700">
-                  {t.authName}
-                </Label>
-                <Input
-                  id="name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="John Doe"
-                  autoComplete="name"
-                  className="h-11 rounded-xl border-gray-200 text-[15px] shadow-none focus-visible:ring-[#2E7D5B]/30"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-sm text-gray-700">
-                  {t.authEmail}
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  autoComplete="email"
-                  className="h-11 rounded-xl border-gray-200 text-[15px] shadow-none focus-visible:ring-[#2E7D5B]/30"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="phone" className="text-sm text-gray-700">
-                  {t.authPhone}
-                </Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+386 40 123 456"
-                  autoComplete="tel"
-                  className="h-11 rounded-xl border-gray-200 text-[15px] shadow-none focus-visible:ring-[#2E7D5B]/30"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="password" className="text-sm text-gray-700">
-                  {t.authPassword}
-                </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  autoComplete="new-password"
-                  className="h-11 rounded-xl border-gray-200 text-[15px] shadow-none focus-visible:ring-[#2E7D5B]/30"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="confirmPassword" className="text-sm text-gray-700">
-                  {t.authConfirmPassword}
-                </Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="••••••••"
-                  autoComplete="new-password"
-                  className="h-11 rounded-xl border-gray-200 text-[15px] shadow-none focus-visible:ring-[#2E7D5B]/30"
-                />
-              </div>
-
-              {error && <p className="text-sm text-red-600">{error}</p>}
-
-              <Button
-                type="submit"
-                disabled={busy}
-                className="h-11 w-full rounded-full bg-[#2E7D5B] text-sm font-semibold text-white shadow-md shadow-[#2E7D5B]/15 hover:bg-[#256B4D] disabled:opacity-60"
-              >
-                {busy ? "…" : t.authSignupButton}
-              </Button>
-            </form>
           </div>
         </div>
       </main>
