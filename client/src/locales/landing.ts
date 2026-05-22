@@ -5,7 +5,9 @@ export type MockSlot = { provider: string; wait: string; next: string };
 export type LandingStrings = {
   langEnglish: string;
   langSlovenian: string;
-  heroTitle: string;
+  heroTitlePrefix: string;
+  heroTitleKeywords: readonly [string, string];
+  heroTitleSuffix: string;
   heroSubtitle: string;
   labelProblem: string;
   placeholderProblem: string;
@@ -218,7 +220,9 @@ export const landingCopy: Record<Locale, LandingStrings> = {
   en: {
     langEnglish: "English",
     langSlovenian: "Slovenian",
-    heroTitle: "The fastest path to your healthcare appointment.",
+    heroTitlePrefix: "The fastest path to your",
+    heroTitleKeywords: ["healthcare", "medical"],
+    heroTitleSuffix: "appointment.",
     heroSubtitle:
       "Tell us what you need and your city — we’ll match you with available hospitals.",
     labelProblem: "What do you need?",
@@ -492,7 +496,9 @@ export const landingCopy: Record<Locale, LandingStrings> = {
   sl: {
     langEnglish: "Angleščina",
     langSlovenian: "Slovenščina",
-    heroTitle: "Najhitrejša pot do vašega zdravstvenega termina.",
+    heroTitlePrefix: "Najhitrejša pot do vašega",
+    heroTitleKeywords: ["zdravstvenega", "zdravniškega"],
+    heroTitleSuffix: "termina.",
     heroSubtitle:
       "Napišite, kaj potrebujete, in izberite mesto — ujemali vas bomo z razpoložljivimi zdravstvenimi zavodi.",
     labelProblem: "Kaj potrebujete?",

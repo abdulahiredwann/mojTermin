@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileSearch, Loader2, Pencil, Sparkles, Trash2 } from "lucide-react";
+import { Building2, Calendar, FileSearch, Loader2, Pencil, Sparkles, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { api } from "@/lib/api";
 import { ReferralImagesLightbox } from "@/components/ReferralImagesLightbox";
@@ -104,6 +105,207 @@ function getErrorMessage(err: unknown) {
   return (
     (err as { response?: { data?: { error?: string } } })?.response?.data?.error ||
     "Something went wrong."
+  );
+}
+
+type AppointmentCardLabels = {
+  dashboardTableSubmitted: string;
+  dashboardTableHospital: string;
+  dashboardTableNeed: string;
+  dashboardTableWhen: string;
+  dashboardReferralAttachedLabel: string;
+  dashboardReferralAiDetail: string;
+  dashboardReferralRemoveImageAria: string;
+  dashboardEditPreferredDate: string;
+  dashboardSave: string;
+  dashboardCancel: string;
+  dashboardDelete: string;
+};
+
+function AppointmentRequestCard({
+  row,
+  labels,
+  locale,
+  todayInput,
+  isEditing,
+  editDate,
+  removingPath,
+  removePending,
+  updatePending,
+  onEditDateChange,
+  onStartEdit,
+  onCancelEdit,
+  onSaveDate,
+  onDelete,
+  onRemoveImage,
+  onOpenAnalysis,
+}: {
+  row: AppointmentRow;
+  labels: AppointmentCardLabels;
+  locale: string;
+  todayInput: string;
+  isEditing: boolean;
+  editDate: string;
+  removingPath: string | null;
+  removePending: boolean;
+  updatePending: boolean;
+  onEditDateChange: (value: string) => void;
+  onStartEdit: () => void;
+  onCancelEdit: () => void;
+  onSaveDate: () => void;
+  onDelete: () => void;
+  onRemoveImage: (path: string) => void;
+  onOpenAnalysis: () => void;
+}) {
+  const isPending = row.status.toLowerCase() === "pending";
+  const paths = row.referralImagePaths ?? [];
+  const need = row.intent || row.query;
+
+  function formatIsoDay(iso: string) {
+    const d = new Date(iso);
+    return Number.isNaN(d.getTime())
+      ? iso
+      : d.toLocaleDateString(locale === "sl" ? "sl-SI" : "en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        });
+  }
+
+  return (
+    <li className="min-w-0 max-w-full overflow-hidden rounded-xl border border-gray-100 bg-white p-3 shadow-sm">
+      <div className="flex min-w-0 items-start justify-between gap-2">
+        <div className="min-w-0 flex-1 overflow-hidden">
+          <p className="flex min-w-0 items-center gap-1.5 text-sm font-semibold text-gray-900">
+            <Building2 className="h-3.5 w-3.5 shrink-0 text-[#2E7D5B]" aria-hidden />
+            <span className="min-w-0 truncate" title={row.hospitalName ?? ""}>
+              {row.hospitalName ?? "—"}
+            </span>
+          </p>
+          <p className="mt-0.5 line-clamp-2 break-words text-xs text-gray-600" title={row.query}>
+            {need}
+          </p>
+        </div>
+        <span
+          className={cn(
+            "max-w-[42%] shrink-0 truncate rounded-full px-2 py-0.5 text-[11px] font-medium capitalize ring-1",
+            statusStyle(row.status),
+          )}
+          title={row.status}
+        >
+          {row.status}
+        </span>
+      </div>
+
+      <dl className="mt-2.5 space-y-2.5 border-t border-gray-100 pt-2.5 text-xs">
+        <div className="min-w-0">
+          <dt className="text-[11px] font-medium text-gray-500">{labels.dashboardTableSubmitted}</dt>
+          <dd className="mt-0.5 break-words font-medium text-gray-800">{formatIsoDay(row.createdAt)}</dd>
+        </div>
+        <div className="min-w-0">
+          <dt className="flex items-center gap-1 text-[11px] font-medium text-gray-500">
+            <Calendar className="h-3 w-3 shrink-0 text-[#2E7D5B]" aria-hidden />
+            <span className="min-w-0 break-words">{labels.dashboardTableWhen}</span>
+          </dt>
+          <dd className="mt-0.5 min-w-0 font-medium text-gray-800">
+            {isEditing ? (
+              <input
+                type="date"
+                value={editDate}
+                min={todayInput}
+                onChange={(e) => onEditDateChange(e.target.value)}
+                className="box-border h-9 w-full max-w-full rounded-lg border border-gray-200 px-2 text-xs outline-none focus:ring-2 focus:ring-[#2E7D5B]/30"
+              />
+            ) : (
+              <span className="break-words">{formatIsoDay(row.preferredDate)}</span>
+            )}
+          </dd>
+        </div>
+      </dl>
+
+      {paths.length > 0 || row.referralAnalysis ? (
+        <div className="mt-2.5 min-w-0 space-y-2 border-t border-gray-100 pt-2.5">
+          <p className="break-words text-[11px] font-medium text-gray-500">
+            {labels.dashboardReferralAttachedLabel}
+          </p>
+          <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2">
+            {paths.length > 0 ? (
+              <div className="min-w-0 max-w-full overflow-hidden">
+                <ReferralImagesLightbox
+                  paths={paths}
+                  size="sm"
+                  removable={isPending}
+                  onRemovePath={onRemoveImage}
+                  removingPath={removePending ? removingPath : null}
+                  removeImageAriaLabel={labels.dashboardReferralRemoveImageAria}
+                />
+              </div>
+            ) : null}
+            {row.referralAnalysis ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-8 min-w-0 max-w-full gap-1 whitespace-normal border-[#2E7D5B]/35 px-2 text-[11px] text-[#2E7D5B]"
+                onClick={onOpenAnalysis}
+              >
+                <FileSearch className="h-3 w-3 shrink-0" aria-hidden />
+                <span className="truncate">{labels.dashboardReferralAiDetail}</span>
+              </Button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
+      <div className="mt-2.5 flex min-w-0 flex-col gap-1.5 border-t border-gray-100 pt-2.5">
+        {isPending && !isEditing ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-8 min-w-0 w-full max-w-full justify-center gap-1 whitespace-normal border-gray-200 px-2 text-[11px]"
+            onClick={onStartEdit}
+          >
+            <Pencil className="h-3 w-3 shrink-0" aria-hidden />
+            <span className="min-w-0 truncate">{labels.dashboardEditPreferredDate}</span>
+          </Button>
+        ) : null}
+        {isPending && isEditing ? (
+          <div className="grid min-w-0 grid-cols-2 gap-1.5">
+            <Button
+              type="button"
+              size="sm"
+              className="h-8 min-w-0 max-w-full gap-1 whitespace-normal bg-[#2E7D5B] px-2 text-[11px] text-white hover:bg-[#256B4D]"
+              disabled={!editDate || updatePending}
+              onClick={onSaveDate}
+            >
+              {updatePending ? <Loader2 className="h-3 w-3 shrink-0 animate-spin" aria-hidden /> : null}
+              <span className="min-w-0 truncate">{labels.dashboardSave}</span>
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 min-w-0 max-w-full whitespace-normal px-2 text-[11px]"
+              disabled={updatePending}
+              onClick={onCancelEdit}
+            >
+              <span className="min-w-0 truncate">{labels.dashboardCancel}</span>
+            </Button>
+          </div>
+        ) : null}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-8 min-w-0 w-full max-w-full justify-center gap-1 whitespace-normal border-red-200 px-2 text-[11px] text-red-700 hover:bg-red-50 hover:text-red-800"
+          onClick={onDelete}
+        >
+          <Trash2 className="h-3 w-3 shrink-0" aria-hidden />
+          <span className="min-w-0 truncate">{labels.dashboardDelete}</span>
+        </Button>
+      </div>
+    </li>
   );
 }
 
@@ -236,17 +438,6 @@ export function UserAppointmentsPage() {
   const requests = appointmentData?.requests ?? [];
   const pendingCount = stats.byStatus["pending"] ?? 0;
 
-  function formatIsoDay(iso: string) {
-    const d = new Date(iso);
-    return Number.isNaN(d.getTime())
-      ? iso
-      : d.toLocaleDateString(locale === "sl" ? "sl-SI" : "en-GB", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        });
-  }
-
   function startEdit(r: AppointmentRow) {
     setActionError(null);
     setEditingId(r.id);
@@ -274,8 +465,22 @@ export function UserAppointmentsPage() {
     dashboardReferralRawMentions: t.dashboardReferralRawMentions,
   };
 
+  const cardLabels: AppointmentCardLabels = {
+    dashboardTableSubmitted: t.dashboardTableSubmitted,
+    dashboardTableHospital: t.dashboardTableHospital,
+    dashboardTableNeed: t.dashboardTableNeed,
+    dashboardTableWhen: t.dashboardTableWhen,
+    dashboardReferralAttachedLabel: t.dashboardReferralAttachedLabel,
+    dashboardReferralAiDetail: t.dashboardReferralAiDetail,
+    dashboardReferralRemoveImageAria: t.dashboardReferralRemoveImageAria,
+    dashboardEditPreferredDate: t.dashboardEditPreferredDate,
+    dashboardSave: t.dashboardSave,
+    dashboardCancel: t.dashboardCancel,
+    dashboardDelete: t.dashboardDelete,
+  };
+
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
+    <div className="mx-auto min-w-0 w-full max-w-6xl space-y-8">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-gray-900 md:text-3xl">
           {t.dashboardHistoryTitle}
@@ -304,147 +509,38 @@ export function UserAppointmentsPage() {
         ) : requests.length === 0 ? (
           <p className="p-8 text-center text-sm text-gray-500">{t.dashboardEmptyHistory}</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[800px] text-left text-sm">
-              <thead>
-                <tr className="border-b border-gray-100 bg-gray-50/80">
-                  <th className="px-4 py-3 font-semibold text-gray-700">{t.dashboardTableSubmitted}</th>
-                  <th className="px-4 py-3 font-semibold text-gray-700">{t.dashboardTableStatus}</th>
-                  <th className="px-4 py-3 font-semibold text-gray-700">{t.dashboardTableHospital}</th>
-                  <th className="px-4 py-3 font-semibold text-gray-700">{t.dashboardReferralAttachedLabel}</th>
-                  <th className="px-4 py-3 font-semibold text-gray-700">{t.dashboardTableNeed}</th>
-                  <th className="px-4 py-3 font-semibold text-gray-700">{t.dashboardTableWhen}</th>
-                  <th className="px-4 py-3 text-right font-semibold text-gray-700">{t.dashboardTableActions}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {requests.map((r) => {
-                  const isPending = r.status.toLowerCase() === "pending";
-                  const isEditing = editingId === r.id;
-                  const paths = r.referralImagePaths ?? [];
-                  return (
-                    <tr key={r.id} className="border-b border-gray-50 last:border-0">
-                      <td className="whitespace-nowrap px-4 py-3 text-gray-600">{formatIsoDay(r.createdAt)}</td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium capitalize ring-1 ${statusStyle(r.status)}`}
-                        >
-                          {r.status}
-                        </span>
-                      </td>
-                      <td
-                        className="max-w-[10rem] truncate px-4 py-3 text-gray-800"
-                        title={r.hospitalName ?? ""}
-                      >
-                        {r.hospitalName ?? "—"}
-                      </td>
-                      <td className="min-w-[11rem] px-4 py-3">
-                        <div className="flex flex-col gap-2">
-                          <ReferralImagesLightbox
-                            paths={paths}
-                            size="md"
-                            removable={isPending && paths.length > 0}
-                            onRemovePath={(p) => handleRemoveImage(r.id, p)}
-                            removingPath={removeReferralMutation.isPending ? removingPath : null}
-                            removeImageAriaLabel={t.dashboardReferralRemoveImageAria}
-                          />
-                          {r.referralAnalysis ? (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="h-8 w-fit gap-1.5 border-[#2E7D5B]/35 text-xs text-[#2E7D5B]"
-                              onClick={() => {
-                                setActionError(null);
-                                setDetailRow(r);
-                              }}
-                            >
-                              <FileSearch className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                              {t.dashboardReferralAiDetail}
-                            </Button>
-                          ) : null}
-                        </div>
-                      </td>
-                      <td className="max-w-[12rem] truncate px-4 py-3 text-gray-600" title={r.query}>
-                        {r.intent || r.query}
-                      </td>
-                      <td className="px-4 py-3 text-gray-600">
-                        {isEditing ? (
-                          <input
-                            type="date"
-                            value={editDate}
-                            min={todayInput}
-                            onChange={(e) => setEditDate(e.target.value)}
-                            className="h-9 w-full min-w-[10.5rem] rounded-lg border border-gray-200 px-2 text-sm outline-none focus:ring-2 focus:ring-[#2E7D5B]/30"
-                          />
-                        ) : (
-                          <span className="whitespace-nowrap">{formatIsoDay(r.preferredDate)}</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex flex-wrap items-center justify-end gap-1.5">
-                          {isPending && !isEditing ? (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="h-8 gap-1.5 border-gray-200 text-xs"
-                              onClick={() => startEdit(r)}
-                            >
-                              <Pencil className="h-3.5 w-3.5" aria-hidden />
-                              {t.dashboardEditPreferredDate}
-                            </Button>
-                          ) : null}
-                          {isPending && isEditing ? (
-                            <>
-                              <Button
-                                type="button"
-                                size="sm"
-                                className="h-8 bg-[#2E7D5B] px-3 text-xs text-white hover:bg-[#256B4D]"
-                                disabled={!editDate || updateMutation.isPending}
-                                onClick={() => {
-                                  if (!editDate) return;
-                                  updateMutation.mutate({ id: r.id, preferredDate: editDate });
-                                }}
-                              >
-                                {updateMutation.isPending ? (
-                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                ) : null}
-                                {t.dashboardSave}
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 text-xs"
-                                disabled={updateMutation.isPending}
-                                onClick={cancelEdit}
-                              >
-                                {t.dashboardCancel}
-                              </Button>
-                            </>
-                          ) : null}
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="h-8 gap-1.5 border-red-200 text-xs text-red-700 hover:bg-red-50 hover:text-red-800"
-                            onClick={() => {
-                              setActionError(null);
-                              setDeleteId(r.id);
-                            }}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" aria-hidden />
-                            {t.dashboardDelete}
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <ul className="grid min-w-0 grid-cols-1 gap-3 p-3 md:grid-cols-2 md:p-4 [&>li]:min-w-0">
+            {requests.map((r) => (
+              <AppointmentRequestCard
+                key={r.id}
+                row={r}
+                labels={cardLabels}
+                locale={locale}
+                todayInput={todayInput}
+                isEditing={editingId === r.id}
+                editDate={editDate}
+                removingPath={removingPath}
+                removePending={removeReferralMutation.isPending}
+                updatePending={updateMutation.isPending}
+                onEditDateChange={setEditDate}
+                onStartEdit={() => startEdit(r)}
+                onCancelEdit={cancelEdit}
+                onSaveDate={() => {
+                  if (!editDate) return;
+                  updateMutation.mutate({ id: r.id, preferredDate: editDate });
+                }}
+                onDelete={() => {
+                  setActionError(null);
+                  setDeleteId(r.id);
+                }}
+                onRemoveImage={(p) => handleRemoveImage(r.id, p)}
+                onOpenAnalysis={() => {
+                  setActionError(null);
+                  setDetailRow(r);
+                }}
+              />
+            ))}
+          </ul>
         )}
       </div>
 

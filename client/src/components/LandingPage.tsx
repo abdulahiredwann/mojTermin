@@ -45,6 +45,46 @@ import { api } from "@/lib/api";
 import { showApiError } from "@/lib/apiError";
 import { cn } from "@/lib/utils";
 
+const HERO_KEYWORD_INTERVAL_MS = 3200;
+
+function HeroRotatingKeyword({ words }: { words: readonly [string, string] }) {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReduced) return;
+    const id = window.setInterval(() => {
+      setIndex((i) => (i + 1) % words.length);
+    }, HERO_KEYWORD_INTERVAL_MS);
+    return () => window.clearInterval(id);
+  }, [words]);
+
+  const minCh = Math.max(...words.map((w) => w.length));
+
+  return (
+    <span
+      className="relative inline-grid align-bottom text-gray-900"
+      style={{ minWidth: `${minCh}ch` }}
+      aria-live="polite"
+    >
+      {words.map((word, i) => (
+        <span
+          key={word}
+          className={cn(
+            "col-start-1 row-start-1 inline-block transition-all duration-700 ease-in-out",
+            i === index
+              ? "translate-y-0 opacity-100"
+              : "pointer-events-none translate-y-[0.4em] opacity-0 select-none",
+          )}
+          aria-hidden={i !== index}
+        >
+          {word}
+        </span>
+      ))}
+    </span>
+  );
+}
+
 function HeroIllustration() {
   return (
     <div className="relative w-full max-w-md mx-auto">
@@ -330,8 +370,10 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-2 gap-10 items-start">
             <div className="relative z-10 space-y-8">
               <div>
-                <h1 className="text-4xl md:text-5xl lg:text-[3.4rem] font-extrabold leading-[1.12] text-gray-900 mb-4">
-                  {t.heroTitle}
+                <h1 className="mb-4 text-4xl font-extrabold leading-[1.12] text-[#2E7D5B] md:text-5xl lg:text-[3.4rem]">
+                  {t.heroTitlePrefix}{" "}
+                  <HeroRotatingKeyword words={t.heroTitleKeywords} />{" "}
+                  {t.heroTitleSuffix}
                 </h1>
                 <p className="text-gray-600 text-sm md:text-base leading-relaxed max-w-lg">
                   {t.heroSubtitle}

@@ -68,6 +68,12 @@ function filesFromDataTransfer(dt: DataTransfer) {
   return out;
 }
 
+function isFileDrag(dt: DataTransfer) {
+  return Array.from(dt.types).some(
+    (t) => t === "Files" || t === "application/x-moz-file" || t.toLowerCase().includes("file"),
+  );
+}
+
 export function ReferralImageUploadField({
   files,
   onFilesChange,
@@ -78,7 +84,19 @@ export function ReferralImageUploadField({
   const previews = usePreviewUrls(files);
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
-  const dragDepthRef = useRef(0);
+
+  useEffect(() => {
+    if (variant !== "dropzone") return;
+    const preventWindowDrop = (e: DragEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener("dragover", preventWindowDrop);
+    window.addEventListener("drop", preventWindowDrop);
+    return () => {
+      window.removeEventListener("dragover", preventWindowDrop);
+      window.removeEventListener("drop", preventWindowDrop);
+    };
+  }, [variant]);
 
   function appendFiles(incoming: File[]) {
     const images = pickImageFiles(incoming);
@@ -103,12 +121,9 @@ export function ReferralImageUploadField({
   function handleDragEnter(e: React.DragEvent<HTMLDivElement>) {
     e.preventDefault();
     e.stopPropagation();
-    const related = e.relatedTarget as Node | null;
-    if (related && e.currentTarget.contains(related)) return;
-    if (e.dataTransfer.types.includes("Files")) {
+    if (isFileDrag(e.dataTransfer)) {
       e.dataTransfer.dropEffect = "copy";
     }
-    dragDepthRef.current += 1;
     setDragActive(true);
   }
 
@@ -117,17 +132,13 @@ export function ReferralImageUploadField({
     e.stopPropagation();
     const related = e.relatedTarget as Node | null;
     if (related && e.currentTarget.contains(related)) return;
-    dragDepthRef.current -= 1;
-    if (dragDepthRef.current <= 0) {
-      dragDepthRef.current = 0;
-      setDragActive(false);
-    }
+    setDragActive(false);
   }
 
   function handleDragOver(e: React.DragEvent<HTMLDivElement>) {
     e.preventDefault();
     e.stopPropagation();
-    if (e.dataTransfer.types.includes("Files")) {
+    if (isFileDrag(e.dataTransfer)) {
       e.dataTransfer.dropEffect = "copy";
     }
   }
@@ -135,7 +146,6 @@ export function ReferralImageUploadField({
   function handleDrop(e: React.DragEvent<HTMLDivElement>) {
     e.preventDefault();
     e.stopPropagation();
-    dragDepthRef.current = 0;
     setDragActive(false);
     appendFiles(filesFromDataTransfer(e.dataTransfer));
   }
@@ -150,36 +160,36 @@ export function ReferralImageUploadField({
         ? labels.photosAdded.replace("{count}", String(files.length))
         : null;
 
-    const dropHandlers = {
-      onDragEnter: handleDragEnter,
-      onDragLeave: handleDragLeave,
-      onDragOver: handleDragOver,
-      onDrop: handleDrop,
-    };
-
     return (
       <div className="space-y-2">
         <p className="text-sm font-medium text-gray-700">{labels.label}</p>
-        <div {...dropHandlers} className="rounded-xl">
-          <div
-            role="button"
-            tabIndex={0}
-            onClick={openFilePicker}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                openFilePicker();
-              }
-            }}
-            className={cn(
-              "group flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-5 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[#2E7D5B]/30",
-              dragActive
-                ? "border-[#2E7D5B] bg-[#e8f5ee]"
-                : files.length > 0
-                  ? "border-[#2E7D5B]/30 bg-[#f6fbf8]/80 hover:border-[#2E7D5B]/45"
-                  : "border-gray-200 bg-gray-50/80 hover:border-[#2E7D5B]/35 hover:bg-[#f6fbf8]",
-            )}
-          >
+        <div
+          role="button"
+          tabIndex={0}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+          onClick={(e) => {
+            if ((e.target as HTMLElement).closest("button")) return;
+            openFilePicker();
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              openFilePicker();
+            }
+          }}
+          className={cn(
+            "group cursor-pointer rounded-xl border-2 border-dashed px-4 py-5 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[#2E7D5B]/30",
+            dragActive
+              ? "border-[#2E7D5B] bg-[#e8f5ee]"
+              : files.length > 0
+                ? "border-[#2E7D5B]/30 bg-[#f6fbf8]/80 hover:border-[#2E7D5B]/45"
+                : "border-gray-200 bg-gray-50/80 hover:border-[#2E7D5B]/35 hover:bg-[#f6fbf8]",
+          )}
+        >
+          <div className="flex flex-col items-center justify-center">
             <span className="mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-[#e8f5ee] text-[#2E7D5B] transition-colors group-hover:bg-[#d7ebdc]">
               <ImagePlus className="h-5 w-5" aria-hidden />
             </span>
@@ -194,6 +204,7 @@ export function ReferralImageUploadField({
               </span>
             ) : null}
           </div>
+
           <input
             ref={inputRef}
             id={id}
@@ -205,7 +216,10 @@ export function ReferralImageUploadField({
           />
 
           {files.length > 0 ? (
-            <div className="mt-2 space-y-2">
+            <div
+              className="mt-3 space-y-2"
+              onClick={(e) => e.stopPropagation()}
+            >
               {countLabel ? (
                 <p className="text-xs font-medium text-gray-600">{countLabel}</p>
               ) : null}
@@ -218,6 +232,7 @@ export function ReferralImageUploadField({
                     <img
                       src={url}
                       alt=""
+                      draggable={false}
                       className="h-full w-full object-cover"
                     />
                     <button
@@ -236,8 +251,11 @@ export function ReferralImageUploadField({
                 {files.length < MAX_REFERRAL_IMAGES ? (
                   <button
                     type="button"
-                    onClick={openFilePicker}
-                    className="flex h-16 w-16 cursor-pointer items-center justify-center rounded-lg border border-dashed border-gray-200 bg-gray-50 text-gray-400 transition-colors hover:border-[#2E7D5B]/40 hover:text-[#2E7D5B]"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openFilePicker();
+                    }}
+                    className="flex h-16 w-16 cursor-pointer items-center justify-center rounded-lg border border-dashed border-gray-200 bg-white text-gray-400 transition-colors hover:border-[#2E7D5B]/40 hover:text-[#2E7D5B]"
                     aria-label={labels.dropzoneCta ?? "Add referral"}
                   >
                     <ImagePlus className="h-5 w-5" aria-hidden />
