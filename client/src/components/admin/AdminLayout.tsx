@@ -10,6 +10,7 @@ import {
 import { useState } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { MojTerminLogo } from "@/components/MojTerminLogo";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 
 const menuItems = [
@@ -41,8 +42,17 @@ export function AdminLayout() {
         >
           <div className="shrink-0">
             <div className={cn("mb-3 flex items-center", collapsed ? "justify-center" : "justify-between")}>
-              <Link to="/admin/users" className="text-xl font-bold text-[#2E7D5B]">
-                {collapsed ? "MT" : "MojTermin Admin"}
+              <Link to="/admin/users" className="block max-w-full">
+                {collapsed ? (
+                  <span className="text-lg font-bold text-[#2E7D5B]">MT</span>
+                ) : (
+                  <div className="space-y-0.5">
+                    <MojTerminLogo size="md" />
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                      Admin
+                    </span>
+                  </div>
+                )}
               </Link>
               <button
                 type="button"

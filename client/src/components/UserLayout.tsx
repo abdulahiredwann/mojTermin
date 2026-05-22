@@ -14,6 +14,7 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserAuth } from "@/contexts/UserAuthContext";
+import { MojTerminLogo } from "@/components/MojTerminLogo";
 import { UserSidebarSubscriptionBlock } from "@/components/UserSidebarSubscription";
 import { cn } from "@/lib/utils";
 
@@ -73,9 +74,7 @@ export function UserLayout() {
       {/* Desktop sidebar */}
       <aside className="hidden shrink-0 border-r border-gray-200 bg-white md:flex md:w-60 md:flex-col md:shadow-sm lg:w-64">
         <div className="flex shrink-0 flex-col gap-1 border-b border-gray-100 p-4">
-          <Link to="/user/dashboard" className="text-lg font-bold text-[#2E7D5B]">
-            MojTermin
-          </Link>
+          <MojTerminLogo to="/user/dashboard" size="md" />
           <span className="text-xs font-medium uppercase tracking-wide text-gray-400">{t.userAreaTagline}</span>
           {user ? (
             <div className="mt-3 flex items-center gap-2 rounded-xl bg-[#f6fbf8] p-2">
@@ -131,9 +130,7 @@ export function UserLayout() {
       {/* Mobile top bar */}
       <header className="sticky top-0 z-30 flex shrink-0 items-center justify-between gap-3 border-b border-gray-200 bg-white px-4 py-3 md:hidden">
         <div className="min-w-0">
-          <Link to="/user/dashboard" className="truncate text-lg font-bold text-[#2E7D5B]">
-            MojTermin
-          </Link>
+          <MojTerminLogo to="/user/dashboard" size="md" />
           <p className="truncate text-[11px] text-gray-500">{t.userAreaTagline}</p>
         </div>
         <div className="flex items-center gap-1">
@@ -148,7 +145,9 @@ export function UserLayout() {
             </button>
             <SheetContent side="left" className="flex w-[min(100vw-2rem,20rem)] flex-col gap-0 p-0">
               <SheetHeader className="border-b border-gray-100 p-4 text-left">
-                <SheetTitle className="text-left text-[#2E7D5B]">MojTermin</SheetTitle>
+                <SheetTitle className="text-left">
+                  <MojTerminLogo to="/user/dashboard" size="md" />
+                </SheetTitle>
                 <p className="text-xs font-medium text-gray-500">{t.userAreaTagline}</p>
               </SheetHeader>
               <nav className="flex flex-col gap-1 p-3">

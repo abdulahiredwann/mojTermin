@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { MojTerminLogo } from "@/components/MojTerminLogo";
 import { cn } from "@/lib/utils";
 
 function userInitials(name: string) {
@@ -25,24 +26,6 @@ function userInitials(name: string) {
   if (s.length >= 2) return s.slice(0, 2).toUpperCase();
   if (s.length === 1) return s.toUpperCase();
   return "?";
-}
-
-function MojTerminLogo() {
-  return (
-    <div className="flex items-center gap-2">
-      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#2E7D5B]">
-        <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none">
-          <path
-            d="M12 2C8.5 2 3 5 3 12C3 17.5 8 22 12 22C16 22 21 17.5 21 12C21 5 15.5 2 12 2Z"
-            fill="white"
-            opacity="0.9"
-          />
-          <path d="M9 11H15M12 8V14" stroke="#2E7D5B" strokeWidth="2" strokeLinecap="round" />
-        </svg>
-      </div>
-      <span className="text-xl font-bold text-[#2E7D5B]">MojTermin</span>
-    </div>
-  );
 }
 
 function LanguageToggle() {
@@ -126,9 +109,7 @@ export function SiteHeader({ borderBottom = true }: SiteHeaderProps) {
     <header className={cn("w-full px-6 py-5 md:px-12", borderBottom && "border-b border-gray-100")}>
       <div className="flex items-center justify-between gap-4">
         <div>
-          <Link to="/" className="inline-block">
-            <MojTerminLogo />
-          </Link>
+          <MojTerminLogo to="/" size="lg" />
         </div>
         <nav className="hidden items-center justify-center gap-8 md:flex">
           <Link to="/" className={navClass("/")}>
