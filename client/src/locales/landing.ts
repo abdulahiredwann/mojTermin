@@ -143,6 +143,11 @@ export type LandingStrings = {
   dashboardAccountEmail: string;
   dashboardReferralPhoto: string;
   dashboardReferralPhotoHint: string;
+  heroReferralPhoto: string;
+  heroReferralDropzoneCta: string;
+  heroReferralDropzoneSubtext: string;
+  heroReferralPhotosAdded: string;
+  heroReferralSearchLimitNote: string;
   dashboardReferralAttachedLabel: string;
   dashboardReferralRemoveFromListAria: string;
   dashboardReferralRemoveImageAria: string;
@@ -402,6 +407,11 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     dashboardReferralPhoto: "Referral image (optional)",
     dashboardReferralPhotoHint:
       "JPEG, PNG, GIF, or WebP — up to 15 images, 10 MB each. On “Check availability” we run AI vision on them and show findings beside hospitals. Use Ctrl/Cmd to pick several.",
+    heroReferralPhoto: "Referral photo",
+    heroReferralDropzoneCta: "Add referral",
+    heroReferralDropzoneSubtext: "",
+    heroReferralPhotosAdded: "{count} photos added",
+    heroReferralSearchLimitNote: "Only the first 8 photos are used when searching.",
     dashboardReferralAttachedLabel: "Referral photos",
     dashboardReferralRemoveFromListAria: "Remove file from upload list",
     dashboardReferralRemoveImageAria: "Remove this image from the appointment",
@@ -671,6 +681,11 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     dashboardReferralPhoto: "Slika napotnice (neobvezno)",
     dashboardReferralPhotoHint:
       "JPEG, PNG, GIF ali WebP — do 15 slik po 10 MB. Ob »Preveri razpoložljivost« zaženemo AI-pogled na slike in prikažemo izluščeno vsebino. Z Ctrl/Ukaz izberite več datotek.",
+    heroReferralPhoto: "Slika napotnice",
+    heroReferralDropzoneCta: "Dodaj napotnico",
+    heroReferralDropzoneSubtext: "",
+    heroReferralPhotosAdded: "{count} fotografij",
+    heroReferralSearchLimitNote: "Pri iskanju uporabimo prvih 8 fotografij.",
     dashboardReferralAttachedLabel: "Fotografije napotnice",
     dashboardReferralRemoveFromListAria: "Odstrani datoteko s seznama",
     dashboardReferralRemoveImageAria: "Odstrani to sliko iz zahteve",

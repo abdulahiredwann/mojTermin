@@ -35,6 +35,10 @@ import {
 import { FloatingChatDemo } from "@/components/FloatingChatDemo";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PricingSection } from "@/components/PricingSection";
+import {
+  MAX_SEARCH_REFERRAL_IMAGES,
+  ReferralImageUploadField,
+} from "@/components/ReferralImageUploadField";
 import { TrackingNotificationOptions } from "@/components/TrackingNotificationOptions";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { api } from "@/lib/api";
@@ -126,6 +130,7 @@ export default function LandingPage() {
     return () => window.clearTimeout(timer);
   }, [location.pathname, location.hash]);
   const [problem, setProblem] = useState("");
+  const [referralFiles, setReferralFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
@@ -185,10 +190,24 @@ export default function LandingPage() {
     setNotifySms(false);
 
     try {
-      const { data } = await api.post<SearchResult>("/search", {
-        query: problem,
-        city: selectedLocation.city,
-      });
+      const searchFiles = referralFiles.slice(0, MAX_SEARCH_REFERRAL_IMAGES);
+      let data: SearchResult;
+      if (searchFiles.length > 0) {
+        const fd = new FormData();
+        fd.append("query", problem);
+        fd.append("city", selectedLocation.city);
+        for (const f of searchFiles) {
+          fd.append("referralImages", f);
+        }
+        const res = await api.post<SearchResult>("/search", fd);
+        data = res.data;
+      } else {
+        const res = await api.post<SearchResult>("/search", {
+          query: problem,
+          city: selectedLocation.city,
+        });
+        data = res.data;
+      }
       setSearchResult(data);
     } catch (err: unknown) {
       const msg =
@@ -225,6 +244,7 @@ export default function LandingPage() {
     setNotifyEmail(true);
     setNotifyFasterRefresh(false);
     setNotifySms(false);
+    setReferralFiles([]);
   }
 
   function handleConfirmDialogOpenChange(open: boolean) {
@@ -241,7 +261,7 @@ export default function LandingPage() {
     setSubmittingRequest(true);
     const preferredDateLabel = formatDate(new Date(`${selectedDate}T12:00:00`));
     try {
-      await api.post<{ request: { id: string } }>("/appointments", {
+      const payload = {
         email,
         query: problem,
         intent: searchResult.intent,
@@ -252,7 +272,19 @@ export default function LandingPage() {
         notifyEmail,
         notifyFasterRefresh: false,
         notifySms: false,
-      });
+      };
+      if (referralFiles.length > 0) {
+        const fd = new FormData();
+        for (const [key, value] of Object.entries(payload)) {
+          if (value != null) fd.append(key, String(value));
+        }
+        for (const file of referralFiles) {
+          fd.append("referralImages", file);
+        }
+        await api.post<{ request: { id: string } }>("/appointments", fd);
+      } else {
+        await api.post<{ request: { id: string } }>("/appointments", payload);
+      }
       setConfirmRequestSummary({
         hospitalName: selectedHospital.name,
         email: email.trim(),
@@ -326,6 +358,20 @@ export default function LandingPage() {
                   />
                 </div>
 
+                <ReferralImageUploadField
+                  id="landing-referral-images"
+                  variant="dropzone"
+                  files={referralFiles}
+                  onFilesChange={setReferralFiles}
+                  labels={{
+                    label: t.heroReferralPhoto,
+                    dropzoneCta: t.heroReferralDropzoneCta,
+                    photosAdded: t.heroReferralPhotosAdded,
+                    removeFromListAria: t.dashboardReferralRemoveFromListAria,
+                    searchLimitNote: t.heroReferralSearchLimitNote,
+                  }}
+                />
+
                 <div className="space-y-1.5">
                   <Label className="flex items-center gap-2 text-sm text-gray-700">
                     <MapPin className="h-4 w-4 text-[#2E7D5B]" />
@@ -397,7 +443,9 @@ export default function LandingPage() {
                   {loading ? (
                     <>
                       <Loader2 className="h-5 w-5 animate-spin" />
-                      {t.analyzing}
+                      {referralFiles.length > 0
+                        ? t.analyzeStatusReadingImages
+                        : t.analyzing}
                     </>
                   ) : (
                     t.analyzeButton
