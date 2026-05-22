@@ -1,7 +1,17 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ChevronDown, Mail, MessageSquare, RefreshCw } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { api } from "@/lib/api";
+import { getApiErrorMessage } from "@/lib/apiError";
 import { ReferralImagesLightbox } from "@/components/ReferralImagesLightbox";
 import { cn } from "@/lib/utils";
 
@@ -48,9 +58,25 @@ function TrackingBadge({ label, on }: { label: string; on: boolean }) {
   );
 }
 
+function StatusBadge({ status }: { status: string }) {
+  const isDone = status.toLowerCase() === "done";
+  return (
+    <span
+      className={cn(
+        "inline-flex rounded-full px-2.5 py-1 text-xs font-medium capitalize",
+        isDone ? "bg-[#e8f5ee] text-[#256B4D]" : "bg-amber-100 text-amber-800",
+      )}
+    >
+      {status}
+    </span>
+  );
+}
+
 export function AdminAppointmentsPage() {
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
+  const [statusUpdatingId, setStatusUpdatingId] = useState<string | null>(null);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["admin-appointments", page, limit],
@@ -63,8 +89,33 @@ export function AdminAppointmentsPage() {
     },
   });
 
+  const statusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: "pending" | "done" }) => {
+      const res = await api.patch<{ request: { id: string; status: string } }>(
+        `/appointments/${id}/status`,
+        { status },
+      );
+      return res.data;
+    },
+    onSuccess: async (_data, variables) => {
+      await queryClient.invalidateQueries({ queryKey: ["admin-appointments"] });
+      toast.success(
+        variables.status === "done" ? "Marked as done." : "Marked as pending.",
+      );
+    },
+    onError: (err) => {
+      toast.error(getApiErrorMessage(err, "Could not update status."));
+    },
+    onSettled: () => setStatusUpdatingId(null),
+  });
+
   const rows = useMemo(() => data?.requests ?? [], [data]);
   const pagination = data?.pagination;
+
+  async function handleStatusChange(row: AppointmentRequestRow, next: "pending" | "done") {
+    setStatusUpdatingId(row.id);
+    statusMutation.mutate({ id: row.id, status: next });
+  }
 
   return (
     <section className="flex h-full min-h-0 flex-col gap-5 overflow-hidden">
@@ -100,62 +151,104 @@ export function AdminAppointmentsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {rows.map((r) => (
-                  <tr key={r.id} className="align-top">
-                    <td className="px-4 py-4 text-sm text-gray-700">{fmtDateTime(r.createdAt)}</td>
-                    <td className="px-4 py-4 text-sm text-gray-700">{r.email}</td>
-                    <td className="px-4 py-4 text-sm text-gray-700">{r.intent ?? "-"}</td>
-                    <td className="px-4 py-4 text-sm text-gray-700">
-                      <p className="font-medium text-gray-900">{r.hospitalName ?? "-"}</p>
-                      <p className="text-xs text-gray-500">{r.city ?? "-"}</p>
-                    </td>
-                    <td className="px-4 py-4 text-sm text-gray-700">{fmtDate(r.preferredDate)}</td>
-                    <td className="px-4 py-4">
-                      <div className="flex max-w-[11rem] flex-wrap gap-1">
-                        <TrackingBadge label="Email" on={r.notifyEmail} />
-                        <TrackingBadge label="Refresh" on={r.notifyFasterRefresh} />
-                        <TrackingBadge label="SMS" on={r.notifySms} />
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <span className="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800">
-                        {r.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4">
-                      <ReferralImagesLightbox paths={r.referralImagePaths ?? []} size="md" />
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex flex-col gap-1.5">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="h-8 rounded-lg border-gray-200 text-xs"
-                        >
-                          Send SMS
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="h-8 rounded-lg border-gray-200 text-xs"
-                        >
-                          Send email
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="h-8 rounded-lg border-[#2E7D5B]/30 text-xs text-[#256B4D]"
-                        >
-                          Refresh
-                        </Button>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 text-sm text-gray-700">{r.query}</td>
-                  </tr>
-                ))}
+                {rows.map((r) => {
+                  const isDone = r.status.toLowerCase() === "done";
+                  const busy = statusUpdatingId === r.id && statusMutation.isPending;
+
+                  return (
+                    <tr key={r.id} className="align-top">
+                      <td className="px-4 py-4 text-sm text-gray-700">
+                        {fmtDateTime(r.createdAt)}
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-700">{r.email}</td>
+                      <td className="px-4 py-4 text-sm text-gray-700">{r.intent ?? "-"}</td>
+                      <td className="px-4 py-4 text-sm text-gray-700">
+                        <p className="font-medium text-gray-900">{r.hospitalName ?? "-"}</p>
+                        <p className="text-xs text-gray-500">{r.city ?? "-"}</p>
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-700">
+                        {fmtDate(r.preferredDate)}
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex max-w-[11rem] flex-wrap gap-1">
+                          <TrackingBadge label="Email" on={r.notifyEmail} />
+                          <TrackingBadge label="Refresh" on={r.notifyFasterRefresh} />
+                          <TrackingBadge label="SMS" on={r.notifySms} />
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <StatusBadge status={r.status} />
+                      </td>
+                      <td className="px-4 py-4">
+                        <ReferralImagesLightbox paths={r.referralImagePaths ?? []} size="md" />
+                      </td>
+                      <td className="px-4 py-4">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              disabled={busy}
+                              className="h-8 gap-1 rounded-lg border-gray-200 text-xs"
+                            >
+                              Actions
+                              <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem
+                              className="cursor-pointer gap-2"
+                              onSelect={() =>
+                                toast.info("Send SMS — demo only (not wired yet).")
+                              }
+                            >
+                              <MessageSquare className="h-4 w-4 text-gray-500" />
+                              Send SMS
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="cursor-pointer gap-2"
+                              onSelect={() =>
+                                toast.info("Send email — demo only (not wired yet).")
+                              }
+                            >
+                              <Mail className="h-4 w-4 text-gray-500" />
+                              Send email
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="cursor-pointer gap-2"
+                              onSelect={() =>
+                                toast.info("Refresh check — demo only (not wired yet).")
+                              }
+                            >
+                              <RefreshCw className="h-4 w-4 text-gray-500" />
+                              Refresh
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            {isDone ? (
+                              <DropdownMenuItem
+                                className="cursor-pointer"
+                                disabled={busy}
+                                onSelect={() => void handleStatusChange(r, "pending")}
+                              >
+                                Mark as pending
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem
+                                className="cursor-pointer text-[#256B4D] focus:text-[#256B4D]"
+                                disabled={busy}
+                                onSelect={() => void handleStatusChange(r, "done")}
+                              >
+                                Done
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-700">{r.query}</td>
+                    </tr>
+                  );
+                })}
                 {rows.length === 0 ? (
                   <tr>
                     <td className="px-4 py-8 text-sm text-gray-500" colSpan={10}>

@@ -22,12 +22,14 @@ import { UserLayout } from "./components/UserLayout";
 import { UserProtectedRoute } from "./components/UserProtectedRoute";
 import { UserSettingsPage } from "./components/UserSettingsPage";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { Toaster } from "@/components/ui/sonner";
 
 function App() {
   return (
     <LanguageProvider>
       <AdminAuthProvider>
         <BrowserRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
+          <Toaster position="top-center" richColors closeButton />
           <UserAuthProvider>
           <Routes>
             <Route path="/" element={<LandingPage />} />

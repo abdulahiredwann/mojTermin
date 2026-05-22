@@ -38,6 +38,7 @@ import { PricingSection } from "@/components/PricingSection";
 import { TrackingNotificationOptions } from "@/components/TrackingNotificationOptions";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { api } from "@/lib/api";
+import { showApiError } from "@/lib/apiError";
 import { cn } from "@/lib/utils";
 
 function HeroIllustration() {
@@ -262,10 +263,7 @@ export default function LandingPage() {
       });
       setConfirmRequestOpen(true);
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ||
-        "Failed to submit appointment request.";
-      setError(msg);
+      setError(showApiError(err, "Failed to submit appointment request."));
     } finally {
       setSubmittingRequest(false);
     }
@@ -566,6 +564,12 @@ export default function LandingPage() {
                       notifySms={notifySms}
                       onNotifySmsChange={setNotifySms}
                     />
+
+                    {error && searchResult ? (
+                      <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                        {error}
+                      </p>
+                    ) : null}
 
                     <Button
                       type="button"

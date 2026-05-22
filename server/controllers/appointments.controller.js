@@ -64,15 +64,37 @@ async function createAppointmentRequest(req, res, next) {
       return res.status(400).json({ error: "Preferred date is required." });
     }
 
-    // If hospitalId provided, ensure it exists (optional for now but helps data integrity)
+    let resolvedHospitalId = null;
+    let resolvedHospitalName = hospitalName;
+    let resolvedCity = city;
+
     if (hospitalId) {
-      const exists = await prisma.hospital.findUnique({
+      const hospitalRow = await prisma.hospital.findUnique({
         where: { id: hospitalId },
         select: { id: true, name: true, city: true },
       });
-      if (!exists) {
-        return res.status(404).json({ error: "Selected hospital not found." });
+      if (hospitalRow) {
+        resolvedHospitalId = hospitalRow.id;
+        resolvedHospitalName = resolvedHospitalName || hospitalRow.name;
+        resolvedCity = resolvedCity || hospitalRow.city;
+      } else {
+        const listing = await prisma.ezdravListing.findUnique({
+          where: { id: hospitalId },
+          select: { provider: true, city: true },
+        });
+        if (listing) {
+          resolvedHospitalName = resolvedHospitalName || listing.provider || null;
+          resolvedCity = resolvedCity || listing.city || null;
+        } else if (!resolvedHospitalName) {
+          return res.status(404).json({
+            error: "Selected hospital not found. Please search again and retry.",
+          });
+        }
       }
+    }
+
+    if (!resolvedHospitalName && !resolvedHospitalId) {
+      return res.status(400).json({ error: "Hospital name is required." });
     }
 
     const files = Array.isArray(req.files) ? req.files : [];
@@ -86,9 +108,9 @@ async function createAppointmentRequest(req, res, next) {
         email,
         query,
         intent,
-        city,
-        hospitalId,
-        hospitalName,
+        city: resolvedCity,
+        hospitalId: resolvedHospitalId,
+        hospitalName: resolvedHospitalName,
         preferredDate,
         notifyWhenAvailable,
         notifyEmail,
@@ -191,8 +213,46 @@ async function listAppointmentRequests(req, res, next) {
   }
 }
 
+async function updateAppointmentRequestStatus(req, res, next) {
+  try {
+    const { id } = req.params;
+    const raw = req.body?.status;
+    const status = typeof raw === "string" ? raw.trim().toLowerCase() : "";
+
+    if (status !== "pending" && status !== "done") {
+      return res.status(400).json({ error: 'Status must be "pending" or "done".' });
+    }
+
+    const existing = await prisma.appointmentRequest.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+    if (!existing) {
+      return res.status(404).json({ error: "Appointment request not found." });
+    }
+
+    const updated = await prisma.appointmentRequest.update({
+      where: { id },
+      data: { status },
+      select: {
+        id: true,
+        status: true,
+        email: true,
+        hospitalName: true,
+        preferredDate: true,
+        createdAt: true,
+      },
+    });
+
+    return res.json({ request: updated });
+  } catch (error) {
+    return next(error);
+  }
+}
+
 module.exports = {
   createAppointmentRequest,
   listAppointmentRequests,
+  updateAppointmentRequestStatus,
 };
 

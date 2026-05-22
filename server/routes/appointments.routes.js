@@ -8,6 +8,7 @@ const {
 const {
   createAppointmentRequest,
   listAppointmentRequests,
+  updateAppointmentRequestStatus,
 } = require("../controllers/appointments.controller");
 
 const router = express.Router();
@@ -15,6 +16,7 @@ const router = express.Router();
 router.post("/", optionalUserAuth, maybeReferralUpload, createAppointmentRequest);
 
 router.get("/", requireAdminAuth, listAppointmentRequests);
+router.patch("/:id/status", requireAdminAuth, updateAppointmentRequestStatus);
 
 router.use(referralMulterErrorHandler);
 

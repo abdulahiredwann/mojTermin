@@ -41,6 +41,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserAuth } from "@/contexts/UserAuthContext";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { api } from "@/lib/api";
+import { showApiError } from "@/lib/apiError";
 import { cn } from "@/lib/utils";
 
 type SlovenianLocation = { city: string; region: string };
@@ -423,10 +424,7 @@ export function UserDashboardPage() {
       setConfirmRequestOpen(true);
       await queryClient.invalidateQueries({ queryKey: ["user-appointments"] });
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ||
-        "Failed to submit appointment request.";
-      setError(msg);
+      setError(showApiError(err, "Failed to submit appointment request."));
     } finally {
       setSubmittingRequest(false);
     }
@@ -848,6 +846,12 @@ export function UserDashboardPage() {
                     onNotifySmsChange={setNotifySms}
                   />
                 </div>
+
+                {error && searchResult ? (
+                  <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                    {error}
+                  </p>
+                ) : null}
 
                 <Button
                   type="button"
