@@ -340,8 +340,24 @@ export default function LandingPage() {
 
               <form
                 onSubmit={handleAnalyze}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => e.preventDefault()}
                 className="max-w-lg space-y-3 rounded-2xl border border-gray-100 bg-white/90 p-4 shadow-sm backdrop-blur-sm md:p-5"
               >
+                <ReferralImageUploadField
+                  id="landing-referral-images"
+                  variant="dropzone"
+                  files={referralFiles}
+                  onFilesChange={setReferralFiles}
+                  labels={{
+                    label: t.heroReferralPhoto,
+                    dropzoneCta: t.heroReferralDropzoneCta,
+                    photosAdded: t.heroReferralPhotosAdded,
+                    removeFromListAria: t.dashboardReferralRemoveFromListAria,
+                    searchLimitNote: t.heroReferralSearchLimitNote,
+                  }}
+                />
+
                 <div className="space-y-1.5">
                   <Label htmlFor="problem" className="text-sm text-gray-700">
                     {t.labelProblem}
@@ -357,20 +373,6 @@ export default function LandingPage() {
                     className="h-11 w-full rounded-xl border-gray-200 text-[15px] shadow-none focus-visible:ring-[#2E7D5B]/30"
                   />
                 </div>
-
-                <ReferralImageUploadField
-                  id="landing-referral-images"
-                  variant="dropzone"
-                  files={referralFiles}
-                  onFilesChange={setReferralFiles}
-                  labels={{
-                    label: t.heroReferralPhoto,
-                    dropzoneCta: t.heroReferralDropzoneCta,
-                    photosAdded: t.heroReferralPhotosAdded,
-                    removeFromListAria: t.dashboardReferralRemoveFromListAria,
-                    searchLimitNote: t.heroReferralSearchLimitNote,
-                  }}
-                />
 
                 <div className="space-y-1.5">
                   <Label className="flex items-center gap-2 text-sm text-gray-700">

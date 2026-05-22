@@ -91,7 +91,9 @@ export function ReferralImageUploadField({
             {labels.dropzoneCta ?? "Add photos"}
           </span>
           {labels.dropzoneSubtext ? (
-            <span className="mt-0.5 text-xs text-gray-500">{labels.dropzoneSubtext}</span>
+            <span className="mt-0.5 text-xs text-gray-500">
+              {labels.dropzoneSubtext}
+            </span>
           ) : null}
         </label>
         <input
@@ -114,7 +116,11 @@ export function ReferralImageUploadField({
                   key={`${file.name}-${file.size}-${file.lastModified}-${i}`}
                   className="group/thumb relative h-16 w-16 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
                 >
-                  <img src={url} alt="" className="h-full w-full object-cover" />
+                  <img
+                    src={url}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
                   <button
                     type="button"
                     onClick={() => removeAt(i)}
@@ -138,7 +144,9 @@ export function ReferralImageUploadField({
         ) : null}
 
         {files.length > MAX_SEARCH_REFERRAL_IMAGES ? (
-          <p className="text-[11px] leading-snug text-amber-800">{labels.searchLimitNote}</p>
+          <p className="text-[11px] leading-snug text-amber-800">
+            {labels.searchLimitNote}
+          </p>
         ) : null}
       </div>
     );
@@ -146,7 +154,10 @@ export function ReferralImageUploadField({
 
   return (
     <div className="space-y-1.5">
-      <Label htmlFor={id} className="flex items-center gap-2 text-sm text-gray-700">
+      <Label
+        htmlFor={id}
+        className="flex items-center gap-2 text-sm text-gray-700"
+      >
         <Upload className="h-4 w-4 text-[#2E7D5B]" aria-hidden />
         {labels.label}
       </Label>
@@ -158,7 +169,9 @@ export function ReferralImageUploadField({
         onChange={handleChange}
         className="h-11 cursor-pointer rounded-xl border border-gray-200 bg-white text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-[#e8f5ee] file:px-3 file:py-2 file:text-sm file:font-medium file:text-[#2E7D5B]"
       />
-      {labels.hint ? <p className="text-xs text-gray-500">{labels.hint}</p> : null}
+      {labels.hint ? (
+        <p className="text-xs text-gray-500">{labels.hint}</p>
+      ) : null}
       {files.length > 0 ? (
         <ul className="max-h-32 space-y-1 overflow-y-auto rounded-lg border border-gray-100 bg-gray-50 p-2">
           {files.map((f, i) => (
@@ -180,7 +193,9 @@ export function ReferralImageUploadField({
         </ul>
       ) : null}
       {files.length > MAX_SEARCH_REFERRAL_IMAGES ? (
-        <p className="text-[11px] leading-snug text-amber-900/90">{labels.searchLimitNote}</p>
+        <p className="text-[11px] leading-snug text-amber-900/90">
+          {labels.searchLimitNote}
+        </p>
       ) : null}
     </div>
   );
