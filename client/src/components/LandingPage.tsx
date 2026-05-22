@@ -352,6 +352,7 @@ export default function LandingPage() {
                   labels={{
                     label: t.heroReferralPhoto,
                     dropzoneCta: t.heroReferralDropzoneCta,
+                    dropzoneDrag: t.heroReferralDropzoneDrag,
                     photosAdded: t.heroReferralPhotosAdded,
                     removeFromListAria: t.dashboardReferralRemoveFromListAria,
                     searchLimitNote: t.heroReferralSearchLimitNote,

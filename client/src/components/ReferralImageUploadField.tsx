@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ImagePlus, Upload, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,7 @@ export type ReferralImageUploadLabels = {
   label: string;
   hint?: string;
   dropzoneCta?: string;
+  dropzoneDrag?: string;
   dropzoneSubtext?: string;
   photosAdded?: string;
   removeFromListAria: string;
@@ -41,6 +42,32 @@ function usePreviewUrls(files: File[]) {
   return urls;
 }
 
+const IMAGE_EXT = /\.(jpe?g|png|gif|webp|bmp|heic|heif|tiff?|avif)$/i;
+
+function isImageFile(file: File) {
+  if (file.type.startsWith("image/")) return true;
+  return IMAGE_EXT.test(file.name);
+}
+
+function pickImageFiles(incoming: File[]) {
+  return incoming.filter(isImageFile);
+}
+
+function filesFromDataTransfer(dt: DataTransfer) {
+  const out: File[] = [];
+  if (dt.items?.length) {
+    for (const item of dt.items) {
+      if (item.kind === "file") {
+        const file = item.getAsFile();
+        if (file) out.push(file);
+      }
+    }
+  } else if (dt.files?.length) {
+    out.push(...Array.from(dt.files));
+  }
+  return out;
+}
+
 export function ReferralImageUploadField({
   files,
   onFilesChange,
@@ -49,21 +76,72 @@ export function ReferralImageUploadField({
   variant = "default",
 }: ReferralImageUploadFieldProps) {
   const previews = usePreviewUrls(files);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [dragActive, setDragActive] = useState(false);
+  const dragDepthRef = useRef(0);
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const incoming = Array.from(e.target.files ?? []);
-    e.target.value = "";
-    if (incoming.length === 0) return;
+  function appendFiles(incoming: File[]) {
+    const images = pickImageFiles(incoming);
+    if (images.length === 0) return;
     const next = [...files];
-    for (const file of incoming) {
+    for (const file of images) {
       if (next.length >= MAX_REFERRAL_IMAGES) break;
       next.push(file);
     }
     onFilesChange(next);
   }
 
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    appendFiles(Array.from(e.target.files ?? []));
+    e.target.value = "";
+  }
+
   function removeAt(index: number) {
     onFilesChange(files.filter((_, i) => i !== index));
+  }
+
+  function handleDragEnter(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+    const related = e.relatedTarget as Node | null;
+    if (related && e.currentTarget.contains(related)) return;
+    if (e.dataTransfer.types.includes("Files")) {
+      e.dataTransfer.dropEffect = "copy";
+    }
+    dragDepthRef.current += 1;
+    setDragActive(true);
+  }
+
+  function handleDragLeave(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+    const related = e.relatedTarget as Node | null;
+    if (related && e.currentTarget.contains(related)) return;
+    dragDepthRef.current -= 1;
+    if (dragDepthRef.current <= 0) {
+      dragDepthRef.current = 0;
+      setDragActive(false);
+    }
+  }
+
+  function handleDragOver(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer.types.includes("Files")) {
+      e.dataTransfer.dropEffect = "copy";
+    }
+  }
+
+  function handleDrop(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+    dragDepthRef.current = 0;
+    setDragActive(false);
+    appendFiles(filesFromDataTransfer(e.dataTransfer));
+  }
+
+  function openFilePicker() {
+    inputRef.current?.click();
   }
 
   if (variant === "dropzone") {
@@ -72,76 +150,103 @@ export function ReferralImageUploadField({
         ? labels.photosAdded.replace("{count}", String(files.length))
         : null;
 
+    const dropHandlers = {
+      onDragEnter: handleDragEnter,
+      onDragLeave: handleDragLeave,
+      onDragOver: handleDragOver,
+      onDrop: handleDrop,
+    };
+
     return (
       <div className="space-y-2">
         <p className="text-sm font-medium text-gray-700">{labels.label}</p>
-        <label
-          htmlFor={id}
-          className={cn(
-            "group flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-5 transition-colors",
-            files.length > 0
-              ? "border-[#2E7D5B]/30 bg-[#f6fbf8]/80 hover:border-[#2E7D5B]/45"
-              : "border-gray-200 bg-gray-50/80 hover:border-[#2E7D5B]/35 hover:bg-[#f6fbf8]",
-          )}
-        >
-          <span className="mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-[#e8f5ee] text-[#2E7D5B] transition-colors group-hover:bg-[#d7ebdc]">
-            <ImagePlus className="h-5 w-5" aria-hidden />
-          </span>
-          <span className="text-sm font-semibold text-[#256B4D]">
-            {labels.dropzoneCta ?? "Add photos"}
-          </span>
-          {labels.dropzoneSubtext ? (
-            <span className="mt-0.5 text-xs text-gray-500">
-              {labels.dropzoneSubtext}
+        <div {...dropHandlers} className="rounded-xl">
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={openFilePicker}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                openFilePicker();
+              }
+            }}
+            className={cn(
+              "group flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-5 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[#2E7D5B]/30",
+              dragActive
+                ? "border-[#2E7D5B] bg-[#e8f5ee]"
+                : files.length > 0
+                  ? "border-[#2E7D5B]/30 bg-[#f6fbf8]/80 hover:border-[#2E7D5B]/45"
+                  : "border-gray-200 bg-gray-50/80 hover:border-[#2E7D5B]/35 hover:bg-[#f6fbf8]",
+            )}
+          >
+            <span className="mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-[#e8f5ee] text-[#2E7D5B] transition-colors group-hover:bg-[#d7ebdc]">
+              <ImagePlus className="h-5 w-5" aria-hidden />
             </span>
-          ) : null}
-        </label>
-        <input
-          id={id}
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={handleChange}
-          className="sr-only"
-        />
-
-        {files.length > 0 ? (
-          <div className="space-y-2">
-            {countLabel ? (
-              <p className="text-xs font-medium text-gray-600">{countLabel}</p>
+            <span className="text-sm font-semibold text-[#256B4D]">
+              {dragActive
+                ? (labels.dropzoneDrag ?? "Drop images here")
+                : (labels.dropzoneCta ?? "Add referral")}
+            </span>
+            {labels.dropzoneSubtext ? (
+              <span className="mt-0.5 text-xs text-gray-500">
+                {labels.dropzoneSubtext}
+              </span>
             ) : null}
-            <div className="flex flex-wrap gap-2">
-              {previews.map(({ file, url }, i) => (
-                <div
-                  key={`${file.name}-${file.size}-${file.lastModified}-${i}`}
-                  className="group/thumb relative h-16 w-16 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
-                >
-                  <img
-                    src={url}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
+          </div>
+          <input
+            ref={inputRef}
+            id={id}
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleChange}
+            className="sr-only"
+          />
+
+          {files.length > 0 ? (
+            <div className="mt-2 space-y-2">
+              {countLabel ? (
+                <p className="text-xs font-medium text-gray-600">{countLabel}</p>
+              ) : null}
+              <div className="flex flex-wrap gap-2">
+                {previews.map(({ file, url }, i) => (
+                  <div
+                    key={`${file.name}-${file.size}-${file.lastModified}-${i}`}
+                    className="group/thumb relative h-16 w-16 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
+                  >
+                    <img
+                      src={url}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeAt(i);
+                      }}
+                      className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-gray-900/75 text-white opacity-0 transition-opacity group-hover/thumb:opacity-100 focus:opacity-100"
+                      aria-label={labels.removeFromListAria}
+                    >
+                      <X className="h-3 w-3" aria-hidden />
+                    </button>
+                  </div>
+                ))}
+                {files.length < MAX_REFERRAL_IMAGES ? (
                   <button
                     type="button"
-                    onClick={() => removeAt(i)}
-                    className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-gray-900/75 text-white opacity-0 transition-opacity group-hover/thumb:opacity-100 focus:opacity-100"
-                    aria-label={labels.removeFromListAria}
+                    onClick={openFilePicker}
+                    className="flex h-16 w-16 cursor-pointer items-center justify-center rounded-lg border border-dashed border-gray-200 bg-gray-50 text-gray-400 transition-colors hover:border-[#2E7D5B]/40 hover:text-[#2E7D5B]"
+                    aria-label={labels.dropzoneCta ?? "Add referral"}
                   >
-                    <X className="h-3 w-3" aria-hidden />
+                    <ImagePlus className="h-5 w-5" aria-hidden />
                   </button>
-                </div>
-              ))}
-              {files.length < MAX_REFERRAL_IMAGES ? (
-                <label
-                  htmlFor={id}
-                  className="flex h-16 w-16 cursor-pointer items-center justify-center rounded-lg border border-dashed border-gray-200 bg-gray-50 text-gray-400 transition-colors hover:border-[#2E7D5B]/40 hover:text-[#2E7D5B]"
-                >
-                  <ImagePlus className="h-5 w-5" aria-hidden />
-                </label>
-              ) : null}
+                ) : null}
+              </div>
             </div>
-          </div>
-        ) : null}
+          ) : null}
+        </div>
 
         {files.length > MAX_SEARCH_REFERRAL_IMAGES ? (
           <p className="text-[11px] leading-snug text-amber-800">
