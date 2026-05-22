@@ -33,6 +33,10 @@ async function loginUser(req, res, next) {
       return res.status(401).json({ error: "Invalid credentials." });
     }
 
+    if (userFull.restricted) {
+      return res.status(403).json({ error: "This account has been restricted. Contact support." });
+    }
+
     const sessionToken = crypto.randomUUID();
     await prisma.user.update({
       where: { id: userFull.id },

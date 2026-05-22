@@ -5,6 +5,8 @@ import { LoginPage } from "./components/LoginPage";
 import PrivacyPage from "./components/PrivacyPage";
 import { SignupPage } from "./components/SignupPage";
 import { AdminComingSoonPage } from "./components/admin/AdminComingSoonPage";
+import { AdminUsersPage } from "./components/admin/AdminUsersPage";
+import { AdminUserDetailPage } from "./components/admin/AdminUserDetailPage";
 import { AdminAppointmentsPage } from "./components/admin/AdminAppointmentsPage";
 import { AdminHospitalScrapePage } from "./components/admin/AdminHospitalScrapePage";
 import { AdminHospitalsPage } from "./components/admin/AdminHospitalsPage";
@@ -49,8 +51,9 @@ function App() {
             <Route path="/admin/login" element={<AdminLoginPage />} />
             <Route element={<AdminProtectedRoute />}>
               <Route path="/admin" element={<AdminLayout />}>
-                <Route index element={<AdminComingSoonPage title="User list" />} />
-                <Route path="users" element={<AdminComingSoonPage title="User list" />} />
+                <Route index element={<Navigate to="/admin/users" replace />} />
+                <Route path="users" element={<AdminUsersPage />} />
+                <Route path="users/:userId" element={<AdminUserDetailPage />} />
                 <Route path="appointments" element={<AdminAppointmentsPage />} />
                 <Route path="hospitals" element={<AdminHospitalsPage />} />
                 <Route path="hospital-scrape" element={<AdminHospitalScrapePage />} />

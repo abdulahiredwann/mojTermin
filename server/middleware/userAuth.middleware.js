@@ -33,8 +33,14 @@ async function optionalUserAuth(req, _res, next) {
         subscriptionPlan: true,
         subscriptionStartedAt: true,
         subscriptionEndsAt: true,
+        restricted: true,
       },
     });
+
+    if (user?.restricted) {
+      req.user = null;
+      return next();
+    }
 
     req.user = user ? sanitizePublicUser(user) : null;
     return next();
@@ -60,11 +66,16 @@ async function requireUserAuth(req, res, next) {
         subscriptionPlan: true,
         subscriptionStartedAt: true,
         subscriptionEndsAt: true,
+        restricted: true,
       },
     });
 
     if (!user) {
       return res.status(401).json({ error: "Unauthorized." });
+    }
+
+    if (user.restricted) {
+      return res.status(403).json({ error: "This account has been restricted." });
     }
 
     req.user = sanitizePublicUser(user);
