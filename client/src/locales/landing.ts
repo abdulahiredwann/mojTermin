@@ -122,6 +122,8 @@ export type LandingStrings = {
   userMenuAria: string;
   userSettingsIntro: string;
   heroValidationPickCity: string;
+  heroValidationNeedReferralOrInput: string;
+  labelProblemOptional: string;
   dashboardPageTitle: string;
   dashboardIntro: string;
   dashboardYourCity: string;
@@ -392,7 +394,10 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     userSettingsIntro:
       "Manage your account preferences here. More options will be available soon.",
     authPasswordMismatch: "Passwords do not match.",
-    heroValidationPickCity: "Please choose your city.",
+    heroValidationPickCity: "Please select the city you want.",
+    heroValidationNeedReferralOrInput:
+      "Upload a referral photo or describe what you need.",
+    labelProblemOptional: "What do you need? (optional)",
     dashboardPageTitle: "Your dashboard",
     dashboardIntro:
       "Check availability, add an optional referral photo, and track your requests.",
@@ -679,7 +684,10 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     userSettingsIntro:
       "Tukaj boste kmalu upravljali nastavitve računa. Funkcija je v pripravi.",
     authPasswordMismatch: "Gesli se ne ujemata.",
-    heroValidationPickCity: "Izberite mesto.",
+    heroValidationPickCity: "Izberite mesto, ki ga želite.",
+    heroValidationNeedReferralOrInput:
+      "Naložite fotografijo napotnice ali opišite, kaj potrebujete.",
+    labelProblemOptional: "Kaj potrebujete? (neobvezno)",
     dashboardPageTitle: "Vaša nadzorna plošča",
     dashboardIntro:
       "Preverite razpoložljivost, dodajte neobvezno fotografijo napotnice in spremljajte svoje zahteve.",

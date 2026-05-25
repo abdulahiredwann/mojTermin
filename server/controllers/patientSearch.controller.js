@@ -31,7 +31,10 @@ async function searchAppointments(req, res, next) {
   const uploaded = Array.isArray(req.files) ? req.files : [];
 
   try {
-    const query = typeof req.body?.query === "string" ? req.body.query.trim() : "";
+    let query = typeof req.body?.query === "string" ? req.body.query.trim() : "";
+    if (!query && uploaded.length > 0) {
+      query = "Referral from uploaded image";
+    }
     if (!query) {
       await unlinkUploadPaths(uploaded);
       return res.status(400).json({ error: "Query is required." });

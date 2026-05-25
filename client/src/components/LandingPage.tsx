@@ -218,17 +218,33 @@ export default function LandingPage() {
     return searchResult.hospitals.find((h) => h.id === selectedHospitalId) || null;
   }, [selectedHospitalId, searchResult]);
 
+  function buildSearchQuery(): string {
+    const text = problem.trim();
+    if (text) return text;
+    if (referralFiles.length > 0) return "Referral from uploaded image";
+    return "";
+  }
+
   async function handleAnalyze(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!problem.trim()) {
-      setError(t.heroValidationNeedInput);
-      return;
-    }
+
+    const hasImages = referralFiles.length > 0;
+    const hasText = problem.trim().length > 0;
+
+    // City is always required
     if (!selectedLocation) {
       setError(t.heroValidationPickCity);
       return;
     }
+
+    // If no images uploaded, "What do you need?" is required
+    if (!hasImages && !hasText) {
+      setError(t.heroValidationNeedInput);
+      return;
+    }
+
+    const searchQuery = buildSearchQuery();
     setLoading(true);
     setSearchResult(null);
     setSelectedHospitalId("");
@@ -243,7 +259,7 @@ export default function LandingPage() {
       let data: SearchResult;
       if (searchFiles.length > 0) {
         const fd = new FormData();
-        fd.append("query", problem);
+        fd.append("query", searchQuery);
         fd.append("city", selectedLocation.city);
         for (const f of searchFiles) {
           fd.append("referralImages", f);
@@ -252,7 +268,7 @@ export default function LandingPage() {
         data = res.data;
       } else {
         const res = await api.post<SearchResult>("/search", {
-          query: problem,
+          query: searchQuery,
           city: selectedLocation.city,
         });
         data = res.data;
@@ -317,7 +333,7 @@ export default function LandingPage() {
     if (!user) {
       savePendingRequest({
         email: requestEmail,
-        query: problem,
+        query: problem.trim() || searchResult.intent,
         intent: searchResult.intent,
         city: selectedHospital.city,
         hospitalId: selectedHospital.id,
@@ -335,7 +351,7 @@ export default function LandingPage() {
     try {
       const payload = {
         email: requestEmail,
-        query: problem,
+        query: problem.trim() || searchResult.intent,
         intent: searchResult.intent,
         city: selectedHospital.city,
         hospitalId: selectedHospital.id,
@@ -452,25 +468,9 @@ export default function LandingPage() {
                 />
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="problem" className="text-sm text-gray-700">
-                    {t.labelProblem}
-                  </Label>
-                  <Input
-                    id="problem"
-                    name="problem"
-                    autoComplete="off"
-                    placeholder={t.placeholderProblem}
-                    value={problem}
-                    onChange={(e) => setProblem(e.target.value)}
-                    maxLength={180}
-                    className="h-11 w-full rounded-xl border-gray-200 text-[15px] shadow-none focus-visible:ring-[#2E7D5B]/30"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
                   <Label className="flex items-center gap-2 text-sm text-gray-700">
                     <MapPin className="h-4 w-4 text-[#2E7D5B]" />
-                    Your city
+                    {t.dashboardYourCity}
                   </Label>
                   <Popover open={cityPopoverOpen} onOpenChange={setCityPopoverOpen}>
                     <PopoverTrigger asChild>
@@ -508,6 +508,7 @@ export default function LandingPage() {
                                 onSelect={() => {
                                   setSelectedLocation(loc);
                                   setCityPopoverOpen(false);
+                                  setError(null);
                                 }}
                               >
                                 <div className="flex flex-col">
@@ -528,7 +529,27 @@ export default function LandingPage() {
                   ) : null}
                 </div>
 
-                {error ? <p className="text-xs text-red-600">{error}</p> : null}
+                <div className="space-y-1.5">
+                  <Label htmlFor="problem" className="text-sm text-gray-700">
+                    {referralFiles.length > 0 ? t.labelProblemOptional : t.labelProblem}
+                  </Label>
+                  <Input
+                    id="problem"
+                    name="problem"
+                    autoComplete="off"
+                    placeholder={t.placeholderProblem}
+                    value={problem}
+                    onChange={(e) => setProblem(e.target.value)}
+                    maxLength={180}
+                    className="h-11 w-full rounded-xl border-gray-200 text-[15px] shadow-none focus-visible:ring-[#2E7D5B]/30"
+                  />
+                </div>
+
+                {error ? (
+                  <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                    {error}
+                  </p>
+                ) : null}
 
                 {checkAvailabilityButton}
               </form>
