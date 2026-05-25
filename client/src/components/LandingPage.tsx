@@ -11,7 +11,7 @@ import {
   Phone,
   CheckCircle2,
 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,8 +41,10 @@ import {
 } from "@/components/ReferralImageUploadField";
 import { TrackingNotificationOptions } from "@/components/TrackingNotificationOptions";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useUserAuth } from "@/contexts/UserAuthContext";
 import { api } from "@/lib/api";
 import { showApiError } from "@/lib/apiError";
+import { savePendingRequest } from "@/lib/pendingRequest";
 import { cn } from "@/lib/utils";
 
 const HERO_KEYWORD_INTERVAL_MS = 3200;
@@ -158,7 +160,13 @@ function hospitalEstimatedWaitDays(hospital: SearchResult["hospitals"][number]):
 
 export default function LandingPage() {
   const { t, locale } = useLanguage();
+  const { user } = useUserAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user?.email) setEmail(user.email);
+  }, [user?.email]);
 
   useEffect(() => {
     if (location.hash !== "#pricing") return;
@@ -297,12 +305,35 @@ export default function LandingPage() {
 
   async function handleConfirmRequest() {
     if (!searchResult || !selectedHospital || !selectedDate) return;
+
+    const requestEmail = email.trim();
+    if (!requestEmail) {
+      setError(locale === "sl" ? "Vnesite e-pošto." : "Please enter your email.");
+      return;
+    }
+
+    // If not logged in, save request and redirect to signup
+    if (!user) {
+      savePendingRequest({
+        email: requestEmail,
+        query: problem,
+        intent: searchResult.intent,
+        city: selectedHospital.city,
+        hospitalId: selectedHospital.id,
+        hospitalName: selectedHospital.name,
+        preferredDate: selectedDate,
+        notifyEmail,
+      });
+      navigate("/signup");
+      return;
+    }
+
     setError(null);
     setSubmittingRequest(true);
     const preferredDateLabel = formatDate(new Date(`${selectedDate}T12:00:00`));
     try {
       const payload = {
-        email,
+        email: requestEmail,
         query: problem,
         intent: searchResult.intent,
         city: selectedHospital.city,
@@ -327,7 +358,7 @@ export default function LandingPage() {
       }
       setConfirmRequestSummary({
         hospitalName: selectedHospital.name,
-        email: email.trim(),
+        email: requestEmail,
         preferredDateLabel,
         notifyEmail,
         notifyFasterRefresh: false,

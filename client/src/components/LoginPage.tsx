@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { SiteHeader } from "@/components/SiteHeader";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserAuth } from "@/contexts/UserAuthContext";
+import { loadPendingRequest, clearPendingRequest } from "@/lib/pendingRequest";
+import { api } from "@/lib/api";
 
 function GoogleIcon() {
   return (
@@ -41,10 +43,38 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!authLoading && user) {
+    const pending = loadPendingRequest();
+    if (pending?.email) setEmail(pending.email);
+  }, []);
+
+  useEffect(() => {
+    if (!authLoading && user && !busy) {
+      // If user navigated here while already logged in, handle any pending request
+      const pending = loadPendingRequest();
+      if (pending) {
+        api.post("/appointments", {
+          email: pending.email,
+          query: pending.query,
+          intent: pending.intent,
+          city: pending.city,
+          hospitalId: pending.hospitalId,
+          hospitalName: pending.hospitalName,
+          preferredDate: pending.preferredDate,
+          notifyEmail: pending.notifyEmail,
+          notifyFasterRefresh: false,
+          notifySms: false,
+        }).then(() => {
+          clearPendingRequest();
+          navigate("/user/appointments", { replace: true });
+        }).catch(() => {
+          clearPendingRequest();
+          navigate("/user/dashboard", { replace: true });
+        });
+        return;
+      }
       navigate("/user/dashboard", { replace: true });
     }
-  }, [authLoading, user, navigate]);
+  }, [authLoading, user, navigate, busy]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -52,6 +82,31 @@ export function LoginPage() {
     setBusy(true);
     try {
       await login(email, password);
+
+      // Check for pending request from landing page
+      const pending = loadPendingRequest();
+      if (pending) {
+        try {
+          await api.post("/appointments", {
+            email: pending.email,
+            query: pending.query,
+            intent: pending.intent,
+            city: pending.city,
+            hospitalId: pending.hospitalId,
+            hospitalName: pending.hospitalName,
+            preferredDate: pending.preferredDate,
+            notifyEmail: pending.notifyEmail,
+            notifyFasterRefresh: false,
+            notifySms: false,
+          });
+          clearPendingRequest();
+          navigate("/user/appointments", { replace: true });
+          return;
+        } catch {
+          clearPendingRequest();
+        }
+      }
+
       const from = (location.state as { from?: string } | null)?.from;
       navigate(from && from.startsWith("/") ? from : "/user/dashboard", { replace: true });
     } catch (err) {
