@@ -372,6 +372,23 @@ export default function LandingPage() {
     }
   }
 
+  const checkAvailabilityButton = (
+    <Button
+      type="submit"
+      disabled={loading}
+      className="w-full rounded-full bg-[#2E7D5B] py-3 text-sm font-semibold text-white shadow-md shadow-[#2E7D5B]/15 hover:bg-[#256B4D] md:text-base"
+    >
+      {loading ? (
+        <>
+          <Loader2 className="h-5 w-5 animate-spin" />
+          {referralFiles.length > 0 ? t.analyzeStatusReadingImages : t.analyzing}
+        </>
+      ) : (
+        t.analyzeButton
+      )}
+    </Button>
+  );
+
   return (
     <div className="relative min-h-screen bg-white overflow-hidden">
       <div className="absolute top-0 right-0 w-1/2 h-[44rem] pointer-events-none z-0">
@@ -422,6 +439,7 @@ export default function LandingPage() {
                   variant="dropzone"
                   files={referralFiles}
                   onFilesChange={setReferralFiles}
+                  actionWhenHasFiles={referralFiles.length > 0 ? checkAvailabilityButton : undefined}
                   labels={{
                     label: t.heroReferralPhoto,
                     dropzoneCta: t.heroReferralDropzoneCta,
@@ -511,22 +529,7 @@ export default function LandingPage() {
 
                 {error ? <p className="text-xs text-red-600">{error}</p> : null}
 
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full rounded-full bg-[#2E7D5B] py-5 text-sm font-semibold text-white shadow-md shadow-[#2E7D5B]/15 hover:bg-[#256B4D] md:text-base"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      {referralFiles.length > 0
-                        ? t.analyzeStatusReadingImages
-                        : t.analyzing}
-                    </>
-                  ) : (
-                    t.analyzeButton
-                  )}
-                </Button>
+                {checkAvailabilityButton}
               </form>
             </div>
 

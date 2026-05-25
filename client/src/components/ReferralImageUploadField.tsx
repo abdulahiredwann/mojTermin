@@ -25,6 +25,8 @@ type ReferralImageUploadFieldProps = {
   labels: ReferralImageUploadLabels;
   id?: string;
   variant?: "default" | "dropzone";
+  /** Shown below photo thumbnails when at least one image is added (e.g. Check availability). */
+  actionWhenHasFiles?: React.ReactNode;
 };
 
 function usePreviewUrls(files: File[]) {
@@ -80,6 +82,7 @@ export function ReferralImageUploadField({
   labels,
   id = "referral-images",
   variant = "default",
+  actionWhenHasFiles,
 }: ReferralImageUploadFieldProps) {
   const previews = usePreviewUrls(files);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -262,6 +265,11 @@ export function ReferralImageUploadField({
                   </button>
                 ) : null}
               </div>
+              {actionWhenHasFiles ? (
+                <div className="pt-1" onClick={(e) => e.stopPropagation()}>
+                  {actionWhenHasFiles}
+                </div>
+              ) : null}
             </div>
           ) : null}
         </div>
