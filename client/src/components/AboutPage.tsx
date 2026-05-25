@@ -1,3 +1,4 @@
+import { SiteBottom } from "@/components/app";
 import { SiteHeader } from "@/components/SiteHeader";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -41,6 +42,8 @@ export default function AboutPage() {
           </p>
         </div>
       </section>
+
+      <SiteBottom />
     </div>
   );
 }

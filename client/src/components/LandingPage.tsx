@@ -35,6 +35,7 @@ import {
 import { FloatingChatDemo } from "@/components/FloatingChatDemo";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PricingSection } from "@/components/PricingSection";
+import { SiteBottom } from "@/components/app";
 import {
   MAX_SEARCH_REFERRAL_IMAGES,
   ReferralImageUploadField,
@@ -829,25 +830,7 @@ export default function LandingPage() {
 
       <PricingSection />
 
-      <footer className="border-t border-gray-100 py-10">
-        <div className="max-w-5xl mx-auto px-6 md:px-12 text-center">
-          <nav className="flex flex-wrap justify-center gap-8 mb-6">
-            <Link to="/about" className="text-sm text-gray-500 hover:text-[#2E7D5B] transition-colors">
-              {t.footerAbout}
-            </Link>
-            <a href="#" className="text-sm text-gray-500 hover:text-[#2E7D5B] transition-colors">
-              {t.footerTerms}
-            </a>
-            <Link to="/privacy" className="text-sm text-gray-500 hover:text-[#2E7D5B] transition-colors">
-              {t.footerPrivacy}
-            </Link>
-            <Link to="/contact" className="text-sm text-gray-500 hover:text-[#2E7D5B] transition-colors">
-              {t.footerContact}
-            </Link>
-          </nav>
-          <p className="text-xs text-gray-400">{t.footerCopyright}</p>
-        </div>
-      </footer>
+      <SiteBottom />
 
       <Dialog open={confirmRequestOpen} onOpenChange={handleConfirmDialogOpenChange}>
         <DialogContent className="border-gray-200 sm:max-w-md">

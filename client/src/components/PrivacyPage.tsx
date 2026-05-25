@@ -1,3 +1,4 @@
+import { SiteBottom } from "@/components/app";
 import { SiteHeader } from "@/components/SiteHeader";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -116,6 +117,8 @@ export default function PrivacyPage() {
           ))}
         </div>
       </section>
+
+      <SiteBottom />
     </div>
   );
 }

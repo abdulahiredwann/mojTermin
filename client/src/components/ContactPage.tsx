@@ -1,4 +1,5 @@
 import { Mail, MapPin, Phone } from "lucide-react";
+import { SiteBottom } from "@/components/app";
 import { SiteHeader } from "@/components/SiteHeader";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -54,6 +55,8 @@ export default function ContactPage() {
           </div>
         </div>
       </section>
+
+      <SiteBottom />
     </div>
   );
 }

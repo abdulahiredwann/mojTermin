@@ -29,6 +29,14 @@ export type LandingStrings = {
   footerPrivacy: string;
   footerContact: string;
   footerCopyright: string;
+  footerDisclaimer: string;
+  footerAppDownloadTitle: string;
+  footerAppStoreCta: string;
+  footerAppStoreLabel: string;
+  footerAppStoreAria: string;
+  footerPlayStoreCta: string;
+  footerPlayStoreLabel: string;
+  footerPlayStoreAria: string;
   howTitle: string;
   step1Title: string;
   step1Body: string;
@@ -261,7 +269,16 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     footerTerms: "Terms of use",
     footerPrivacy: "Privacy",
     footerContact: "Contact",
-    footerCopyright: "© 2024 MojTermin. All rights reserved.",
+    footerCopyright: "© 2026 MojTermin. All rights reserved.",
+    footerDisclaimer:
+      "MojTermin is not a healthcare provider and does not guarantee appointment booking. Information is for guidance only.",
+    footerAppDownloadTitle: "Download the app",
+    footerAppStoreCta: "Download on the",
+    footerAppStoreLabel: "App Store",
+    footerAppStoreAria: "Download on the App Store",
+    footerPlayStoreCta: "Get it on",
+    footerPlayStoreLabel: "Google Play",
+    footerPlayStoreAria: "Get it on Google Play",
     howTitle: "How it works?",
     step1Title: "1. Upload your referral",
     step1Body: "Easily submit your e-referral.",
@@ -537,7 +554,16 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     footerTerms: "Pogoji uporabe",
     footerPrivacy: "Zasebnost",
     footerContact: "Kontakt",
-    footerCopyright: "© 2024 MojTermin. Vse pravice pridržane.",
+    footerCopyright: "© 2026 MojTermin. Vse pravice pridržane.",
+    footerDisclaimer:
+      "MojTermin ni izvajalec zdravstvenih storitev in ne zagotavlja rezervacije terminov. Podatki so informativne narave.",
+    footerAppDownloadTitle: "Prenesite aplikacijo",
+    footerAppStoreCta: "Prenesite na",
+    footerAppStoreLabel: "App Store",
+    footerAppStoreAria: "Prenesite na App Store",
+    footerPlayStoreCta: "Na voljo na",
+    footerPlayStoreLabel: "Google Play",
+    footerPlayStoreAria: "Prenesite na Google Play",
     howTitle: "Kako deluje?",
     step1Title: "1. Naložite napotnico",
     step1Body: "Enostavno oddajte e-napotnico.",
