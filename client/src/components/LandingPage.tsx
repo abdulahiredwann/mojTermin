@@ -5,7 +5,6 @@ import {
   Loader2,
   MapPin,
   Building2,
-  Calendar,
   Search,
   Clock,
   Phone,
@@ -145,9 +144,9 @@ type SearchResult = {
 };
 
 type ConfirmRequestSummary = {
-  hospitalName: string;
+  requestCount: number;
+  hospitalNames: string[];
   email: string;
-  preferredDateLabel: string;
   notifyEmail: boolean;
   notifyFasterRefresh: boolean;
   notifySms: boolean;
@@ -183,8 +182,7 @@ export default function LandingPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
-  const [selectedHospitalId, setSelectedHospitalId] = useState<string>("");
-  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [selectedHospitalIds, setSelectedHospitalIds] = useState<string[]>([]);
   const [email, setEmail] = useState<string>("");
   const [submittingRequest, setSubmittingRequest] = useState(false);
   const [confirmRequestOpen, setConfirmRequestOpen] = useState(false);
@@ -212,11 +210,11 @@ export default function LandingPage() {
     return searchResult.hospitals;
   }, [searchResult]);
 
-  // Get selected hospital details
-  const selectedHospital = useMemo(() => {
-    if (!selectedHospitalId || !searchResult) return null;
-    return searchResult.hospitals.find((h) => h.id === selectedHospitalId) || null;
-  }, [selectedHospitalId, searchResult]);
+  const selectedHospitals = useMemo(() => {
+    if (!searchResult || selectedHospitalIds.length === 0) return [];
+    const selectedSet = new Set(selectedHospitalIds);
+    return searchResult.hospitals.filter((h) => selectedSet.has(h.id));
+  }, [selectedHospitalIds, searchResult]);
 
   function buildSearchQuery(): string {
     const text = problem.trim();
@@ -247,8 +245,7 @@ export default function LandingPage() {
     const searchQuery = buildSearchQuery();
     setLoading(true);
     setSearchResult(null);
-    setSelectedHospitalId("");
-    setSelectedDate("");
+    setSelectedHospitalIds([]);
     setEmail("");
     setNotifyEmail(true);
     setNotifyFasterRefresh(false);
@@ -292,19 +289,21 @@ export default function LandingPage() {
     return date;
   };
 
-  // Format date for display
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString(locale === "sl" ? "sl-SI" : "en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-  };
+  function toDateInputValue(date: Date): string {
+    const y = date.getUTCFullYear();
+    const m = String(date.getUTCMonth() + 1).padStart(2, "0");
+    const d = String(date.getUTCDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+
+  function getPreferredDateForHospital(hospital: SearchResult["hospitals"][number]): string {
+    const waitDays = hospitalEstimatedWaitDays(hospital);
+    return toDateInputValue(getEarliestDate(waitDays));
+  }
 
   function resetHeroAvailabilitySection() {
     setSearchResult(null);
-    setSelectedHospitalId("");
-    setSelectedDate("");
+    setSelectedHospitalIds([]);
     setEmail("");
     setNotifyEmail(true);
     setNotifyFasterRefresh(false);
@@ -321,7 +320,11 @@ export default function LandingPage() {
   }
 
   async function handleConfirmRequest() {
-    if (!searchResult || !selectedHospital || !selectedDate) return;
+    if (!searchResult) return;
+    if (selectedHospitals.length === 0) {
+      setError(locale === "sl" ? "Izberite vsaj en zdravstveni zavod." : "Please select at least one hospital.");
+      return;
+    }
 
     const requestEmail = email.trim();
     if (!requestEmail) {
@@ -329,16 +332,32 @@ export default function LandingPage() {
       return;
     }
 
+    const queryForRequest = problem.trim() || searchResult.intent;
+    const requestPayloads = selectedHospitals.map((hospital) => ({
+      email: requestEmail,
+      query: queryForRequest,
+      intent: searchResult.intent,
+      city: hospital.city,
+      hospitalId: hospital.id,
+      hospitalName: hospital.name,
+      preferredDate: getPreferredDateForHospital(hospital),
+      notifyEmail,
+      notifyFasterRefresh: false,
+      notifySms: false,
+    }));
+
     // If not logged in, save request and redirect to signup
     if (!user) {
       savePendingRequest({
         email: requestEmail,
-        query: problem.trim() || searchResult.intent,
+        query: queryForRequest,
         intent: searchResult.intent,
-        city: selectedHospital.city,
-        hospitalId: selectedHospital.id,
-        hospitalName: selectedHospital.name,
-        preferredDate: selectedDate,
+        requests: requestPayloads.map((p) => ({
+          city: p.city,
+          hospitalId: p.hospitalId,
+          hospitalName: p.hospitalName,
+          preferredDate: p.preferredDate,
+        })),
         notifyEmail,
       });
       navigate("/signup");
@@ -347,36 +366,27 @@ export default function LandingPage() {
 
     setError(null);
     setSubmittingRequest(true);
-    const preferredDateLabel = formatDate(new Date(`${selectedDate}T12:00:00`));
     try {
-      const payload = {
-        email: requestEmail,
-        query: problem.trim() || searchResult.intent,
-        intent: searchResult.intent,
-        city: selectedHospital.city,
-        hospitalId: selectedHospital.id,
-        hospitalName: selectedHospital.name,
-        preferredDate: selectedDate,
-        notifyEmail,
-        notifyFasterRefresh: false,
-        notifySms: false,
-      };
-      if (referralFiles.length > 0) {
-        const fd = new FormData();
-        for (const [key, value] of Object.entries(payload)) {
-          if (value != null) fd.append(key, String(value));
-        }
-        for (const file of referralFiles) {
-          fd.append("referralImages", file);
-        }
-        await api.post<{ request: { id: string } }>("/appointments", fd);
-      } else {
-        await api.post<{ request: { id: string } }>("/appointments", payload);
-      }
+      await Promise.all(
+        requestPayloads.map(async (payload) => {
+          if (referralFiles.length > 0) {
+            const fd = new FormData();
+            for (const [key, value] of Object.entries(payload)) {
+              if (value != null) fd.append(key, String(value));
+            }
+            for (const file of referralFiles) {
+              fd.append("referralImages", file);
+            }
+            await api.post<{ request: { id: string } }>("/appointments", fd);
+            return;
+          }
+          await api.post<{ request: { id: string } }>("/appointments", payload);
+        }),
+      );
       setConfirmRequestSummary({
-        hospitalName: selectedHospital.name,
+        requestCount: requestPayloads.length,
+        hospitalNames: requestPayloads.map((r) => r.hospitalName),
         email: requestEmail,
-        preferredDateLabel,
         notifyEmail,
         notifyFasterRefresh: false,
         notifySms: false,
@@ -387,6 +397,12 @@ export default function LandingPage() {
     } finally {
       setSubmittingRequest(false);
     }
+  }
+
+  function toggleHospitalSelection(hospitalId: string) {
+    setSelectedHospitalIds((prev) =>
+      prev.includes(hospitalId) ? prev.filter((id) => id !== hospitalId) : [...prev, hospitalId],
+    );
   }
 
   const checkAvailabilityButton = (
@@ -579,17 +595,17 @@ export default function LandingPage() {
                 <div className="space-y-3">
                   <Label className="flex items-center gap-2 text-sm font-medium text-gray-700">
                     <Building2 className="h-4 w-4 text-[#2E7D5B]" />
-                    Select Hospital
+                    {locale === "sl" ? "Izberite zdravstvene zavode" : "Select Hospitals"}
                   </Label>
                   <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                     {filteredHospitals.map((hospital) => {
                       const waitDays = hospitalEstimatedWaitDays(hospital);
-                      const isSelected = selectedHospitalId === hospital.id;
+                      const isSelected = selectedHospitalIds.includes(hospital.id);
                       return (
                         <button
                           key={hospital.id}
                           type="button"
-                          onClick={() => setSelectedHospitalId(hospital.id)}
+                          onClick={() => toggleHospitalSelection(hospital.id)}
                           className={cn(
                             "rounded-xl border bg-white p-4 text-left shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E7D5B]/40",
                             isSelected
@@ -601,12 +617,17 @@ export default function LandingPage() {
                             <p className="min-w-0 font-semibold leading-snug text-gray-900">
                               {hospital.name}
                             </p>
-                            {isSelected ? (
-                              <CheckCircle2
-                                className="h-5 w-5 shrink-0 text-[#2E7D5B]"
-                                aria-hidden
-                              />
-                            ) : null}
+                            <span
+                              className={cn(
+                                "inline-flex h-5 w-5 shrink-0 items-center justify-center rounded border",
+                                isSelected
+                                  ? "border-[#2E7D5B] bg-[#2E7D5B] text-white"
+                                  : "border-gray-300 bg-white text-transparent",
+                              )}
+                              aria-hidden
+                            >
+                              <CheckCircle2 className="h-4 w-4" />
+                            </span>
                           </div>
                           <p className="mt-1.5 text-sm text-gray-500">
                             {[hospital.address, hospital.city].filter(Boolean).join(" · ") ||
@@ -651,7 +672,7 @@ export default function LandingPage() {
                 </div>
               ) : null}
 
-              {selectedHospital ? (
+              {selectedHospitals.length > 0 ? (
                 <div className="rounded-xl border border-white bg-white p-4 shadow-sm sm:p-5">
                   <div className="flex w-full max-w-md flex-col space-y-4">
                     <div className="border-b border-gray-100 pb-3">
@@ -659,29 +680,34 @@ export default function LandingPage() {
                         Request
                       </p>
                       <p className="mt-1 text-sm leading-snug text-gray-600">
-                        <span className="text-gray-500">at </span>
-                        <span className="font-semibold text-gray-900">{selectedHospital.name}</span>
+                        {locale === "sl" ? (
+                          <>
+                            Izbranih zavodov:{" "}
+                            <span className="font-semibold text-gray-900">
+                              {selectedHospitals.length}
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            Selected hospitals:{" "}
+                            <span className="font-semibold text-gray-900">
+                              {selectedHospitals.length}
+                            </span>
+                          </>
+                        )}
                       </p>
                     </div>
-
-                    <div className="w-full max-w-[14rem] space-y-1.5">
-                      <Label className="flex items-center gap-2 text-xs font-medium text-gray-600 sm:text-sm sm:text-gray-700">
-                        <Calendar className="h-3.5 w-3.5 shrink-0 text-[#2E7D5B] sm:h-4 sm:w-4" />
-                        {t.dashboardPreferredAppointmentDate}
-                      </Label>
-                      <input
-                        type="date"
-                        value={selectedDate}
-                        onChange={(e) => setSelectedDate(e.target.value)}
-                        min={new Date().toISOString().split("T")[0]}
-                        className="h-9 w-full rounded-lg border border-gray-200 bg-white px-2.5 text-sm outline-none focus:ring-2 focus:ring-[#2E7D5B]/25"
-                      />
-                      {hospitalEstimatedWaitDays(selectedHospital) != null ? (
-                        <p className="text-[11px] leading-relaxed text-gray-500">
-                          Earliest available:{" "}
-                          {formatDate(
-                            getEarliestDate(hospitalEstimatedWaitDays(selectedHospital)),
-                          )}
+                    <div className="space-y-1">
+                      {selectedHospitals.slice(0, 3).map((hospital) => (
+                        <p key={hospital.id} className="text-sm text-gray-700">
+                          • {hospital.name}
+                        </p>
+                      ))}
+                      {selectedHospitals.length > 3 ? (
+                        <p className="text-xs text-gray-500">
+                          {locale === "sl"
+                            ? `+${selectedHospitals.length - 3} več`
+                            : `+${selectedHospitals.length - 3} more`}
                         </p>
                       ) : null}
                     </div>
@@ -723,7 +749,7 @@ export default function LandingPage() {
                     <Button
                       type="button"
                       onClick={handleConfirmRequest}
-                      disabled={!selectedDate || !email.trim() || submittingRequest}
+                      disabled={selectedHospitals.length === 0 || !email.trim() || submittingRequest}
                       className="h-10 w-full rounded-full bg-[#2E7D5B] px-5 text-sm font-semibold text-white hover:bg-[#256B4D] disabled:opacity-50 sm:h-9 sm:max-w-xs sm:self-start"
                     >
                       {submittingRequest
@@ -735,8 +761,8 @@ export default function LandingPage() {
               ) : filteredHospitals.length > 0 ? (
                 <p className="text-sm text-gray-500">
                   {locale === "sl"
-                    ? "Izberite zdravstveni zavod za nadaljevanje."
-                    : "Choose a hospital to continue."}
+                    ? "Izberite vsaj en zdravstveni zavod za nadaljevanje."
+                    : "Choose at least one hospital to continue."}
                 </p>
               ) : null}
             </div>
@@ -863,23 +889,28 @@ export default function LandingPage() {
             <div className="space-y-4 text-sm">
               <div className="space-y-1">
                 <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                  {locale === "sl" ? "Število zahtev" : "Requests created"}
+                </p>
+                <p className="font-semibold text-gray-900">{confirmRequestSummary.requestCount}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
                   {t.confirmRequestModalHospital}
                 </p>
-                <p className="font-semibold text-gray-900">{confirmRequestSummary.hospitalName}</p>
+                <p className="font-semibold text-gray-900">
+                  {confirmRequestSummary.hospitalNames.slice(0, 2).join(", ")}
+                  {confirmRequestSummary.hospitalNames.length > 2
+                    ? locale === "sl"
+                      ? ` +${confirmRequestSummary.hospitalNames.length - 2} več`
+                      : ` +${confirmRequestSummary.hospitalNames.length - 2} more`
+                    : ""}
+                </p>
               </div>
               <div className="space-y-1">
                 <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
                   {t.confirmRequestModalEmail}
                 </p>
                 <p className="font-semibold text-gray-900">{confirmRequestSummary.email}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                  {t.confirmRequestModalPreferredDate}
-                </p>
-                <p className="font-semibold text-gray-900">
-                  {confirmRequestSummary.preferredDateLabel}
-                </p>
               </div>
               <div className="rounded-lg bg-[#f6fbf8] px-3 py-2 text-sm text-gray-700 space-y-1">
                 <p>

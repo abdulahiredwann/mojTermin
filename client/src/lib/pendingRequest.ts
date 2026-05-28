@@ -4,10 +4,12 @@ export type PendingRequest = {
   email: string;
   query: string;
   intent: string;
-  city: string | null;
-  hospitalId: string;
-  hospitalName: string;
-  preferredDate: string;
+  requests: Array<{
+    city: string | null;
+    hospitalId: string;
+    hospitalName: string;
+    preferredDate: string;
+  }>;
   notifyEmail: boolean;
 };
 
@@ -23,7 +25,35 @@ export function loadPendingRequest(): PendingRequest | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as PendingRequest;
+    const parsed = JSON.parse(raw) as
+      | PendingRequest
+      | (PendingRequest & {
+          city?: string | null;
+          hospitalId?: string;
+          hospitalName?: string;
+          preferredDate?: string;
+        });
+
+    // Backward compatibility with old single-request shape.
+    if (!Array.isArray(parsed.requests) && parsed.hospitalId && parsed.hospitalName && parsed.preferredDate) {
+      return {
+        email: parsed.email,
+        query: parsed.query,
+        intent: parsed.intent,
+        notifyEmail: parsed.notifyEmail,
+        requests: [
+          {
+            city: parsed.city ?? null,
+            hospitalId: parsed.hospitalId,
+            hospitalName: parsed.hospitalName,
+            preferredDate: parsed.preferredDate,
+          },
+        ],
+      };
+    }
+
+    if (!Array.isArray(parsed.requests)) return null;
+    return parsed as PendingRequest;
   } catch {
     return null;
   }

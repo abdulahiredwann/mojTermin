@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  Calendar,
   Building2,
   ChevronDown,
   ChevronRight,
@@ -82,9 +81,9 @@ type SearchResult = {
 };
 
 type ConfirmRequestSummary = {
-  hospitalName: string;
+  requestCount: number;
+  hospitalNames: string[];
   email: string;
-  preferredDateLabel: string;
   notifyEmail: boolean;
   notifyFasterRefresh: boolean;
   notifySms: boolean;
@@ -210,8 +209,7 @@ export function UserDashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
-  const [selectedHospitalId, setSelectedHospitalId] = useState("");
-  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedHospitalIds, setSelectedHospitalIds] = useState<string[]>([]);
   const [submittingRequest, setSubmittingRequest] = useState(false);
   const [confirmRequestOpen, setConfirmRequestOpen] = useState(false);
   const [confirmRequestSummary, setConfirmRequestSummary] = useState<ConfirmRequestSummary | null>(
@@ -290,10 +288,11 @@ export function UserDashboardPage() {
     return searchResult.hospitals;
   }, [searchResult]);
 
-  const selectedHospital = useMemo(() => {
-    if (!selectedHospitalId || !searchResult) return null;
-    return searchResult.hospitals.find((h) => h.id === selectedHospitalId) || null;
-  }, [selectedHospitalId, searchResult]);
+  const selectedHospitals = useMemo(() => {
+    if (!searchResult || selectedHospitalIds.length === 0) return [];
+    const selectedSet = new Set(selectedHospitalIds);
+    return searchResult.hospitals.filter((h) => selectedSet.has(h.id));
+  }, [selectedHospitalIds, searchResult]);
 
   async function handleAnalyze(e: React.FormEvent) {
     e.preventDefault();
@@ -308,8 +307,7 @@ export function UserDashboardPage() {
     }
     setLoading(true);
     setSearchResult(null);
-    setSelectedHospitalId("");
-    setSelectedDate("");
+    setSelectedHospitalIds([]);
     setNotifyEmail(true);
     setNotifyFasterRefresh(false);
     setNotifySms(false);
@@ -349,18 +347,27 @@ export function UserDashboardPage() {
     return date;
   }
 
-  function formatDay(date: Date) {
-    return date.toLocaleDateString(locale === "sl" ? "sl-SI" : "en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
+  function toDateInputValue(date: Date): string {
+    const y = date.getUTCFullYear();
+    const m = String(date.getUTCMonth() + 1).padStart(2, "0");
+    const d = String(date.getUTCDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+
+  function getPreferredDateForHospital(hospital: SearchResult["hospitals"][number]): string {
+    const waitDays = hospitalEstimatedWaitDays(hospital);
+    return toDateInputValue(getEarliestDate(waitDays));
+  }
+
+  function toggleHospitalSelection(hospitalId: string) {
+    setSelectedHospitalIds((prev) =>
+      prev.includes(hospitalId) ? prev.filter((id) => id !== hospitalId) : [...prev, hospitalId],
+    );
   }
 
   function resetAvailabilitySection() {
     setSearchResult(null);
-    setSelectedHospitalId("");
-    setSelectedDate("");
+    setSelectedHospitalIds([]);
     setNotifyEmail(true);
     setNotifyFasterRefresh(false);
     setNotifySms(false);
@@ -375,49 +382,57 @@ export function UserDashboardPage() {
   }
 
   async function handleConfirmRequest() {
-    if (!searchResult || !selectedHospital || !selectedDate || !user) return;
+    if (!searchResult || !user) return;
+    if (selectedHospitals.length === 0) {
+      setError(locale === "sl" ? "Izberite vsaj en zdravstveni zavod." : "Please select at least one hospital.");
+      return;
+    }
     setError(null);
     setSubmittingRequest(true);
-    const preferredDateLabel = formatDay(new Date(`${selectedDate}T12:00:00`));
     const trackingOpts = {
       notifyEmail,
       notifyFasterRefresh: isPro && notifyFasterRefresh,
       notifySms: isPro && notifySms,
     };
+    const requestPayloads = selectedHospitals.map((hospital) => ({
+      query: problem,
+      intent: searchResult.intent,
+      city: hospital.city ?? "",
+      hospitalId: hospital.id,
+      hospitalName: hospital.name,
+      preferredDate: getPreferredDateForHospital(hospital),
+      ...trackingOpts,
+    }));
     try {
-      if (referralFiles.length > 0) {
-        const fd = new FormData();
-        fd.append("query", problem);
-        fd.append("intent", searchResult.intent);
-        fd.append("city", selectedHospital.city ?? "");
-        fd.append("hospitalId", selectedHospital.id);
-        fd.append("hospitalName", selectedHospital.name);
-        fd.append("preferredDate", selectedDate);
-        fd.append("notifyEmail", trackingOpts.notifyEmail ? "true" : "false");
-        fd.append(
-          "notifyFasterRefresh",
-          trackingOpts.notifyFasterRefresh ? "true" : "false",
-        );
-        fd.append("notifySms", trackingOpts.notifySms ? "true" : "false");
-        for (const file of referralFiles) {
-          fd.append("referralImages", file);
-        }
-        await api.post<{ request: { id: string } }>("/appointments", fd);
-      } else {
-        await api.post<{ request: { id: string } }>("/appointments", {
-          query: problem,
-          intent: searchResult.intent,
-          city: selectedHospital.city,
-          hospitalId: selectedHospital.id,
-          hospitalName: selectedHospital.name,
-          preferredDate: selectedDate,
-          ...trackingOpts,
-        });
-      }
+      await Promise.all(
+        requestPayloads.map(async (payload) => {
+          if (referralFiles.length > 0) {
+            const fd = new FormData();
+            fd.append("query", payload.query);
+            fd.append("intent", payload.intent);
+            fd.append("city", payload.city);
+            fd.append("hospitalId", payload.hospitalId);
+            fd.append("hospitalName", payload.hospitalName);
+            fd.append("preferredDate", payload.preferredDate);
+            fd.append("notifyEmail", payload.notifyEmail ? "true" : "false");
+            fd.append(
+              "notifyFasterRefresh",
+              payload.notifyFasterRefresh ? "true" : "false",
+            );
+            fd.append("notifySms", payload.notifySms ? "true" : "false");
+            for (const file of referralFiles) {
+              fd.append("referralImages", file);
+            }
+            await api.post<{ request: { id: string } }>("/appointments", fd);
+            return;
+          }
+          await api.post<{ request: { id: string } }>("/appointments", payload);
+        }),
+      );
       setConfirmRequestSummary({
-        hospitalName: selectedHospital.name,
+        requestCount: requestPayloads.length,
+        hospitalNames: requestPayloads.map((r) => r.hospitalName),
         email: user.email.trim(),
-        preferredDateLabel,
         ...trackingOpts,
       });
       setReferralFiles([]);
@@ -722,12 +737,12 @@ export function UserDashboardPage() {
                   >
                     {filteredHospitals.map((hospital) => {
                       const waitDays = hospitalEstimatedWaitDays(hospital);
-                      const isSelected = selectedHospitalId === hospital.id;
+                      const isSelected = selectedHospitalIds.includes(hospital.id);
                       return (
                         <button
                           key={hospital.id}
                           type="button"
-                          onClick={() => setSelectedHospitalId(hospital.id)}
+                          onClick={() => toggleHospitalSelection(hospital.id)}
                           className={cn(
                             "rounded-xl border bg-white p-4 text-left shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E7D5B]/40",
                             isSelected
@@ -739,12 +754,17 @@ export function UserDashboardPage() {
                             <p className="min-w-0 font-semibold leading-snug text-gray-900">
                               {hospital.name}
                             </p>
-                            {isSelected ? (
-                              <CheckCircle2
-                                className="h-5 w-5 shrink-0 text-[#2E7D5B]"
-                                aria-hidden
-                              />
-                            ) : null}
+                            <span
+                              className={cn(
+                                "inline-flex h-5 w-5 shrink-0 items-center justify-center rounded border",
+                                isSelected
+                                  ? "border-[#2E7D5B] bg-[#2E7D5B] text-white"
+                                  : "border-gray-300 bg-white text-transparent",
+                              )}
+                              aria-hidden
+                            >
+                              <CheckCircle2 className="h-4 w-4" />
+                            </span>
                           </div>
                           <p className="mt-1.5 text-sm text-gray-500">
                             {[hospital.address, hospital.city].filter(Boolean).join(" · ") ||
@@ -802,49 +822,45 @@ export function UserDashboardPage() {
             </div>
           ) : null}
 
-          {selectedHospital ? (
+          {selectedHospitals.length > 0 ? (
             <div className="space-y-4 rounded-xl border border-white bg-white p-4 shadow-sm sm:p-5">
               <div className="flex w-full max-w-md flex-col space-y-5">
                 <div className="border-b border-gray-100 pb-4">
                   <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                    {t.confirmRequestModalHospital}
+                    {locale === "sl" ? "Izbranih zavodov" : "Selected hospitals"}
                   </p>
                   <p className="mt-1 text-sm font-semibold leading-snug text-gray-900">
-                    {selectedHospital.name}
+                    {selectedHospitals.length}
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-start sm:gap-x-6 sm:gap-y-4">
-                  <div className="w-full max-w-[12rem] space-y-1.5">
-                    <Label className="flex items-center gap-2 text-xs font-medium text-gray-600 sm:text-sm sm:text-gray-700">
-                      <Calendar className="h-3.5 w-3.5 shrink-0 text-[#2E7D5B] sm:h-4 sm:w-4" />
-                      {t.dashboardPreferredAppointmentDate}
-                    </Label>
-                    <input
-                      type="date"
-                      value={selectedDate}
-                      onChange={(e) => setSelectedDate(e.target.value)}
-                      min={new Date().toISOString().split("T")[0]}
-                      className="h-9 w-full rounded-lg border border-gray-200 bg-white px-2.5 text-sm outline-none focus:ring-2 focus:ring-[#2E7D5B]/25"
+                <div className="space-y-1">
+                  {selectedHospitals.slice(0, 3).map((hospital) => (
+                    <p key={hospital.id} className="text-sm text-gray-700">
+                      • {hospital.name}
+                    </p>
+                  ))}
+                  {selectedHospitals.length > 3 ? (
+                    <p className="text-xs text-gray-500">
+                      {locale === "sl"
+                        ? `+${selectedHospitals.length - 3} več`
+                        : `+${selectedHospitals.length - 3} more`}
+                    </p>
+                  ) : null}
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:items-start sm:gap-x-6 sm:gap-y-4">
+                  <div className="w-full">
+                    <TrackingNotificationOptions
+                      isPro={isPro}
+                      notifyEmail={notifyEmail}
+                      onNotifyEmailChange={setNotifyEmail}
+                      notifyFasterRefresh={notifyFasterRefresh}
+                      onNotifyFasterRefreshChange={setNotifyFasterRefresh}
+                      notifySms={notifySms}
+                      onNotifySmsChange={setNotifySms}
                     />
-                    {hospitalEstimatedWaitDays(selectedHospital) != null ? (
-                      <p className="text-[11px] leading-relaxed text-gray-500">
-                        Earliest available:{" "}
-                        {formatDay(
-                          getEarliestDate(hospitalEstimatedWaitDays(selectedHospital)),
-                        )}
-                      </p>
-                    ) : null}
                   </div>
-                  <TrackingNotificationOptions
-                    isPro={isPro}
-                    notifyEmail={notifyEmail}
-                    onNotifyEmailChange={setNotifyEmail}
-                    notifyFasterRefresh={notifyFasterRefresh}
-                    onNotifyFasterRefreshChange={setNotifyFasterRefresh}
-                    notifySms={notifySms}
-                    onNotifySmsChange={setNotifySms}
-                  />
                 </div>
 
                 {error && searchResult ? (
@@ -856,7 +872,7 @@ export function UserDashboardPage() {
                 <Button
                   type="button"
                   onClick={handleConfirmRequest}
-                  disabled={!selectedDate || submittingRequest}
+                  disabled={selectedHospitals.length === 0 || submittingRequest}
                   className="h-10 w-full rounded-full bg-[#2E7D5B] px-5 text-sm font-semibold text-white hover:bg-[#256B4D] disabled:opacity-50 sm:h-9 sm:max-w-xs sm:self-start"
                 >
                   {submittingRequest
@@ -868,8 +884,8 @@ export function UserDashboardPage() {
           ) : filteredHospitals.length > 0 ? (
             <p className="text-sm text-gray-500">
               {locale === "sl"
-                ? "Izberite zdravstveni zavod za nadaljevanje."
-                : "Choose a hospital to continue."}
+                ? "Izberite vsaj en zdravstveni zavod za nadaljevanje."
+                : "Choose at least one hospital to continue."}
             </p>
           ) : null}
         </div>
@@ -885,23 +901,28 @@ export function UserDashboardPage() {
             <div className="space-y-4 text-sm">
               <div className="space-y-1">
                 <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                  {locale === "sl" ? "Število zahtev" : "Requests created"}
+                </p>
+                <p className="font-semibold text-gray-900">{confirmRequestSummary.requestCount}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
                   {t.confirmRequestModalHospital}
                 </p>
-                <p className="font-semibold text-gray-900">{confirmRequestSummary.hospitalName}</p>
+                <p className="font-semibold text-gray-900">
+                  {confirmRequestSummary.hospitalNames.slice(0, 2).join(", ")}
+                  {confirmRequestSummary.hospitalNames.length > 2
+                    ? locale === "sl"
+                      ? ` +${confirmRequestSummary.hospitalNames.length - 2} več`
+                      : ` +${confirmRequestSummary.hospitalNames.length - 2} more`
+                    : ""}
+                </p>
               </div>
               <div className="space-y-1">
                 <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
                   {t.confirmRequestModalEmail}
                 </p>
                 <p className="font-semibold text-gray-900">{confirmRequestSummary.email}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                  {t.confirmRequestModalPreferredDate}
-                </p>
-                <p className="font-semibold text-gray-900">
-                  {confirmRequestSummary.preferredDateLabel}
-                </p>
               </div>
               <div className="space-y-1 rounded-lg bg-[#f6fbf8] px-3 py-2 text-sm text-gray-700">
                 <p>

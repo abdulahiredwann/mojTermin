@@ -72,18 +72,22 @@ export function SignupPage() {
       // If user navigated here while already logged in, handle any pending request
       const pending = loadPendingRequest();
       if (pending) {
-        api.post("/appointments", {
-          email: pending.email,
-          query: pending.query,
-          intent: pending.intent,
-          city: pending.city,
-          hospitalId: pending.hospitalId,
-          hospitalName: pending.hospitalName,
-          preferredDate: pending.preferredDate,
-          notifyEmail: pending.notifyEmail,
-          notifyFasterRefresh: false,
-          notifySms: false,
-        }).then(() => {
+        Promise.all(
+          pending.requests.map((reqItem) =>
+            api.post("/appointments", {
+              email: pending.email,
+              query: pending.query,
+              intent: pending.intent,
+              city: reqItem.city,
+              hospitalId: reqItem.hospitalId,
+              hospitalName: reqItem.hospitalName,
+              preferredDate: reqItem.preferredDate,
+              notifyEmail: pending.notifyEmail,
+              notifyFasterRefresh: false,
+              notifySms: false,
+            }),
+          ),
+        ).then(() => {
           clearPendingRequest();
           navigate("/user/appointments", { replace: true });
         }).catch(() => {
@@ -124,18 +128,22 @@ export function SignupPage() {
       const pending = loadPendingRequest();
       if (pending) {
         try {
-          await api.post("/appointments", {
-            email: pending.email,
-            query: pending.query,
-            intent: pending.intent,
-            city: pending.city,
-            hospitalId: pending.hospitalId,
-            hospitalName: pending.hospitalName,
-            preferredDate: pending.preferredDate,
-            notifyEmail: pending.notifyEmail,
-            notifyFasterRefresh: false,
-            notifySms: false,
-          });
+          await Promise.all(
+            pending.requests.map((reqItem) =>
+              api.post("/appointments", {
+                email: pending.email,
+                query: pending.query,
+                intent: pending.intent,
+                city: reqItem.city,
+                hospitalId: reqItem.hospitalId,
+                hospitalName: reqItem.hospitalName,
+                preferredDate: reqItem.preferredDate,
+                notifyEmail: pending.notifyEmail,
+                notifyFasterRefresh: false,
+                notifySms: false,
+              }),
+            ),
+          );
           clearPendingRequest();
           navigate("/user/appointments", { replace: true });
           return;
