@@ -522,7 +522,7 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     heroTitleKeywords: ["zdravstvenega", "zdravniškega"],
     heroTitleSuffix: "termina.",
     heroSubtitle:
-      "Napišite, kaj potrebujete, in izberite mesto — ujemali vas bomo z razpoložljivimi zdravstvenimi zavodi.",
+      "Enostavno naložite napotnico in izberite svoj termin ali si ga poiščite sami.",
     labelProblem: "Kaj potrebujete?",
     placeholderProblem: "npr. MRI kolena, dermatolog…",
     attachImageAria: "Priloži fotografijo (napotnica)",
