@@ -9,7 +9,7 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <SiteHeader />
+      <SiteHeader logoSize="xl" />
 
       <section className="bg-[#ecf7f1] py-16 md:py-24">
         <div className="mx-auto max-w-6xl px-6 md:px-12">

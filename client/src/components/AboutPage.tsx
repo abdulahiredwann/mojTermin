@@ -30,7 +30,7 @@ const values = [
 export default function AboutPage() {
   return (
     <div className="flex min-h-screen flex-col bg-white">
-      <SiteHeader />
+      <SiteHeader logoSize="xl" />
       <main className="flex-1">
         <section className="relative overflow-hidden">
           <div className="absolute inset-0 -z-10 bg-gradient-to-br from-[#2E7D5B]/10 via-white to-[#d7ebdc]/40" />
@@ -56,7 +56,7 @@ export default function AboutPage() {
                 alt="Ilustracija pacientke, ki na telefonu preverja termin"
                 width={1280}
                 height={896}
-                className="rounded-3xl bg-white p-6 shadow-xl ring-1 ring-[#dceee4]"
+                className="aspect-[16/11] w-full rounded-3xl object-cover shadow-xl ring-1 ring-[#dceee4]"
               />
             </div>
           </div>
@@ -83,7 +83,7 @@ export default function AboutPage() {
                 width={1024}
                 height={1024}
                 loading="lazy"
-                className="mx-auto max-w-sm rounded-3xl bg-white p-6 shadow-md ring-1 ring-[#dceee4]"
+                className="mx-auto aspect-square w-full max-w-sm rounded-3xl object-cover shadow-md ring-1 ring-[#dceee4]"
               />
             </div>
             <div className="order-1 lg:order-2">

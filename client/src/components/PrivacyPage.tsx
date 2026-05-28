@@ -69,7 +69,7 @@ const pillars = [
 export default function PrivacyPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <SiteHeader />
+      <SiteHeader logoSize="xl" />
       <main className="flex-1">
         <section className="relative overflow-hidden bg-[#ecf7f1]">
           <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-6 py-20 md:grid-cols-[1.2fr_1fr] md:py-24">
