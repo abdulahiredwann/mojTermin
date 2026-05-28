@@ -1,217 +1,184 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import { CrossPattern } from "@/components/CrossPattern";
-import { ShieldCheck, Server, ClipboardCheck, Sparkles, Lock } from "lucide-react";
-import privacyEurope from "@/assets/privacy-europe.png";
-import privacyProcess from "@/assets/privacy-process.png";
-import privacyAi from "@/assets/privacy-ai.png";
-import privacyLock from "@/assets/privacy-lock.png";
+import { Button } from "@/components/ui/button";
+import { Heart, ShieldCheck, Sparkles, Clock } from "lucide-react";
+import heroImage from "@/assets/o-nas-hero.jpg";
+import secondaryImage from "@/assets/o-nas-secondary.jpg";
 
-export const Route = createFileRoute("/zasebnost")({
-  component: ZasebnostPage,
+export const Route = createFileRoute("/o-nas")({
+  component: ONasPage,
   head: () => ({
     meta: [
-      { title: "Zasebnost | MojTermin" },
+      { title: "O nas | MojTermin" },
       {
         name: "description",
         content:
-          "Vaši podatki so shranjeni in zaščiteni v Evropi, skladno z najvišjimi varnostnimi standardi.",
+          "Spoznajte zgodbo MojTermin – aplikacije, ki vam pomaga hitreje najti zdravstveni termin.",
       },
-      { property: "og:title", content: "Zasebnost | MojTermin" },
+      { property: "og:title", content: "O nas | MojTermin" },
       {
         property: "og:description",
         content:
-          "Varstvo in varnost podatkov sta v središču vsake naše storitve.",
+          "Naše poslanstvo je poenostaviti pot do zdravstvene oskrbe in vam prihraniti čas.",
       },
     ],
   }),
 });
 
-type Section = {
-  eyebrow: string;
-  title: string;
-  paragraphs: string[];
-  image: string;
-  alt: string;
-  icon: typeof Server;
-};
-
-const sections: Section[] = [
+const values = [
   {
-    eyebrow: "01 — Lokacija podatkov",
-    title: "Podatki so shranjeni in zaščiteni v Evropi.",
-    paragraphs: [
-      "Podatki so shranjeni na strežnikih v Sloveniji. Podatkovni centri izpolnjujejo najvišje mednarodne varnostne standarde.",
-      "Storitve MojTermin so skladne z evropskimi in nacionalnimi predpisi o varstvu podatkov.",
-      "Zaščita, ki je celovita, pregledna in se nenehno izboljšuje.",
-    ],
-    image: privacyEurope,
-    alt: "Ilustracija zaščitenega podatkovnega strežnika v Sloveniji",
-    icon: Server,
+    icon: ShieldCheck,
+    title: "Zasebnost",
+    text: "Vaši podatki so varni. Z njimi ravnamo odgovorno in transparentno.",
   },
   {
-    eyebrow: "02 — Procesi in nadzor",
-    title: "Varstvo podatkov je v središču vsake nove storitve.",
-    paragraphs: [
-      "Vsaka nova dejavnost obdelave in vsaka tehnična sprememba je podvržena standardiziranemu postopku testiranja in ocenjevanja.",
-      "Tehnični in organizacijski ukrepi, kot so šifriranje, nadzor dostopa in revizije, so standardno integrirani.",
-    ],
-    image: privacyProcess,
-    alt: "Ilustracija postopka preverjanja in revizije varnosti",
-    icon: ClipboardCheck,
-  },
-  {
-    eyebrow: "03 — Upravljanje podatkov",
-    title: "Odgovorno ravnanje s podatki.",
-    paragraphs: [
-      "Kot obdelovalec podatkov MojTermin obdeluje podatke izključno v skladu z navodili zdravstvenih delavcev. Dostop do njih imajo le zdravstvene ekipe in pacienti.",
-      "Vaše podatke varujemo z modernimi tehničnimi in organizacijskimi ukrepi: šifrirana komunikacija (HTTPS), omejen dostop do podatkov, varno shranjevanje podatkov.",
-    ],
-    image: privacyAi,
-    alt: "Ilustracija upravljanja podatkov",
     icon: Sparkles,
+    title: "Preglednost",
+    text: "Brez skritih trikov. Jasno povemo, kaj počnemo in kako.",
   },
   {
-    eyebrow: "04 — OBČUTLJIVI PODATKI",
-    title: "Maksimalna varnost za občutljive zdravstvene podatke.",
-    paragraphs: [
-      "MojTermin varuje občutljive zdravstvene podatke z jasnim poudarkom na varstvu podatkov, varnosti podatkov in skladnosti s predpisi. Zdravstveni podatki se hranijo izključno znotraj Slovenije, obdelujejo v skladu z GDPR in so zaupno zaščiteni na najvišji ravni varnosti.",
-      "Kot obdelovalec podatkov MojTermin obdeluje podatke izključno v skladu z navodili zdravstvenih delavcev. Dostop do njih imajo le zdravstvene ekipe in pacienti.",
-      "Vaše podatke varujemo z modernimi tehničnimi in organizacijskimi ukrepi: šifrirana komunikacija (HTTPS), omejen dostop do podatkov, varno shranjevanje podatkov.",
-    ],
-    image: privacyLock,
-    alt: "Ilustracija ključavnice nad zdravstvenim dokumentom",
-    icon: Lock,
+    icon: Clock,
+    title: "Prihranek časa",
+    text: "Avtomatsko spremljanje terminov, da vam ni treba klicati in preverjati.",
+  },
+  {
+    icon: Heart,
+    title: "Skrb za uporabnika",
+    text: "Tehnologija deluje v ozadju – vi se osredotočite na svoje zdravje.",
   },
 ];
 
-const pillars = [
-  { icon: Server, label: "Strežniki v Sloveniji" },
-  { icon: ShieldCheck, label: "Skladnost z GDPR" },
-  { icon: Lock, label: "Šifriranje od konca do konca" },
-];
-
-function ZasebnostPage() {
+function ONasPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
       <main className="flex-1">
-        {/* HERO */}
-        <section className="relative overflow-hidden bg-hero-bg">
-          <CrossPattern />
-          <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-6 py-20 md:grid-cols-[1.2fr_1fr] md:py-24">
+        {/* Hero */}
+        <section className="relative overflow-hidden">
+          <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/10 via-background to-accent/10" />
+          <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 py-16 sm:py-20 lg:grid-cols-2 lg:gap-16">
             <div>
-              <span className="inline-flex items-center gap-2 rounded-full bg-card/80 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-primary ring-1 ring-border backdrop-blur-sm">
-                <ShieldCheck className="h-3.5 w-3.5" />
-                Vaša zasebnost
+              <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                <Sparkles className="h-3.5 w-3.5" />
+                Naša zgodba
               </span>
-              <h1 className="mt-5 text-4xl font-extrabold leading-tight tracking-tight text-foreground sm:text-5xl">
-                Zaščita, ki ji lahko zaupate.
+              <h1 className="mt-4 text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
+                O nas
               </h1>
-              <div className="mt-5 max-w-lg space-y-4 text-base text-muted-foreground">
-                <p>
-                  Zasebnost je ena ključnih vrednot naše aplikacije. Zavedamo se, da so podatki, povezani z zdravjem, izjemno občutljivi, zato z njimi ravnamo odgovorno, varno in transparentno.
-                </p>
-                <p>
-                  Vaše podatke uporabljamo izključno za to, da vam pomagamo najti hitrejši termin za zdravstveno storitev.
-                </p>
-              </div>
-              <div className="mt-8 flex flex-wrap gap-3">
-                {pillars.map((p) => (
-                  <div
-                    key={p.label}
-                    className="inline-flex items-center gap-2 rounded-full bg-card px-4 py-2 text-sm font-medium text-foreground shadow-sm ring-1 ring-border"
-                  >
-                    <p.icon className="h-4 w-4 text-primary" />
-                    {p.label}
-                  </div>
-                ))}
-              </div>
+              <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
+                MojTermin je nastal iz preproste, a zelo pogoste izkušnje:
+                dolgo čakanje na zdravstveni pregled in občutek, da obstajajo
+                hitrejše možnosti — a jih je težko najti.
+              </p>
             </div>
-            <div className="flex justify-center md:justify-end">
-              <div className="relative">
-                <div
-                  aria-hidden
-                  className="absolute inset-0 -z-10 rounded-full bg-secondary blur-2xl"
-                />
-                <div className="flex h-64 w-64 items-center justify-center rounded-full bg-card shadow-sm ring-1 ring-border sm:h-72 sm:w-72">
-                  <ShieldCheck className="h-28 w-28 text-primary" strokeWidth={1.5} />
-                </div>
-              </div>
+            <div className="relative">
+              <div className="absolute -inset-4 -z-10 rounded-[2rem] bg-gradient-to-tr from-primary/20 to-accent/20 blur-2xl" />
+              <img
+                src={heroImage}
+                alt="Ilustracija pacientke, ki na telefonu preverja termin"
+                width={1280}
+                height={896}
+                className="rounded-3xl shadow-xl ring-1 ring-border"
+              />
             </div>
           </div>
         </section>
 
-        {/* ALTERNATING SECTIONS */}
-        <div className="bg-background">
-          {sections.map((s, i) => {
-            const reversed = i % 2 === 1;
-            const Icon = s.icon;
-            return (
-              <section
-                key={s.title}
-                className={`relative overflow-hidden ${i % 2 === 1 ? "bg-soft-bg" : "bg-background"}`}
-              >
-                {i % 2 === 1 && <CrossPattern />}
-                <div className="relative mx-auto max-w-6xl px-6 py-20 md:py-24">
-                  <div
-                    className={`grid items-center gap-12 md:grid-cols-2 ${
-                      reversed ? "md:[&>*:first-child]:order-2" : ""
-                    }`}
-                  >
-                    {/* Image */}
-                    <div className="flex justify-center">
-                      <div className="relative">
-                        <div
-                          aria-hidden
-                          className="absolute inset-6 -z-10 rounded-[2.5rem] bg-secondary/70 blur-xl"
-                        />
-                        <div className="rounded-[2.5rem] bg-card p-6 shadow-sm ring-1 ring-border sm:p-8">
-                          <img
-                            src={s.image}
-                            alt={s.alt}
-                            width={896}
-                            height={896}
-                            loading="lazy"
-                            className="mx-auto h-56 w-56 object-contain sm:h-72 sm:w-72"
-                          />
-                        </div>
-                      </div>
-                    </div>
+        {/* Why we exist */}
+        <section className="mx-auto max-w-3xl px-6 py-16">
+          <p className="text-lg leading-relaxed text-muted-foreground">
+            Verjamemo, da dostop do zdravstva ne bi smel biti odvisen od tega,
+            koliko časa ima nekdo za raziskovanje, klicanje ali stalno
+            preverjanje terminov. Informacije obstajajo, vendar so razpršene,
+            nepregledne in pogosto težko dostopne.
+          </p>
+          <p className="mt-6 text-2xl font-semibold text-foreground">
+            Zato smo ustvarili MojTermin.
+          </p>
+        </section>
 
-                    {/* Text */}
-                    <div>
-                      <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-secondary">
-                          <Icon className="h-3.5 w-3.5" />
-                        </span>
-                        {s.eyebrow}
-                      </div>
-                      <h2 className="mt-4 text-2xl font-bold leading-tight text-foreground sm:text-3xl">
-                        {s.title}
-                      </h2>
-                      <div className="mt-5 space-y-4 text-base leading-relaxed text-muted-foreground">
-                        {s.paragraphs.map((p, j) => (
-                          <p key={j}>{p}</p>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </section>
-            );
-          })}
-        </div>
-
-        {/* CLOSING NOTE */}
-        <section className="bg-background pb-20">
-          <div className="mx-auto max-w-3xl px-6">
-            <div className="flex min-h-[200px] flex-col items-center justify-center rounded-2xl bg-secondary/60 p-8 text-center ring-1 ring-border sm:p-10">
-              <ShieldCheck className="h-10 w-10 text-primary" strokeWidth={1.75} />
-              <p className="mt-4 max-w-xl text-base font-medium text-foreground sm:text-lg">
-                Zaupanje gradimo z vsako podrobnostjo — od kode do procesov.
+        {/* Mission with image */}
+        <section className="bg-muted/40 py-16">
+          <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 lg:grid-cols-2">
+            <div className="order-2 lg:order-1">
+              <img
+                src={secondaryImage}
+                alt="Ilustracija telefona z obvestilom o terminu"
+                width={1024}
+                height={1024}
+                loading="lazy"
+                className="mx-auto max-w-sm rounded-3xl bg-background shadow-md ring-1 ring-border"
+              />
+            </div>
+            <div className="order-1 lg:order-2">
+              <h2 className="text-3xl font-bold text-foreground">
+                Naše poslanstvo
+              </h2>
+              <p className="mt-4 text-base leading-relaxed text-muted-foreground">
+                Naš cilj je poenostaviti ta proces. Aplikacija spremlja
+                razpoložljivost terminov in vas obvesti, ko se pojavi boljša
+                možnost. Tako lahko hitreje pridete do pregleda, brez
+                nepotrebnega stresa in izgube časa.
               </p>
+              <p className="mt-4 text-base leading-relaxed text-muted-foreground">
+                Ne nadomeščamo zdravstvenega sistema in ne posegamo v delo
+                zdravstvenih ustanov. Naša vloga je preprosta: pomagati vam, da
+                lažje najdete pot do storitve, ki jo potrebujete.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Values */}
+        <section className="mx-auto max-w-6xl px-6 py-16">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="text-3xl font-bold text-foreground">
+              Kar nam je pomembno
+            </h2>
+            <p className="mt-3 text-muted-foreground">
+              Pri razvoju dajemo velik poudarek zasebnosti, preglednosti in
+              enostavni uporabi. Verjamemo, da mora tehnologija delovati v
+              ozadju — tako, da je za uporabnika čim bolj preprosta.
+            </p>
+          </div>
+          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {values.map(({ icon: Icon, title, text }) => (
+              <div
+                key={title}
+                className="group rounded-2xl bg-card p-6 shadow-sm ring-1 ring-border transition hover:-translate-y-1 hover:shadow-md"
+              >
+                <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <h3 className="mt-4 text-lg font-semibold text-foreground">
+                  {title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  {text}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Closing CTA */}
+        <section className="px-6 pb-20">
+          <div className="mx-auto max-w-4xl overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-primary/80 p-10 text-primary-foreground shadow-xl sm:p-14">
+            <p className="text-base leading-relaxed opacity-90">
+              MojTermin je še v razvoju, zato aktivno poslušamo povratne
+              informacije in izboljšujemo storitev skupaj z uporabniki.
+            </p>
+            <h2 className="mt-4 text-3xl font-bold">
+              Imate vprašanje, predlog ali idejo?
+            </h2>
+            <p className="mt-3 text-base opacity-90">
+              Pišite nam — veseli bomo vsakega odziva.
+            </p>
+            <div className="mt-6">
+              <Button asChild size="lg" variant="secondary" className="rounded-full font-semibold">
+                <Link to="/kontakt">Kontakt</Link>
+              </Button>
             </div>
           </div>
         </section>
