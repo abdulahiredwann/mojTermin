@@ -1,5 +1,7 @@
 import AboutPage from "./components/AboutPage";
 import ContactPage from "./components/ContactPage";
+import CookiesPage from "./components/CookiesPage";
+import { CookiesBanner } from "./components/CookiesBanner";
 import LandingPage from "./components/LandingPage";
 import { LoginPage } from "./components/LoginPage";
 import PrivacyPage from "./components/PrivacyPage";
@@ -34,6 +36,7 @@ function App() {
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/cookies" element={<CookiesPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/login" element={<LoginPage />} />
@@ -63,6 +66,7 @@ function App() {
               </Route>
             </Route>
           </Routes>
+          <CookiesBanner />
           </UserAuthProvider>
         </BrowserRouter>
       </AdminAuthProvider>

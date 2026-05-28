@@ -422,6 +422,43 @@ export default function LandingPage() {
     </Button>
   );
 
+  const specialties =
+    locale === "sl"
+      ? [
+          "Dermatolog",
+          "Ortoped in travmatolog",
+          "Oftalmolog",
+          "Ginekolog",
+          "Zobozdravnik",
+          "Urolog",
+          "Radiologija",
+          "Nevrolog",
+          "Kardiolog",
+          "Fizioterapevt",
+          "Otorinolaringolog (ORL)",
+          "Gastroenterolog",
+          "Psihiater in psihoterapevt",
+          "Pediater",
+        ]
+      : [
+          "Dermatologist",
+          "Orthopedist and traumatologist",
+          "Ophthalmologist",
+          "Pediatric surgeon",
+          "Gynecologist",
+          "Dentist",
+          "Urologist",
+          "Radiology",
+          "Family doctor / general medicine",
+          "Neurologist",
+          "Cardiologist",
+          "Physiotherapist",
+          "Otorhinolaryngologist (ENT)",
+          "Gastroenterologist",
+          "Psychiatrist and psychotherapist",
+          "Pediatrician",
+        ];
+
   return (
     <div className="relative min-h-screen bg-white overflow-hidden">
       <div className="absolute top-0 right-0 w-1/2 h-[44rem] pointer-events-none z-0">
@@ -876,6 +913,32 @@ export default function LandingPage() {
       </section>
 
       <PricingSection />
+
+      <section className="bg-background py-24">
+        <div className="mx-auto max-w-6xl px-6">
+          <h2 className="text-center text-3xl font-bold text-foreground sm:text-4xl">
+            {locale === "sl" ? "Podprte zdravstvene branže" : "Supported medical specialties"}
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-center text-base text-muted-foreground">
+            {locale === "sl"
+              ? "Naš sistem podpira širok spekter zdravstvenih specialistov."
+              : "Our system supports a wide range of medical specialists."}
+          </p>
+          <div className="mt-12 flex flex-wrap justify-center gap-3">
+            {specialties.map((s) => (
+              <span
+                key={s}
+                className="rounded-full bg-secondary px-4 py-2 text-sm font-medium text-foreground ring-1 ring-border"
+              >
+                {s}
+              </span>
+            ))}
+            <span className="rounded-full bg-secondary px-4 py-2 text-sm font-medium text-foreground ring-1 ring-border">
+              {locale === "sl" ? "In še več" : "And more"}
+            </span>
+          </div>
+        </div>
+      </section>
 
       <SiteBottom />
 
