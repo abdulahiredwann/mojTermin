@@ -3,39 +3,54 @@ import { cn } from "@/lib/utils";
 
 const LOGO_SRC = "/Images/mojtermin-logo.png";
 
+type LogoSize = "sm" | "md" | "lg" | "xl";
+
 type MojTerminLogoProps = {
   to?: string;
   className?: string;
-  size?: "sm" | "md" | "lg";
+  size?: LogoSize;
 };
 
 /**
- * Fixed slot height so layout doesn't shift.
- * Image is scaled visually with CSS transform (doesn't affect flow).
+ * Slot height = layout height (drives the navbar's height).
+ * Scale = visual size only (does not affect layout flow).
+ * Inline style is used for scale so it bypasses Tailwind JIT and HMR caching.
  */
-const slotClass = {
-  sm: "h-8",
-  md: "h-9",
-  lg: "h-10",
+const SLOT_HEIGHT_PX: Record<LogoSize, number> = {
+  sm: 32,
+  md: 36,
+  lg: 40,
+  xl: 40,
 };
 
-const scaleClass = {
-  sm: "scale-[1.5]",
-  md: "scale-[2]",
-  lg: "scale-[2.1]",
+const SCALE: Record<LogoSize, number> = {
+  sm: 1.5,
+  md: 2,
+  lg: 2.1,
+  xl: 3.2,
 };
 
-export function MojTerminLogo({ to, className, size = "md" }: MojTerminLogoProps) {
+export function MojTerminLogo({
+  to,
+  className,
+  size = "md",
+}: MojTerminLogoProps) {
   const inner = (
-    <div className={cn("flex w-full min-w-0 shrink-0 items-center", slotClass[size])}>
+    <div
+      className="flex w-full min-w-0 shrink-0 items-center"
+      style={{ height: `${SLOT_HEIGHT_PX[size]}px` }}
+    >
       <img
         src={LOGO_SRC}
         alt="MojTermin"
         className={cn(
-          "h-full w-auto max-w-none object-contain object-left origin-left",
-          scaleClass[size],
+          "h-full w-auto max-w-none object-contain object-left",
           className,
         )}
+        style={{
+          transform: `scale(${SCALE[size]})`,
+          transformOrigin: "left center",
+        }}
       />
     </div>
   );

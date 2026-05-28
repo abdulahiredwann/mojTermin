@@ -60,9 +60,12 @@ function LanguageToggle() {
   );
 }
 
-type SiteHeaderProps = { borderBottom?: boolean };
+type SiteHeaderProps = {
+  borderBottom?: boolean;
+  logoSize?: "sm" | "md" | "lg" | "xl";
+};
 
-export function SiteHeader({ borderBottom = true }: SiteHeaderProps) {
+export function SiteHeader({ borderBottom = true, logoSize = "lg" }: SiteHeaderProps) {
   const { locale, t } = useLanguage();
   const { user, loading: userLoading, logout } = useUserAuth();
   const navigate = useNavigate();
@@ -109,7 +112,7 @@ export function SiteHeader({ borderBottom = true }: SiteHeaderProps) {
     <header className={cn("w-full px-6 py-5 md:px-12", borderBottom && "border-b border-gray-100")}>
       <div className="flex items-center justify-between gap-4">
         <div>
-          <MojTerminLogo to="/" size="lg" />
+          <MojTerminLogo to="/" size={logoSize} />
         </div>
         <nav className="hidden items-center justify-center gap-8 md:flex">
           <Link to="/" className={navClass("/")}>
