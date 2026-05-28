@@ -98,6 +98,31 @@ function hospitalEstimatedWaitDays(hospital: SearchResult["hospitals"][number]):
   return Math.min(...waits);
 }
 
+const URGENCY_ORDER = ["Zelo hitro", "Hitro", "Redno"] as const;
+
+function urgencyLabel(urgency: string, locale: string) {
+  const normalized = urgency.trim().toLowerCase();
+  const isSl = locale === "sl";
+  if (normalized === "zelo hitro") return isSl ? "Zelo hitro" : "Very fast";
+  if (normalized === "hitro") return isSl ? "Hitro" : "Fast";
+  if (normalized === "redno") return isSl ? "Redno" : "Regular";
+  return urgency;
+}
+
+function urgencyWaitEstimates(hospital: SearchResult["hospitals"][number]) {
+  return URGENCY_ORDER.map((urgency) => {
+    const waits = hospital.services
+      .filter(
+        (s) =>
+          typeof s.specialty === "string" &&
+          s.specialty.toLowerCase() === urgency.toLowerCase() &&
+          s.estimatedWaitDays != null,
+      )
+      .map((s) => s.estimatedWaitDays as number);
+    return { urgency, waitDays: waits.length ? Math.min(...waits) : null };
+  });
+}
+
 const MAX_REFERRAL_IMAGES = 15;
 /** Must match server `MAX_SEARCH_REFERRAL_IMAGES` for POST /search */
 const MAX_SEARCH_REFERRAL_IMAGES = 8;
@@ -740,6 +765,8 @@ export function UserDashboardPage() {
                   >
                     {filteredHospitals.map((hospital) => {
                       const waitDays = hospitalEstimatedWaitDays(hospital);
+                      const urgencyEstimates = urgencyWaitEstimates(hospital);
+                      const hasUrgencyEstimates = urgencyEstimates.some((item) => item.waitDays != null);
                       const isSelected = selectedHospitalIds.includes(hospital.id);
                       return (
                         <button
@@ -787,6 +814,29 @@ export function UserDashboardPage() {
                                 ? `Est. wait ~${waitDays} days`
                                 : "Est. wait not available"}
                             </span>
+                          </div>
+                          <div className="mt-2 grid grid-cols-1 gap-1 text-xs text-gray-700">
+                            <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                              {locale === "sl" ? "Stopnje nujnosti" : "Emergency levels"}
+                            </p>
+                            {urgencyEstimates.map((item) => (
+                              <div
+                                key={`${hospital.id}-${item.urgency}`}
+                                className="flex items-center justify-between rounded-md bg-gray-50 px-2.5 py-1.5"
+                              >
+                                <span className="font-medium">{urgencyLabel(item.urgency, locale)}</span>
+                                <span className="text-gray-600">
+                                  {item.waitDays != null ? `~${item.waitDays} days` : "—"}
+                                </span>
+                              </div>
+                            ))}
+                            {!hasUrgencyEstimates ? (
+                              <p className="text-[11px] text-gray-500">
+                                {locale === "sl"
+                                  ? "Ocena po stopnji nujnosti trenutno ni na voljo."
+                                  : "Urgency-level estimates are not available yet."}
+                              </p>
+                            ) : null}
                           </div>
                           {hospital.services.length > 0 ? (
                             <div className="mt-2 flex flex-wrap gap-1">
