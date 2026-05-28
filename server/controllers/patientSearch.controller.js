@@ -9,6 +9,9 @@ const {
   getSortedLocations,
   normalizeCityToken,
 } = require("../services/slovenianLocations");
+const {
+  estimateWaitDaysFromAppointmentSummary,
+} = require("../services/appointmentSummaryEstimate");
 
 async function unlinkUploadPaths(files) {
   await Promise.all((files || []).map((f) => fs.unlink(f.path).catch(() => {})));
@@ -156,6 +159,7 @@ async function searchAppointments(req, res, next) {
     const hospitalsMap = new Map();
 
     for (const l of listings) {
+      const estimatedWaitDays = estimateWaitDaysFromAppointmentSummary(l.appointmentSummary);
       if (l.city && !citiesMap.has(l.city)) {
         citiesMap.set(l.city, { name: l.city, country: "Slovenia", hospitalCount: 0 });
       }
@@ -171,7 +175,7 @@ async function searchAppointments(req, res, next) {
           phone: l.phone,
           email: l.email,
           website: l.website,
-          averageWaitDays: null,
+          averageWaitDays: estimatedWaitDays,
           services: [],
         });
         if (l.city && citiesMap.has(l.city)) {
@@ -184,11 +188,15 @@ async function searchAppointments(req, res, next) {
         id: l.id,
         specialty: l.urgency || null,
         procedureName: l.serviceName,
-        estimatedWaitDays: null,
+        estimatedWaitDays,
         appointmentSummary: l.appointmentSummary || null,
         region: l.region || null,
         urgency: l.urgency || null,
       });
+      if (estimatedWaitDays != null) {
+        h.averageWaitDays =
+          h.averageWaitDays == null ? estimatedWaitDays : Math.min(h.averageWaitDays, estimatedWaitDays);
+      }
     }
 
     const cities = Array.from(citiesMap.values()).sort((a, b) =>

@@ -91,8 +91,11 @@ type ConfirmRequestSummary = {
 
 function hospitalEstimatedWaitDays(hospital: SearchResult["hospitals"][number]): number | null {
   if (hospital.averageWaitDays != null) return hospital.averageWaitDays;
-  const fromService = hospital.services.find((s) => s.estimatedWaitDays != null)?.estimatedWaitDays;
-  return fromService ?? null;
+  const waits = hospital.services
+    .map((s) => s.estimatedWaitDays)
+    .filter((v): v is number => v != null);
+  if (waits.length === 0) return null;
+  return Math.min(...waits);
 }
 
 const MAX_REFERRAL_IMAGES = 15;
