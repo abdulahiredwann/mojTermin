@@ -453,38 +453,36 @@ export default function LandingPage() {
   const specialties =
     locale === "sl"
       ? [
-          "Dermatolog",
-          "Ortoped in travmatolog",
-          "Oftalmolog",
-          "Ginekolog",
-          "Zobozdravnik",
-          "Urolog",
+          "Dermatologija",
+          "Ortopedija in travmatologija",
+          "Oftalmologija",
+          "Ginekologija",
+          "Zobozdravstvo",
+          "Urologija",
           "Radiologija",
-          "Nevrolog",
-          "Kardiolog",
-          "Fizioterapevt",
-          "Otorinolaringolog (ORL)",
-          "Gastroenterolog",
-          "Psihiater in psihoterapevt",
-          "Pediater",
+          "Nevrologija",
+          "Kardiologija",
+          "Fizioterapija",
+          "Otorinolaringologija",
+          "Gastroenterologija",
+          "Psihoterapija",
+          "Pediatrija",
         ]
       : [
-          "Dermatologist",
-          "Orthopedist and traumatologist",
-          "Ophthalmologist",
-          "Pediatric surgeon",
-          "Gynecologist",
-          "Dentist",
-          "Urologist",
+          "Dermatology",
+          "Orthopedics and traumatology",
+          "Ophthalmology",
+          "Gynecology",
+          "Dentistry",
+          "Urology",
           "Radiology",
-          "Family doctor / general medicine",
-          "Neurologist",
-          "Cardiologist",
-          "Physiotherapist",
-          "Otorhinolaryngologist (ENT)",
-          "Gastroenterologist",
-          "Psychiatrist and psychotherapist",
-          "Pediatrician",
+          "Neurology",
+          "Cardiology",
+          "Physiotherapy",
+          "Otorhinolaryngology",
+          "Gastroenterology",
+          "Psychotherapy",
+          "Pediatrics",
         ];
 
   return (
@@ -986,7 +984,9 @@ export default function LandingPage() {
                 {s}
               </span>
             ))}
-            <span className="rounded-full bg-secondary px-4 py-2 text-sm font-medium text-foreground ring-1 ring-border">
+          </div>
+          <div className="mt-6 flex justify-center">
+            <span className="rounded-full bg-[#2E7D5B] px-6 py-2 text-sm font-semibold text-white ring-1 ring-[#2E7D5B]">
               {locale === "sl" ? "In še več" : "And more"}
             </span>
           </div>
