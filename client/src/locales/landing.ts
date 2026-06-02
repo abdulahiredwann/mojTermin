@@ -27,6 +27,7 @@ export type LandingStrings = {
   footerAbout: string;
   footerTerms: string;
   footerPrivacy: string;
+  footerPrivacyPolicy: string;
   footerContact: string;
   footerCopyright: string;
   footerDisclaimer: string;
@@ -269,7 +270,8 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     ],
     footerAbout: "About",
     footerTerms: "Terms of use",
-    footerPrivacy: "Privacy policy",
+    footerPrivacy: "Privacy",
+    footerPrivacyPolicy: "Privacy policy",
     footerContact: "Contact",
     footerCopyright: "© 2026 MojTermin. All rights reserved.",
     footerDisclaimer:
@@ -557,7 +559,8 @@ export const landingCopy: Record<Locale, LandingStrings> = {
     ],
     footerAbout: "O nas",
     footerTerms: "Pogoji uporabe",
-    footerPrivacy: "Politika zasebnosti",
+    footerPrivacy: "Zasebnost",
+    footerPrivacyPolicy: "Politika zasebnosti",
     footerContact: "Kontakt",
     footerCopyright: "© 2026 MojTermin. Vse pravice pridržane.",
     footerDisclaimer:

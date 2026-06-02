@@ -13,6 +13,12 @@ export function SiteFooter() {
           <Link to="/privacy" className="underline-offset-4 transition-colors hover:underline">
             {t.footerPrivacy}
           </Link>
+          <Link
+            to="/politika-zasebnosti"
+            className="underline-offset-4 transition-colors hover:underline"
+          >
+            {t.footerPrivacyPolicy}
+          </Link>
           <Link to="/terms" className="underline-offset-4 transition-colors hover:underline">
             {t.footerTerms}
           </Link>
