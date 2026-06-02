@@ -22,8 +22,8 @@ export function SiteFooter() {
           <Link to="/terms" className="underline-offset-4 transition-colors hover:underline">
             {t.footerTerms}
           </Link>
-          <Link to="/about" className="underline-offset-4 transition-colors hover:underline">
-            {t.footerAbout}
+          <Link to="/help" className="underline-offset-4 transition-colors hover:underline">
+            {t.footerHelp}
           </Link>
           <Button
             asChild

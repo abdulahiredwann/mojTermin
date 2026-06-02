@@ -4,6 +4,7 @@ import CookiesPage from "./components/CookiesPage";
 import { CookiesBanner } from "./components/CookiesBanner";
 import LandingPage from "./components/LandingPage";
 import { LoginPage } from "./components/LoginPage";
+import PomocPage from "./components/PomocPage";
 import PrivacyPage from "./components/PrivacyPage";
 import PolitikaZasebnostiPage from "./components/PolitikaZasebnostiPage";
 import TermsPage from "./components/TermsPage";
@@ -40,6 +41,7 @@ function App() {
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/politika-zasebnosti" element={<PolitikaZasebnostiPage />} />
             <Route path="/terms" element={<TermsPage />} />
+            <Route path="/help" element={<PomocPage />} />
             <Route path="/cookies" element={<CookiesPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
