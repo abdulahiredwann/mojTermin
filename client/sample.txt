@@ -1,0 +1,390 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { SiteHeader } from "@/components/SiteHeader";
+import { SiteFooter } from "@/components/SiteFooter";
+
+export const Route = createFileRoute("/pogoji-uporabe")({
+  component: PogojiUporabePage,
+  head: () => ({
+    meta: [
+      { title: "Pogoji uporabe | MojTermin" },
+      {
+        name: "description",
+        content:
+          "Pogoji uporabe spletne aplikacije MojTermin: pravila, omejitev odgovornosti in veljavna zakonodaja.",
+      },
+      { property: "og:title", content: "Pogoji uporabe | MojTermin" },
+      {
+        property: "og:description",
+        content:
+          "Pravila in pogoji uporabe storitve MojTermin.",
+      },
+    ],
+  }),
+});
+
+type Section = {
+  title: string;
+  paragraphs?: string[];
+  list?: string[];
+  listIntro?: string;
+  outro?: string;
+  subBlocks?: { intro: string; list: string[] }[];
+};
+
+const sections: Section[] = [
+  {
+    title: "1. Splošne določbe",
+    paragraphs: [
+      "Ti pogoji uporabe (v nadaljevanju: \u201CPogoji\u201D) urejajo dostop do in uporabo spletne aplikacije MojTermin (v nadaljevanju: \u201Cstoritev\u201D).",
+      "Z uporabo storitve potrjujete, da ste prebrali, razumeli in se strinjate s temi Pogoji. Če se s Pogoji ne strinjate, storitve ne smete uporabljati.",
+    ],
+  },
+  {
+    title: "2. Opis storitve",
+    paragraphs: [
+      "MojTermin je digitalna platforma, namenjena spremljanju razpoložljivosti zdravstvenih storitev in obveščanju uporabnikov o potencialno zgodnejših terminih.",
+    ],
+    listIntro: "Storitev:",
+    list: [
+      "ne omogoča neposredne rezervacije terminov",
+      "ne zagotavlja zdravstvenih storitev",
+      "ne nadomešča komunikacije z zdravstvenimi izvajalci",
+    ],
+  },
+  {
+    title: "3. Dostop in registracija",
+    paragraphs: [
+      "Za uporabo določenih funkcionalnosti je potrebna registracija uporabniškega računa.",
+    ],
+    listIntro: "Uporabnik se zavezuje, da bo:",
+    list: [
+      "podal točne, popolne in ažurne podatke",
+      "varoval svoje dostopne podatke",
+      "odgovoren za vse aktivnosti na svojem računu",
+    ],
+  },
+  {
+    title: "4. Uporaba storitve",
+    listIntro: "Uporabnik se zavezuje, da storitve ne bo uporabljal:",
+    list: [
+      "v nasprotju z veljavno zakonodajo",
+      "za zlorabe ali poskuse nepooblaščenega dostopa",
+      "za pošiljanje zavajajočih ali neresničnih podatkov",
+    ],
+    outro:
+      "Ponudnik si pridržuje pravico do omejitve ali prekinitve dostopa v primeru kršitev.",
+  },
+  {
+    title: "5. Točnost in razpoložljivost podatkov",
+    paragraphs: [
+      "Podatki o razpoložljivosti terminov temeljijo na javno dostopnih informacijah, ocenah ali drugih virih.",
+    ],
+    listIntro: "Ponudnik:",
+    list: [
+      "ne jamči za popolno točnost, ažurnost ali popolnost podatkov",
+      "ne odgovarja za spremembe ali napake pri izvajalcih zdravstvenih storitev",
+    ],
+    outro: "Uporabnik je dolžan preveriti vse informacije neposredno pri izvajalcu.",
+  },
+  {
+    title: "6. Obvestila",
+    paragraphs: [
+      "Storitev lahko uporabniku pošilja obvestila (npr. po elektronski pošti ali drugih komunikacijskih kanalih), kadar zazna spremembe v razpoložljivosti terminov.",
+    ],
+    listIntro: "Ponudnik ne jamči:",
+    list: [
+      "da bodo obvestila poslana pravočasno",
+      "da bodo zajele vse spremembe",
+    ],
+  },
+  {
+    title: "7. Omejitev odgovornosti",
+    listIntro:
+      "V največjem obsegu, ki ga dovoljuje zakonodaja, ponudnik ne odgovarja za:",
+    list: [
+      "neposredno ali posredno škodo, ki izhaja iz uporabe storitve",
+      "izgubo podatkov, priložnosti ali dobička",
+      "kakršnekoli odločitve uporabnika na podlagi informacij iz storitve",
+    ],
+  },
+  {
+    title: "8. Intelektualna lastnina",
+    paragraphs: [
+      "Vsa vsebina storitve, vključno z zasnovo, funkcionalnostmi, besedili in programsko kodo, je zaščitena in je last ponudnika.",
+    ],
+    listIntro: "Brez predhodnega pisnega dovoljenja ni dovoljeno:",
+    list: ["kopiranje", "distribucija", "komercialna uporaba vsebine"],
+  },
+  {
+    title: "9. Spremembe storitve",
+    listIntro: "Ponudnik si pridržuje pravico, da:",
+    list: [
+      "spremeni ali nadgradi storitev",
+      "začasno ali trajno prekine dostop do storitve",
+      "spremeni te Pogoje",
+    ],
+    outro: "O bistvenih spremembah bodo uporabniki obveščeni na primeren način.",
+  },
+  {
+    title: "10. Prenehanje uporabe",
+    paragraphs: [
+      "Uporabnik lahko kadarkoli preneha uporabljati storitev.",
+      "Ponudnik si pridržuje pravico do začasne ali trajne ukinitve dostopa uporabniku v primeru kršitev teh Pogojev.",
+    ],
+  },
+  {
+    title: "11. Veljavna zakonodaja in pristojnost",
+    paragraphs: [
+      "Za te Pogoje se uporablja pravo Republike Slovenije.",
+      "Za reševanje sporov so pristojna sodišča v Republiki Sloveniji.",
+    ],
+  },
+];
+
+function PogojiUporabePage() {
+  return (
+    <div className="flex min-h-screen flex-col bg-background">
+      <SiteHeader />
+      <main className="flex-1">
+        <article className="mx-auto max-w-3xl px-6 py-16 sm:py-20">
+          <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+            Pogoji uporabe – MojTermin
+          </h1>
+          <div className="mt-10 space-y-10 text-base leading-relaxed text-muted-foreground">
+            {sections.map((s) => (
+              <section key={s.title}>
+                <h2 className="text-xl font-semibold text-foreground">
+                  {s.title}
+                </h2>
+                <div className="mt-4 space-y-4">
+                  {s.paragraphs?.map((p, i) => <p key={i}>{p}</p>)}
+                  {s.listIntro && <p>{s.listIntro}</p>}
+                  {s.list && (
+                    <ul className="list-disc space-y-1 pl-6">
+                      {s.list.map((item, i) => (
+                        <li key={i}>{item}</li>
+                      ))}
+                    </ul>
+                  )}
+                  {s.subBlocks?.map((b, i) => (
+                    <div key={i} className="space-y-2">
+                      <p>{b.intro}</p>
+                      <ul className="list-disc space-y-1 pl-6">
+                        {b.list.map((item, j) => (
+                          <li key={j}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                  {s.outro && <p>{s.outro}</p>}
+                </div>
+              </section>
+            ))}
+          </div>
+        </article>
+      </main>
+      <SiteFooter />
+    </div>
+  );
+}
+
+
+    import { createFileRoute } from "@tanstack/react-router";
+import { SiteHeader } from "@/components/SiteHeader";
+import { SiteFooter } from "@/components/SiteFooter";
+
+export const Route = createFileRoute("/politika-zasebnosti")({
+  component: PolitikaZasebnostiPage,
+  head: () => ({
+    meta: [
+      { title: "Politika zasebnosti | MojTermin" },
+      {
+        name: "description",
+        content:
+          "Politika zasebnosti aplikacije MojTermin: kako zbiramo, obdelujemo in varujemo osebne podatke skladno z GDPR.",
+      },
+      { property: "og:title", content: "Politika zasebnosti | MojTermin" },
+      {
+        property: "og:description",
+        content:
+          "Kako MojTermin obdeluje in varuje vaše osebne podatke skladno z GDPR.",
+      },
+    ],
+  }),
+});
+
+type SubBlock = { intro: string; list: string[] };
+type Section = {
+  title: string;
+  paragraphs?: string[];
+  list?: string[];
+  listIntro?: string;
+  outro?: string;
+  subBlocks?: SubBlock[];
+};
+
+const sections: Section[] = [
+  {
+    title: "1. Upravljavec osebnih podatkov",
+    paragraphs: [
+      "Upravljavec osebnih podatkov je: MojTermin (v nadaljevanju: \u201Cupravljavec\u201D). Kontakt: [vaš email]",
+      "Upravljavec obdeluje osebne podatke v skladu z veljavno zakonodajo, vključno z Uredbo (EU) 2016/679 (GDPR).",
+    ],
+  },
+  {
+    title: "2. Namen obdelave osebnih podatkov",
+    listIntro: "Osebne podatke obdelujemo izključno za naslednje namene:",
+    list: [
+      "zagotavljanje delovanja storitve",
+      "obdelava uporabniških zahtevkov (npr. spremljanje terminov)",
+      "obveščanje uporabnikov o spremembah razpoložljivosti",
+      "izboljšanje uporabniške izkušnje in delovanja aplikacije",
+      "zagotavljanje varnosti sistema",
+    ],
+  },
+  {
+    title: "3. Pravna podlaga za obdelavo",
+    listIntro: "Osebne podatke obdelujemo na podlagi:",
+    list: [
+      "privolitve uporabnika (člen 6(1)(a) GDPR)",
+      "izvajanja storitve (člen 6(1)(b) GDPR)",
+      "zakonitega interesa upravljavca (člen 6(1)(f) GDPR), kjer je to primerno",
+    ],
+  },
+  {
+    title: "4. Vrste osebnih podatkov",
+    paragraphs: ["Obdelujemo naslednje kategorije podatkov:"],
+    subBlocks: [
+      {
+        intro: "4.1 Podatki, ki jih posreduje uporabnik:",
+        list: [
+          "e-mail naslov",
+          "vsebina zahtevka (npr. iskana zdravstvena storitev)",
+        ],
+      },
+      {
+        intro: "4.2 Tehnični podatki:",
+        list: [
+          "IP naslov",
+          "podatki o napravi in brskalniku",
+          "čas dostopa in uporabe aplikacije",
+        ],
+      },
+    ],
+    outro:
+      "Upravljavec ne obdeluje posebnih vrst osebnih podatkov (npr. medicinske dokumentacije), razen če jih uporabnik sam prostovoljno posreduje.",
+  },
+  {
+    title: "5. Hranjenje osebnih podatkov",
+    listIntro:
+      "Osebne podatke hranimo le toliko časa, kolikor je potrebno za dosego namena obdelave, oziroma:",
+    list: [
+      "dokler uporabnik uporablja storitev",
+      "do preklica privolitve ali zahteve za izbris",
+      "v skladu z zakonskimi obveznostmi",
+    ],
+  },
+  {
+    title: "6. Posredovanje podatkov tretjim osebam",
+    listIntro:
+      "Osebni podatki se lahko posredujejo tretjim osebam le, kadar je to nujno za delovanje storitve, kot so:",
+    list: [
+      "ponudniki gostovanja in infrastrukture",
+      "ponudniki e-mail storitev",
+      "tehnični partnerji",
+    ],
+    outro:
+      "Vsi obdelovalci podatkov so zavezani k varovanju osebnih podatkov in delujejo v skladu z GDPR. Podatkov ne prodajamo tretjim osebam.",
+  },
+  {
+    title: "7. Prenos podatkov izven EU",
+    paragraphs: [
+      "Podatki se praviloma obdelujejo znotraj Evropske unije.",
+      "V primeru prenosa izven EU upravljavec zagotavlja ustrezne zaščitne ukrepe (npr. standardne pogodbene klavzule).",
+    ],
+  },
+  {
+    title: "8. Pravice uporabnikov",
+    listIntro: "Uporabnik ima pravico do:",
+    list: [
+      "dostopa do svojih osebnih podatkov",
+      "popravka netočnih podatkov",
+      "izbrisa podatkov (\u201Cpravica do pozabe\u201D)",
+      "omejitve obdelave",
+      "prenosljivosti podatkov",
+      "ugovora obdelavi",
+    ],
+    outro: "Zahtevo lahko uporabnik pošlje na kontakt upravljavca.",
+  },
+  {
+    title: "9. Varnost podatkov",
+    listIntro:
+      "Upravljavec uporablja ustrezne tehnične in organizacijske ukrepe za zaščito osebnih podatkov, vključno z:",
+    list: [
+      "šifrirano komunikacijo (HTTPS)",
+      "nadzorom dostopa",
+      "varnim shranjevanjem podatkov",
+    ],
+  },
+  {
+    title: "10. Piškotki",
+    paragraphs: [
+      "Aplikacija uporablja piškotke za zagotavljanje delovanja in izboljšanje uporabniške izkušnje.",
+      "Podrobnosti so navedene v Politiki piškotkov.",
+    ],
+  },
+  {
+    title: "11. Spremembe politike zasebnosti",
+    paragraphs: [
+      "Upravljavec si pridržuje pravico do spremembe te politike.",
+      "Spremembe začnejo veljati z objavo na spletni strani.",
+    ],
+  },
+];
+
+function PolitikaZasebnostiPage() {
+  return (
+    <div className="flex min-h-screen flex-col bg-background">
+      <SiteHeader />
+      <main className="flex-1">
+        <article className="mx-auto max-w-3xl px-6 py-16 sm:py-20">
+          <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+            Politika zasebnosti – MojTermin
+          </h1>
+          <div className="mt-10 space-y-10 text-base leading-relaxed text-muted-foreground">
+            {sections.map((s) => (
+              <section key={s.title}>
+                <h2 className="text-xl font-semibold text-foreground">
+                  {s.title}
+                </h2>
+                <div className="mt-4 space-y-4">
+                  {s.paragraphs?.map((p, i) => <p key={i}>{p}</p>)}
+                  {s.listIntro && <p>{s.listIntro}</p>}
+                  {s.list && (
+                    <ul className="list-disc space-y-1 pl-6">
+                      {s.list.map((item, i) => (
+                        <li key={i}>{item}</li>
+                      ))}
+                    </ul>
+                  )}
+                  {s.subBlocks?.map((b, i) => (
+                    <div key={i} className="space-y-2">
+                      <p className="font-medium text-foreground">{b.intro}</p>
+                      <ul className="list-disc space-y-1 pl-6">
+                        {b.list.map((item, j) => (
+                          <li key={j}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                  {s.outro && <p>{s.outro}</p>}
+                </div>
+              </section>
+            ))}
+          </div>
+        </article>
+      </main>
+      <SiteFooter />
+    </div>
+  );
+}

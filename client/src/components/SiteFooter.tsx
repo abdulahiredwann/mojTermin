@@ -13,10 +13,12 @@ export function SiteFooter() {
           <Link to="/privacy" className="underline-offset-4 transition-colors hover:underline">
             {t.footerPrivacy}
           </Link>
+          <Link to="/terms" className="underline-offset-4 transition-colors hover:underline">
+            {t.footerTerms}
+          </Link>
           <Link to="/about" className="underline-offset-4 transition-colors hover:underline">
             {t.footerAbout}
           </Link>
-          <span className="cursor-default text-white/90">{t.footerTerms}</span>
           <Button
             asChild
             size="sm"
